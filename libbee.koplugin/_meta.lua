@@ -5,5 +5,5 @@ return {
     name        = "libbee",
     fullname    = _("Libbee"),
     description = _([[Browse your Libby shelf and download ebook loans directly to KOReader.]]),
-    version     = "1.0.0"
+    version     = "26.6.16"
 }
