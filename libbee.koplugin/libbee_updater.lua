@@ -12,8 +12,8 @@ local logger      = require("logger")
 -- ---------------------------------------------------------------------------
 -- Configuration — UPDATE THESE WHEN REPO IS CREATED
 -- ---------------------------------------------------------------------------
-local GITHUB_OWNER = "PLACEHOLDER_OWNER"    -- ← Replace with your GitHub username
-local GITHUB_REPO  = "libbee"               -- ← Replace if you name the repo differently
+local GITHUB_OWNER = "ultimatejimmy"
+local GITHUB_REPO  = "libbee"
 local ASSET_NAME   = "libbee.koplugin.zip"
 
 -- Cache validity (seconds). Prevents hammering GitHub API on every open.
@@ -29,14 +29,8 @@ local _plugin_dir = (debug.getinfo(1, "S").source or ""):match("^@(.+)/[^/]+$")
     or "/mnt/us/extensions/libbee.koplugin"
 
 local function _apiUrl(use_beta)
-    if use_beta then
-        return string.format(
-            "https://api.github.com/repos/%s/%s/releases",
-            GITHUB_OWNER, GITHUB_REPO
-        )
-    end
     return string.format(
-        "https://api.github.com/repos/%s/%s/releases/latest",
+        "https://api.github.com/repos/%s/%s/releases",
         GITHUB_OWNER, GITHUB_REPO
     )
 end
@@ -124,7 +118,7 @@ local function _closeWidget(w)
 end
 
 -- ---------------------------------------------------------------------------
--- HTTP
+-- HTTP (Manual Redirect Following)
 -- ---------------------------------------------------------------------------
 
 local function _httpGet(url)
@@ -132,46 +126,57 @@ local function _httpGet(url)
     local http   = require("socket/http")
     local https_ok, https = pcall(require, "ssl.https")
     local ltn12  = require("ltn12")
-    local socket = require("socket")
 
-    -- Use https for github.com
-    local impl = (https_ok and url:sub(1,8) == "https://") and https or http
+    local current_url = url
+    local redirect_count = 0
+    local max_redirects = 5
 
-    if ok_su then
-        socketutil:set_timeout(
-            socketutil.LARGE_BLOCK_TIMEOUT,
-            socketutil.LARGE_TOTAL_TIMEOUT
-        )
+    while redirect_count < max_redirects do
+        local chunks = {}
+        local is_https = current_url:match("^https://") ~= nil
+        local http_req = (is_https and https_ok) and https or http
+
+        if ok_su then
+            socketutil:set_timeout(
+                socketutil.LARGE_BLOCK_TIMEOUT,
+                socketutil.LARGE_TOTAL_TIMEOUT
+            )
+        end
+
+        local params = {
+            url      = current_url,
+            method   = "GET",
+            headers  = {
+                ["User-Agent"] = "Mozilla/5.0 (compatible; KOReader-Libbee-Updater/1.0)",
+                ["Accept"]     = "application/vnd.github.v3+json",
+            },
+            sink     = ltn12.sink.table(chunks),
+        }
+        if not is_https then params.redirect = true end
+
+        local ok_pcall, req_ok, code, headers = pcall(http_req.request, params)
+        if ok_su then socketutil:reset_timeout() end
+
+        local res_code = tonumber(code) or tonumber(req_ok) or 0
+        if ok_pcall and (res_code == 301 or res_code == 302 or res_code == 303 or res_code == 307 or res_code == 308) then
+            local location = (type(headers) == "table") and (headers.location or headers.Location)
+            if location and location ~= "" then
+                current_url = location
+                redirect_count = redirect_count + 1
+            else
+                break
+            end
+        elseif ok_pcall and res_code == 200 then
+            return table.concat(chunks)
+        else
+            if not ok_pcall then
+                return nil, "network error (" .. tostring(req_ok) .. ")"
+            end
+            return nil, string.format("HTTP %s", tostring(res_code > 0 and res_code or code))
+        end
     end
 
-    local chunks = {}
-    local code, headers, status = socket.skip(1, impl.request({
-        url      = url,
-        method   = "GET",
-        headers  = {
-            ["User-Agent"] = "KOReader-Libbee-Updater/1.0",
-            ["Accept"]     = "application/vnd.github.v3+json",
-        },
-        sink     = ltn12.sink.table(chunks),
-        redirect = true,
-    }))
-
-    if ok_su then socketutil:reset_timeout() end
-
-    if ok_su and (
-        code == socketutil.TIMEOUT_CODE or
-        code == socketutil.SSL_HANDSHAKE_CODE or
-        code == socketutil.SINK_TIMEOUT_CODE
-    ) then
-        return nil, "timeout (" .. tostring(code) .. ")"
-    end
-
-    if headers == nil then
-        return nil, "network error (" .. tostring(code or status) .. ")"
-    end
-
-    if code == 200 then return table.concat(chunks) end
-    return nil, string.format("HTTP %s", tostring(code))
+    return nil, "HTTP request failed (too many redirects or not found)"
 end
 
 local function _httpGetToFile(url, dest_path)
@@ -179,46 +184,67 @@ local function _httpGetToFile(url, dest_path)
     local http   = require("socket/http")
     local https_ok, https = pcall(require, "ssl.https")
     local ltn12  = require("ltn12")
-    local socket = require("socket")
-    local impl = (https_ok and url:sub(1,8) == "https://") and https or http
 
-    local fh, err_open = io.open(dest_path, "wb")
-    if not fh then return nil, "Could not create file: " .. tostring(err_open) end
+    local current_url = url
+    local redirect_count = 0
+    local max_redirects = 5
 
-    if ok_su then
-        socketutil:set_timeout(
-            socketutil.FILE_BLOCK_TIMEOUT,
-            socketutil.FILE_TOTAL_TIMEOUT
-        )
+    while redirect_count < max_redirects do
+        local response_body = {}
+        local is_https = current_url:match("^https://") ~= nil
+        local http_req = (is_https and https_ok) and https or http
+
+        if ok_su then
+            socketutil:set_timeout(
+                socketutil.FILE_BLOCK_TIMEOUT,
+                socketutil.FILE_TOTAL_TIMEOUT
+            )
+        end
+
+        local params = {
+            url      = current_url,
+            method   = "GET",
+            headers  = {
+                ["User-Agent"] = "Mozilla/5.0 (compatible; KOReader-Libbee-Updater/1.0)",
+            },
+            sink     = ltn12.sink.table(response_body),
+        }
+        if not is_https then params.redirect = true end
+
+        local ok_pcall, req_ok, code, headers = pcall(http_req.request, params)
+        if ok_su then socketutil:reset_timeout() end
+
+        local res_code = tonumber(code) or tonumber(req_ok) or 0
+        if ok_pcall and (res_code == 301 or res_code == 302 or res_code == 303 or res_code == 307 or res_code == 308) then
+            local location = (type(headers) == "table") and (headers.location or headers.Location)
+            if location and location ~= "" then
+                current_url = location
+                redirect_count = redirect_count + 1
+            else
+                break
+            end
+        elseif ok_pcall and res_code == 200 then
+            local target = io.open(dest_path, "wb")
+            if not target then
+                return false, "Could not open target file for writing"
+            end
+            for _, chunk in ipairs(response_body) do
+                target:write(chunk)
+            end
+            target:close()
+            return true
+        else
+            if not ok_pcall then
+                pcall(os.remove, dest_path)
+                return false, "network error (" .. tostring(req_ok) .. ")"
+            end
+            pcall(os.remove, dest_path)
+            return false, string.format("HTTP %s", tostring(res_code > 0 and res_code or code))
+        end
     end
 
-    local code, headers, status = socket.skip(1, impl.request({
-        url      = url,
-        method   = "GET",
-        headers  = { ["User-Agent"] = "KOReader-Libbee-Updater/1.0" },
-        sink     = ltn12.sink.file(fh),
-        redirect = true,
-    }))
-
-    if ok_su then socketutil:reset_timeout() end
-
-    if ok_su and (
-        code == socketutil.TIMEOUT_CODE or
-        code == socketutil.SSL_HANDSHAKE_CODE or
-        code == socketutil.SINK_TIMEOUT_CODE
-    ) then
-        pcall(os.remove, dest_path)
-        return nil, "timeout (" .. tostring(code) .. ")"
-    end
-
-    if headers == nil then
-        pcall(os.remove, dest_path)
-        return nil, "network error (" .. tostring(code or status) .. ")"
-    end
-
-    if code == 200 then return true end
     pcall(os.remove, dest_path)
-    return nil, string.format("HTTP %s", tostring(code))
+    return false, "HTTP request failed (too many redirects)"
 end
 
 -- ---------------------------------------------------------------------------
@@ -230,7 +256,7 @@ local function _parseRelease(body, use_beta)
     if not ok_j then
         -- Regex fallback
         local tag = body:match('"tag_name"%s*:%s*"([^"]*)"')
-        if not tag then return nil, "could not parse tag_name" end
+        if not tag then return { up_to_date = true } end
         local download_url = body:match(
             '"browser_download_url"%s*:%s*"([^"]*' .. ASSET_NAME:gsub("%.", "%%.") .. '[^"]*)"'
         )
@@ -242,21 +268,39 @@ local function _parseRelease(body, use_beta)
         return nil, "JSON parse error: " .. tostring(data)
     end
 
-    if data.message and not data.tag_name and not (use_beta and data[1]) then
+    if data.message and not data.tag_name and not data[1] then
+        if data.message == "Not Found" then
+            return { up_to_date = true }
+        end
         return nil, "GitHub API error: " .. tostring(data.message)
     end
 
-    local release_data = data
-    if use_beta then
-        if type(data) == "table" and data[1] then
+    local release_data = nil
+    if type(data) == "table" and data[1] then
+        if use_beta then
             release_data = data[1]
         else
-            return nil, "No releases found"
+            for _, r in ipairs(data) do
+                if not r.prerelease and not r.draft then
+                    release_data = r
+                    break
+                end
+            end
+            if not release_data then
+                release_data = data[1]
+            end
         end
+    elseif data.tag_name then
+        release_data = data
+    else
+        return { up_to_date = true }
+    end
+
+    if not release_data or not release_data.tag_name then
+        return { up_to_date = true }
     end
 
     local tag = release_data.tag_name
-    if not tag then return nil, "tag_name missing from API response" end
 
     local download_url = nil
     for _, asset in ipairs(release_data.assets or {}) do
@@ -412,15 +456,15 @@ end
 -- ---------------------------------------------------------------------------
 
 local function _showUpdateDialog(release, current)
-    local latest       = release.version
-    local download_url = release.download_url
-    local notes        = release.notes
-
-    if not _versionLessThan(current, latest) then
+    if release.up_to_date or not release.version or not _versionLessThan(current, release.version) then
         logger.info("libbee updater: up to date (" .. current .. ")")
         _toast("Libbee is up to date (v" .. current .. ")")
         return
     end
+
+    local latest       = release.version
+    local download_url = release.download_url
+    local notes        = release.notes
 
     logger.info("libbee updater: new version available: " .. latest)
 
@@ -460,7 +504,12 @@ local function _doFetch(use_beta)
         return cached
     end
     local body, err = _httpGet(_apiUrl(use_beta))
-    if not body then return { error = err } end
+    if not body then
+        if err and err:find("404") then
+            return { up_to_date = true }
+        end
+        return { error = err }
+    end
     local release, parse_err = _parseRelease(body, use_beta)
     if not release then return { error = "parse error: " .. tostring(parse_err) } end
     _saveCache(release, use_beta)

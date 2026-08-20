@@ -138,7 +138,13 @@ _G.assert.same = _G.assert.are.same
 
 -- List of spec files to execute
 local specs = {
-    "spec/libbee_config_spec.lua"
+    "spec/libbee_config_spec.lua",
+    "spec/libbee_logger_spec.lua",
+    "spec/libbee_api_spec.lua",
+    "spec/libbee_theme_spec.lua",
+    "spec/libbee_covers_spec.lua",
+    "spec/libbee_state_spec.lua",
+    "spec/libbee_ui_spec.lua",
 }
 
 print("=== Running KOReader Libbee Unit Tests ===")

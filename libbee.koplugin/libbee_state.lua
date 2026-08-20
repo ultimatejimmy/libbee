@@ -1,10 +1,11 @@
 -- libbee_state.lua — Persistent State Manager
--- Stores chip identity and optional shelf cache in DataStorage (survives updates).
--- The chip identity lives OUTSIDE the plugin zip so OTA updates never wipe auth.
+-- Stores chip identity, pending setup tokens, shelf cache, and UI preferences in DataStorage.
 
 local logger = require("logger")
 
 local M = {}
+
+local SECONDS_PER_DAY = 24 * 60 * 60
 
 -- ---------------------------------------------------------------------------
 -- Paths
@@ -12,17 +13,20 @@ local M = {}
 
 local function _stateDir()
     local ok, DS = pcall(require, "datastorage")
-    if ok and DS then
-        local dir = DS:getSettingsDir() .. "/libbee"
-        -- Ensure the directory exists
-        local lfs_ok, lfs = pcall(require, "libs/libkoreader-lfs")
-        if not lfs_ok then lfs_ok, lfs = pcall(require, "lfs") end
-        if lfs_ok and lfs and lfs.attributes(dir) == nil then
-            pcall(lfs.mkdir, dir)
-        end
-        return dir
+    local base = "/tmp"
+    if ok and DS and DS.getSettingsDir then
+        local s = DS:getSettingsDir()
+        if s and s ~= "" then base = s end
     end
-    return "/tmp/libbee"
+    local dir = base .. "/libbee"
+    local lfs_ok, lfs = pcall(require, "libs/libkoreader-lfs")
+    if not lfs_ok then lfs_ok, lfs = pcall(require, "lfs") end
+    if lfs_ok and lfs and lfs.mkdir then
+        pcall(lfs.mkdir, base)
+        pcall(lfs.mkdir, dir)
+    end
+    pcall(os.execute, "mkdir -p " .. dir .. " 2>/dev/null")
+    return dir
 end
 
 local function _statePath()
@@ -42,22 +46,35 @@ local function _readJson(path)
     if not fh then return nil end
     local raw = fh:read("*a")
     fh:close()
-    local ok, json = pcall(require, "json")
-    if not ok then return nil end
-    local ok2, data = pcall(json.decode, raw)
-    if not ok2 or type(data) ~= "table" then return nil end
-    return data
+    local ok_rj, rapidjson = pcall(require, "rapidjson")
+    if ok_rj and rapidjson then
+        local ok, data = pcall(rapidjson.decode, raw)
+        if ok and type(data) == "table" then return data end
+    end
+    local ok_j, json = pcall(require, "json")
+    if ok_j and json then
+        local ok, data = pcall(json.decode, raw)
+        if ok and type(data) == "table" then return data end
+    end
+    return nil
 end
 
 local function _writeJson(path, data)
-    local ok, json = pcall(require, "json")
-    if not ok then
-        logger.warn("libbee state: json module unavailable, cannot save state")
-        return false
+    local encoded = nil
+    local ok_rj, rapidjson = pcall(require, "rapidjson")
+    if ok_rj and rapidjson then
+        local ok, res = pcall(rapidjson.encode, data)
+        if ok and type(res) == "string" then encoded = res end
     end
-    local ok2, encoded = pcall(json.encode, data)
-    if not ok2 then
-        logger.warn("libbee state: json encode failed: " .. tostring(encoded))
+    if not encoded then
+        local ok_j, json = pcall(require, "json")
+        if ok_j and json then
+            local ok, res = pcall(json.encode, data)
+            if ok and type(res) == "string" then encoded = res end
+        end
+    end
+    if not encoded then
+        logger.warn("libbee state: json encoder unavailable, cannot save state")
         return false
     end
     local fh = io.open(path, "w")
@@ -71,10 +88,9 @@ local function _writeJson(path, data)
 end
 
 -- ---------------------------------------------------------------------------
--- Chip Identity (long-term auth token)
+-- Chip Identity & Setup State
 -- ---------------------------------------------------------------------------
 
--- Returns the stored chip identity string, or nil if not set.
 function M.getChipIdentity()
     local data = _readJson(_statePath())
     if data and type(data.chip_identity) == "string" and data.chip_identity ~= "" then
@@ -83,14 +99,14 @@ function M.getChipIdentity()
     return nil
 end
 
--- Saves the chip identity returned by the clone/setup endpoint.
--- chip_identity: the raw chip token string from the API response
--- library_name:  human-readable library name (optional, for display)
-function M.saveChipIdentity(chip_identity, library_name)
+function M.saveChipIdentity(chip_identity, library_name, cards)
     local data = _readJson(_statePath()) or {}
-    data.chip_identity = chip_identity
-    data.library_name  = library_name or data.library_name or ""
-    data.registered_at = os.time()
+    data.chip_identity     = chip_identity
+    data.library_name      = library_name or data.library_name or ""
+    data.cards             = cards or data.cards
+    data.registered_at     = os.time()
+    data.pending_identity  = nil
+    data.pending_code      = nil
     local ok = _writeJson(_statePath(), data)
     if ok then
         logger.info("libbee state: chip identity saved")
@@ -98,33 +114,117 @@ function M.saveChipIdentity(chip_identity, library_name)
     return ok
 end
 
--- Clears the chip identity (forces re-authentication).
+function M.getPendingIdentity()
+    local data = _readJson(_statePath())
+    if data and type(data.pending_identity) == "string" and data.pending_identity ~= "" then
+        return data.pending_identity
+    end
+    return nil
+end
+
+function M.savePendingIdentity(pending_identity, pending_code)
+    local data = _readJson(_statePath()) or {}
+    data.pending_identity = pending_identity
+    data.pending_code     = pending_code
+    return _writeJson(_statePath(), data)
+end
+
+function M.clearPendingIdentity()
+    local data = _readJson(_statePath())
+    if data and (data.pending_identity or data.pending_code) then
+        data.pending_identity = nil
+        data.pending_code     = nil
+        _writeJson(_statePath(), data)
+    end
+end
+
 function M.clearChipIdentity()
     local data = _readJson(_statePath()) or {}
-    data.chip_identity = nil
-    data.registered_at = nil
+    data.chip_identity     = nil
+    data.library_name      = nil
+    data.cards             = nil
+    data.registered_at     = nil
+    data.pending_identity  = nil
+    data.pending_code      = nil
     _writeJson(_statePath(), data)
     logger.info("libbee state: chip identity cleared")
 end
 
--- Returns a human-readable library name if stored.
 function M.getLibraryName()
     local data = _readJson(_statePath())
     return data and data.library_name or nil
 end
 
--- Returns true if the chip identity is set.
+function M.getCards()
+    local data = _readJson(_statePath())
+    return data and data.cards or nil
+end
+
 function M.isAuthenticated()
     return M.getChipIdentity() ~= nil
 end
 
 -- ---------------------------------------------------------------------------
--- Shelf Cache (short-lived, speeds up re-opens)
+-- UI Preferences
+-- ---------------------------------------------------------------------------
+
+function M.getViewMode()
+    local data = _readJson(_statePath())
+    if data and (data.view_mode == "cover" or data.view_mode == "list") then
+        return data.view_mode
+    end
+    return "list"
+end
+
+function M.saveViewMode(view_mode)
+    local data = _readJson(_statePath()) or {}
+    data.view_mode = (view_mode == "cover") and "cover" or "list"
+    return _writeJson(_statePath(), data)
+end
+
+-- ---------------------------------------------------------------------------
+-- Date / Loan helpers
+-- ---------------------------------------------------------------------------
+
+local function date_ordinal(year, month, day)
+    if month <= 2 then
+        year = year - 1
+        month = month + 12
+    end
+    return 365 * year
+        + math.floor(year / 4)
+        - math.floor(year / 100)
+        + math.floor(year / 400)
+        + math.floor((153 * (month - 3) + 2) / 5)
+        + day
+end
+
+function M.loanDaysRemaining(loan, now_timestamp)
+    if type(loan) ~= "table" then return nil end
+    local expire = loan.expireTimestamp or loan.expires or loan.expireDate
+    if type(expire) == "number" then
+        local seconds = expire - (now_timestamp or os.time())
+        if seconds <= 0 then return 0 end
+        return math.ceil(seconds / SECONDS_PER_DAY)
+    end
+    if type(expire) == "string" then
+        local year, month, day = expire:match("^(%d%d%d%d)%-(%d%d)%-(%d%d)")
+        if year then
+            year, month, day = tonumber(year), tonumber(month), tonumber(day)
+            local now = os.date("!*t", now_timestamp or os.time())
+            local remaining = date_ordinal(year, month, day) - date_ordinal(now.year, now.month, now.day)
+            return remaining < 0 and 0 or remaining
+        end
+    end
+    return nil
+end
+
+-- ---------------------------------------------------------------------------
+-- Shelf Cache
 -- ---------------------------------------------------------------------------
 
 local SHELF_CACHE_TTL = 15 * 60 -- 15 minutes
 
--- Returns cached shelf data if fresh, else nil.
 function M.getShelfCache()
     local data = _readJson(_shelfCachePath())
     if not data then return nil end
@@ -135,7 +235,6 @@ function M.getShelfCache()
     return data.shelf
 end
 
--- Saves the fetched shelf (array of loan tables) to the cache.
 function M.saveShelfCache(shelf)
     _writeJson(_shelfCachePath(), {
         timestamp = os.time(),
@@ -143,7 +242,6 @@ function M.saveShelfCache(shelf)
     })
 end
 
--- Invalidates the shelf cache (call after a download or on user request).
 function M.clearShelfCache()
     pcall(os.remove, _shelfCachePath())
 end

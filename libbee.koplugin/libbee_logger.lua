@@ -40,7 +40,7 @@ end
 function M.info(msg)  _write("INFO",  msg); klogger.info("libbee: "  .. tostring(msg)) end
 function M.warn(msg)  _write("WARN",  msg); klogger.warn("libbee: "  .. tostring(msg)) end
 function M.err(msg)   _write("ERR",   msg); klogger.err("libbee: "   .. tostring(msg)) end
-function M.debug(msg) _write("DEBUG", msg); klogger.dbg("libbee: "   .. tostring(msg)) end
+function M.debug(msg) _write("DEBUG", msg); (klogger.dbg or klogger.debug or function() end)("libbee: "   .. tostring(msg)) end
 function M.path()     return _logPath() end
 
 return M

@@ -1,0 +1,27 @@
+-- libbee_theme_spec.lua
+require("spec.spec_helper")
+local theme = require("libbee_theme")
+
+describe("libbee_theme", function()
+    it("is a table", function()
+        assert.is_table(theme)
+    end)
+
+    it("provides sizing and scaling constants", function()
+        assert.is_not_nil(theme.border_line_h)
+        assert.is_not_nil(theme.border_window)
+        assert.is_not_nil(theme.border_btn)
+        assert.is_not_nil(theme.border_preview)
+        assert.is_not_nil(theme.radius_btn)
+        assert.is_not_nil(theme.radius_badge)
+        assert.is_not_nil(theme.gap)
+        assert.is_not_nil(theme.face_label_size)
+        assert.is_not_nil(theme.title_font_size)
+        assert.is_not_nil(theme.subtext_font_size)
+    end)
+
+    it("scales values using sc()", function()
+        assert.is_true(type(theme.sc) == "function")
+        assert.is_true(theme.sc(10) == 10)
+    end)
+end)

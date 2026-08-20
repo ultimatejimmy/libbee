@@ -52,8 +52,13 @@ function Run-Workflow {
     Write-Host " PASSED" -ForegroundColor Green
 
     # 2. Unit Tests
-    Write-Host "Running unit tests (Bundled LuaJIT in WSL)..."
-    wsl env SQUASHFS_ROOT=$SquashPath "$SquashPath/usr/lib/koreader/luajit" tools/spec_runner.lua
+    Write-Host "Running unit tests (WSL LuaJIT)..."
+    wsl test -f "$SquashPath/usr/lib/koreader/luajit"
+    if ($LASTEXITCODE -eq 0) {
+        wsl env SQUASHFS_ROOT=$SquashPath "$SquashPath/usr/lib/koreader/luajit" tools/spec_runner.lua
+    } else {
+        wsl env SQUASHFS_ROOT=$SquashPath luajit tools/spec_runner.lua
+    }
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Tests FAILED. Aborting sync." -ForegroundColor Red
         return $false

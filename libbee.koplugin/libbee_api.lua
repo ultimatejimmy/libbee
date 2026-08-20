@@ -1,17 +1,13 @@
 -- libbee_api.lua — Libby/OverDrive Network API
--- All HTTP calls live here. No UI code. Returns plain Lua tables or error strings.
+-- All HTTP calls live here. Returns plain Lua tables or error strings.
 --
--- Libby API notes (reverse-engineered from odmpy / libbydl / MobileRead community):
---   Base:     https://sentry-read.svc.overdrive.com
---   Thunder:  https://thunder.api.overdrive.com
---
--- Authentication uses a "chip identity" — a device UUID registered against a
--- library card. This is the same mechanism Kobo eReaders use natively.
--- It is obtained once via a one-time "clone" setup code from the Libby app.
+-- Uses Libby's active Sentry API (https://sentry.libbyapp.com) and the
+-- standard device pairing flow (anonymous chip -> clone code -> blessing -> chip refresh -> sync).
 
 local plugin_path = ((...) or ""):match("(.-)[^%.]+$") or ""
 local log = require(plugin_path .. "libbee_logger")
-
+local State = require(plugin_path .. "libbee_state")
+local Transport = require(plugin_path .. "libbee_transport")
 
 local M = {}
 
@@ -19,622 +15,673 @@ local M = {}
 -- Constants
 -- ---------------------------------------------------------------------------
 
-local SENTRY_BASE  = "https://sentry-read.svc.overdrive.com"
-local THUNDER_BASE = "https://thunder.api.overdrive.com"
-local USER_AGENT   = "KOReader-Libbee/1.0"
-
--- Fulfill format to request (epub-adobe = ACSM file).
--- Other options: "ebook-epub-open" (open epub, no DRM), "audiobook-mp3" etc.
-local FULFILL_FORMAT = "ebook-epub-adobe"
+M.SENTRY_BASE     = "https://sentry.libbyapp.com"
+M.CLIENT_VERSION  = "d:22.0.3"
+M.USER_AGENT      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 -- ---------------------------------------------------------------------------
--- Internal: HTTP helpers
+-- Internal: Transport singleton
 -- ---------------------------------------------------------------------------
 
--- Sets up socketutil timeouts and returns http, ltn12, socket modules.
-local function _initHttp()
-    local ok_su, socketutil = pcall(require, "socketutil")
-    local http   = require("socket/http")
-    local ltn12  = require("ltn12")
-    local socket = require("socket")
-    return {
-        socketutil = ok_su and socketutil or nil,
-        http       = http,
-        ltn12      = ltn12,
-        socket     = socket,
-    }
+local _transport_instance = nil
+local function _getTransport()
+    if not _transport_instance then
+        _transport_instance = Transport.new()
+    end
+    return _transport_instance
 end
 
--- Performs an HTTP(S) GET. Returns body string or nil, errmsg.
-local function _httpGet(url, headers)
-    local libs = _initHttp()
-    local impl = libs.http
+-- ---------------------------------------------------------------------------
+-- Accept-Language algorithm (required by Libby Sentry API)
+-- ---------------------------------------------------------------------------
 
-    if libs.socketutil then
-        libs.socketutil:set_timeout(
-            libs.socketutil.LARGE_BLOCK_TIMEOUT,
-            libs.socketutil.LARGE_TOTAL_TIMEOUT
-        )
+function M.chip_accept_language(identity_token, chip_id)
+    local seed = identity_token
+    if not seed or seed == "" then
+        if chip_id and chip_id ~= "" then
+            seed = "xxxxxx" .. chip_id
+        else
+            seed = "cudlkahllcnsjxhbmddl"
+        end
     end
 
-    local chunks = {}
-    local req_headers = {
-        ["User-Agent"] = USER_AGENT,
-        ["Accept"]     = "application/json",
-    }
-    if headers then
-        for k, v in pairs(headers) do req_headers[k] = v end
+    local chars = {}
+    for i = 1, #seed do
+        local ch = seed:sub(i, i)
+        if ch >= "a" and ch <= "z" then
+            table.insert(chars, ch)
+        end
     end
 
-    local code, resp_headers, status = libs.socket.skip(1, impl.request({
-        url      = url,
-        method   = "GET",
-        headers  = req_headers,
-        sink     = libs.ltn12.sink.table(chunks),
-    }))
-
-    if libs.socketutil then libs.socketutil:reset_timeout() end
-
-    if libs.socketutil and (
-        code == libs.socketutil.TIMEOUT_CODE or
-        code == libs.socketutil.SSL_HANDSHAKE_CODE or
-        code == libs.socketutil.SINK_TIMEOUT_CODE
-    ) then
-        return nil, "timeout (" .. tostring(code) .. ")"
+    local reversed = {}
+    for i = #chars, 1, -1 do
+        table.insert(reversed, chars[i])
     end
-
-    if resp_headers == nil then
-        local err_detail = "network error (" .. tostring(code or status) .. ")"
-        log.warn("_httpGet failed: " .. err_detail .. " url=" .. url)
-        return nil, err_detail
-    end
-
-    local body = table.concat(chunks)
-    if code == 200 then
-        return body, nil, resp_headers
-    end
-    if code == 526 then
-        log.err("HTTP 526 — Cloudflare TLS validation failed. Device clock or CA bundle may be outdated. url=" .. url)
-        return nil, "HTTP 526 SSL error", resp_headers
-    end
-    log.warn("_httpGet HTTP " .. tostring(code) .. " url=" .. url)
-    return nil, ("HTTP " .. tostring(code)), resp_headers
+    local normalized = table.concat(reversed)
+    return normalized:sub(5, 6)
 end
 
--- Performs an HTTP(S) POST with a JSON body. Returns body string or nil, errmsg.
-local function _httpPost(url, payload_table, headers)
-    local libs = _initHttp()
-    local impl = libs.http
+-- ---------------------------------------------------------------------------
+-- JWT & Chip ID Helpers
+-- ---------------------------------------------------------------------------
+
+function M.decodeJwtPayload(identity)
+    if type(identity) ~= "string" then return nil, "Identity is missing" end
+    local payload = identity:match("^[^.]+%.([^.]+)%.")
+    if not payload then return nil, "Identity is not a JWT" end
+
+    local transport = _getTransport()
+    local decoded, decode_err = transport:base64url_decode(payload)
+    if not decoded then return nil, decode_err or "Could not decode JWT payload" end
+
+    local ok_rj, rapidjson = pcall(require, "rapidjson")
+    if ok_rj and rapidjson then
+        local ok, res = pcall(rapidjson.decode, decoded)
+        if ok and type(res) == "table" then return res end
+    end
 
     local ok_j, json = pcall(require, "json")
-    if not ok_j then return nil, "json module unavailable" end
-
-    local ok_e, payload_str = pcall(json.encode, payload_table or {})
-    if not ok_e then return nil, "json encode error: " .. tostring(payload_str) end
-
-    if libs.socketutil then
-        libs.socketutil:set_timeout(
-            libs.socketutil.LARGE_BLOCK_TIMEOUT,
-            libs.socketutil.LARGE_TOTAL_TIMEOUT
-        )
+    if ok_j and json then
+        local ok, res = pcall(json.decode, decoded)
+        if ok and type(res) == "table" then return res end
     end
 
-    local chunks = {}
-    local req_headers = {
-        ["User-Agent"]   = USER_AGENT,
-        ["Accept"]       = "application/json",
-        ["Content-Type"] = "application/json",
+    return nil, "Could not parse decoded JWT JSON"
+end
+
+function M.short_chip_id(identity)
+    local payload, err = M.decodeJwtPayload(identity)
+    if not payload then return nil, err end
+    local chip = payload.chip
+    if type(chip) ~= "table" or type(chip.id) ~= "string" then
+        return nil, "Identity JWT is missing chip.id"
+    end
+    return chip.id:match("^([^-]+)")
+end
+
+-- ---------------------------------------------------------------------------
+-- HTTP Request wrapper
+-- ---------------------------------------------------------------------------
+
+local function _defaultHeaders(user_agent)
+    return {
+        ["User-Agent"]      = user_agent or M.USER_AGENT,
+        ["Accept"]          = "application/json",
+        ["Accept-Encoding"] = "gzip",
+        ["Referer"]         = "https://libbyapp.com/",
+        ["Origin"]          = "https://libbyapp.com",
+        ["Sec-Fetch-Dest"]  = "empty",
+        ["Sec-Fetch-Mode"]  = "cors",
+        ["Sec-Fetch-Site"]  = "same-site",
+        ["Cache-Control"]   = "no-cache",
+        ["Pragma"]          = "no-cache",
     }
-    if headers then
-        for k, v in pairs(headers) do req_headers[k] = v end
-    end
-
-    local code, resp_headers, status = libs.socket.skip(1, impl.request({
-        url     = url,
-        method  = "POST",
-        headers = req_headers,
-        source  = libs.ltn12.source.string(payload_str),
-        sink    = libs.ltn12.sink.table(chunks),
-    }))
-
-    if libs.socketutil then libs.socketutil:reset_timeout() end
-
-    if libs.socketutil and (
-        code == libs.socketutil.TIMEOUT_CODE or
-        code == libs.socketutil.SSL_HANDSHAKE_CODE or
-        code == libs.socketutil.SINK_TIMEOUT_CODE
-    ) then
-        return nil, "timeout (" .. tostring(code) .. ")"
-    end
-
-    if resp_headers == nil then
-        local err_detail = "network error (" .. tostring(code or status) .. ")"
-        log.warn("_httpPost failed: " .. err_detail .. " url=" .. url)
-        return nil, err_detail
-    end
-
-    local body = table.concat(chunks)
-    if code == 200 or code == 201 then
-        return body, nil, resp_headers
-    end
-    if code == 526 then
-        log.err("HTTP 526 — Cloudflare TLS validation failed. Device clock or CA bundle may be outdated. url=" .. url)
-        return nil, "HTTP 526 SSL error", resp_headers
-    end
-    log.warn("_httpPost HTTP " .. tostring(code) .. " url=" .. url)
-    return nil, ("HTTP " .. tostring(code)), resp_headers
 end
 
--- Downloads a URL to a file on disk. Returns true or nil, errmsg.
-local function _httpGetToFile(url, dest_path, headers)
-    local libs = _initHttp()
-    local impl = libs.http
+local function _request(method, path, options)
+    options = options or {}
+    local transport = _getTransport()
+    local headers = _defaultHeaders(options.user_agent)
 
-    local fh, open_err = io.open(dest_path, "wb")
-    if not fh then return nil, "cannot create file: " .. tostring(open_err) end
-
-    if libs.socketutil then
-        libs.socketutil:set_timeout(
-            libs.socketutil.FILE_BLOCK_TIMEOUT,
-            libs.socketutil.FILE_TOTAL_TIMEOUT
-        )
+    for k, v in pairs(options.headers or {}) do
+        headers[k] = v
+    end
+    if options.identity and options.identity ~= "" then
+        headers["Authorization"] = "Bearer " .. options.identity
     end
 
-    local req_headers = { ["User-Agent"] = USER_AGENT }
-    if headers then
-        for k, v in pairs(headers) do req_headers[k] = v end
+    local response, err = transport:request({
+        method    = method,
+        base_url  = options.base_url or M.SENTRY_BASE,
+        path      = path,
+        query     = options.query,
+        headers   = headers,
+        json      = options.json,
+    })
+
+    if not response then
+        return nil, err or "Libby request failed"
     end
-
-    local code, resp_headers, status = libs.socket.skip(1, impl.request({
-        url      = url,
-        method   = "GET",
-        headers  = req_headers,
-        sink     = libs.ltn12.sink.file(fh),
-    }))
-
-    if libs.socketutil then libs.socketutil:reset_timeout() end
-
-    if libs.socketutil and (
-        code == libs.socketutil.TIMEOUT_CODE or
-        code == libs.socketutil.SSL_HANDSHAKE_CODE or
-        code == libs.socketutil.SINK_TIMEOUT_CODE
-    ) then
-        pcall(os.remove, dest_path)
-        return nil, "timeout (" .. tostring(code) .. ")"
-    end
-
-    if resp_headers == nil then
-        pcall(os.remove, dest_path)
-        return nil, "network error (" .. tostring(code or status) .. ")"
-    end
-
-    if code == 200 then return true end
-    pcall(os.remove, dest_path)
-    if code == 526 then
-        log.err("HTTP 526 — Cloudflare TLS validation failed. Device clock or CA bundle may be outdated. url=" .. url)
-        return nil, "HTTP 526 SSL error"
-    end
-    return nil, ("HTTP " .. tostring(code))
+    return response
 end
 
--- ---------------------------------------------------------------------------
--- Internal: JSON decode helper
--- ---------------------------------------------------------------------------
-
-local function _decodeJson(body, context)
-    local ok, json = pcall(require, "json")
-    if not ok then return nil, "json module unavailable" end
-    local ok2, data = pcall(json.decode, body)
-    if not ok2 or type(data) ~= "table" then
-        return nil, "JSON parse error in " .. (context or "response") .. ": " .. tostring(data)
-    end
-    return data
-end
-
--- ---------------------------------------------------------------------------
--- Internal: Build Authorization header from state or config
--- ---------------------------------------------------------------------------
-
--- Returns "Bearer <token>" or nil if no auth available.
--- Checks state (chip identity) first, then config fallback.
-local function _getBearerHeader(config)
-    local State = require(plugin_path .. "libbee_state")
-    local chip = State.getChipIdentity()
-    if chip and chip ~= "" then
-        return { ["Authorization"] = "Bearer " .. chip }
-    end
-    -- Manual fallback from config
-    if config and config.bearer_token and config.bearer_token ~= "" then
-        return { ["Authorization"] = "Bearer " .. config.bearer_token }
+local function _responseResult(response)
+    if response and type(response.body) == "table" then
+        return response.body.result
     end
     return nil
 end
 
 -- ---------------------------------------------------------------------------
--- Public: Authentication
+-- Chip Refresh & Management
 -- ---------------------------------------------------------------------------
 
--- Attempts to register a new chip identity using a one-time Libby setup code.
--- setup_code: the 8-digit code from Libby app → Settings → Copy To Another Device
--- Returns: { chip = "...", library_name = "..." } or nil, errmsg
-function M.setupWithCode(setup_code)
-    local State = require(plugin_path .. "libbee_state")
-    if not setup_code or setup_code == "" then
-        return nil, "No setup code provided"
-    end
-
-    -- Strip whitespace and dashes from the code
-    local code = setup_code:gsub("[%s%-]", "")
-    if #code < 6 then
-        return nil, "Setup code is too short (expected 8 digits)"
-    end
-
-    log.info("libbee api: attempting chip clone with code")
-    log.debug("Attempting setup with code: " .. tostring(code))
-
-    local url = SENTRY_BASE .. "/chip/clone/code/" .. code
-    log.debug("POST URL: " .. url)
-    local body, err = _httpPost(url, nil, nil)
-    if not body then
-        local err_str = "Setup request failed: " .. tostring(err)
-        log.debug(err_str)
-        return nil, err_str
-    end
-
-    log.debug("POST Success. Response body: " .. tostring(body))
-
-    local data, parse_err = _decodeJson(body, "clone response")
-    if not data then
-        log.debug("JSON parse error: " .. tostring(parse_err))
-        return nil, parse_err
-    end
-
-    -- Safe retrieval of chip token to avoid string indexing crash
-    local chip = nil
-    if type(data) == "table" then
-        chip = data.chip or data.identity
-        if not chip and type(data.result) == "table" then
-            chip = data.result.chip
+function M.getChip(identity, update_state)
+    local query = {
+        c = M.CLIENT_VERSION,
+        s = "0",
+    }
+    if identity and identity ~= "" then
+        local short_id, err = M.short_chip_id(identity)
+        if not short_id then
+            log.warn("libbee api: could not get short_chip_id: " .. tostring(err))
+        else
+            query.v = short_id
         end
     end
 
-    if not chip or chip == "" then
-        local err_detail = ""
-        if type(data) == "table" then
-            if type(data.result) == "string" then
-                err_detail = " (result: " .. data.result .. ")"
-            elseif type(data.message) == "string" then
-                err_detail = " (" .. data.message .. ")"
-            end
-        end
-        local err_msg = "Unexpected response from Libby — no chip identity received" .. err_detail
-        log.debug(err_msg)
-        log.warn("libbee api: clone response had no chip field: " .. tostring(body):sub(1, 500))
-        return nil, err_msg
+    local headers = {
+        ["Accept-Language"] = M.chip_accept_language(identity),
+    }
+
+    local response, err = _request("POST", "/chip", {
+        query    = query,
+        headers  = headers,
+        identity = identity,
+    })
+
+    if not response then return nil, err end
+    if response.status ~= 200 then
+        return nil, "Libby chip request failed with HTTP " .. tostring(response.status)
+    end
+    if type(response.body) ~= "table" or type(response.body.identity) ~= "string" then
+        return nil, "Libby chip response did not contain an identity"
     end
 
-    -- Extract a friendly library name if available
-    local library_name = ""
-    if type(data) == "table" and data.cards and type(data.cards) == "table" and data.cards[1] then
-        local card = data.cards[1]
-        if type(card) == "table" then
-            library_name = (card.library and type(card.library) == "table" and card.library.name) or
-                           (card.advantageKey) or ""
-        end
+    local new_identity = response.body.identity
+    if update_state then
+        local current_lib = State.getLibraryName()
+        local current_cards = State.getCards()
+        State.saveChipIdentity(new_identity, current_lib, current_cards)
     end
 
-    log.debug("Chip successfully cloned. Library: " .. tostring(library_name))
-
-    -- Persist to state
-    State.saveChipIdentity(chip, library_name)
-
-    return { chip = chip, library_name = library_name }
+    return response.body
 end
 
--- Requests a new 8-digit setup code from Libby to display on this device.
--- Returns: { code = "..." } or nil, errmsg
+-- ---------------------------------------------------------------------------
+-- Setup Flow (Pairing with Libby App)
+-- ---------------------------------------------------------------------------
+
 function M.requestSetupCode()
-    local State = require(plugin_path .. "libbee_state")
     log.info("libbee api: requesting setup code")
-    log.debug("Requesting setup code...")
 
-    local url = SENTRY_BASE .. "/chip/clone/code"
-    log.debug("POST URL: " .. url)
-    local body, err = _httpPost(url, nil, nil)
-    if not body then
-        local err_str = "Request setup code failed: " .. tostring(err)
-        log.debug(err_str)
-        return nil, err_str
+    -- Step 1: Obtain an initial unauthenticated chip identity
+    local chip_body, chip_err = M.getChip(nil, false)
+    if not chip_body or not chip_body.identity then
+        return nil, "Could not initialize Libby chip: " .. tostring(chip_err)
     end
 
-    log.debug("Request setup code success. Response: " .. tostring(body))
+    local pending_identity = chip_body.identity
 
-    local data, parse_err = _decodeJson(body, "setup code response")
-    if not data then
-        log.debug("JSON parse error: " .. tostring(parse_err))
-        return nil, parse_err
+    -- Step 2: Request setup code from Libby
+    local response, err = _request("GET", "/chip/clone/code", {
+        query    = { code = "", role = "pointer" },
+        identity = pending_identity,
+    })
+
+    if not response then return nil, err end
+    if response.status ~= 200 or type(response.body) ~= "table" then
+        return nil, "Could not generate Libby setup code (HTTP " .. tostring(response.status) .. ")"
     end
 
-    local code = data.code
-    if not code and type(data.result) == "table" then
-        code = data.result.code
+    local code = response.body.code
+    if type(code) ~= "string" or code == "" then
+        return nil, "Libby setup-code response did not contain a code"
     end
 
-    if not code or code == "" then
-        local err_msg = "Unexpected response from Libby — no setup code received"
-        log.debug(err_msg)
-        return nil, err_msg
-    end
+    -- Save pending session in state
+    State.savePendingIdentity(pending_identity, code)
 
     return { code = code }
 end
 
--- Polls Libby to see if the user entered the displayed code in their app.
--- Returns: { chip = "...", library_name = "..." } or nil, "pending" or nil, errmsg
 function M.pollForCloneResult(setup_code)
-    local State = require(plugin_path .. "libbee_state")
     if not setup_code or setup_code == "" then
         return nil, "No setup code provided"
     end
 
+    local pending_identity = State.getPendingIdentity()
+    if not pending_identity then
+        return nil, "No pending setup session found"
+    end
+
     local code = setup_code:gsub("[%s%-]", "")
-    local url = SENTRY_BASE .. "/chip/clone/code/" .. code
-    log.debug("Polling URL: " .. url)
+    local response, err = _request("GET", "/chip/clone/code", {
+        query    = { code = code, role = "pointer" },
+        identity = pending_identity,
+    })
 
-    local body, err, resp_headers = _httpGet(url, nil)
-    if not body then
-        log.debug("Poll request pending or failed: " .. tostring(err))
+    if not response then
         return nil, "pending"
     end
 
-    log.debug("Poll success. Response: " .. tostring(body))
-
-    local data, parse_err = _decodeJson(body, "poll response")
-    if not data then
-        log.debug("Poll JSON parse error: " .. tostring(parse_err))
+    local poll_body = response.body
+    if type(poll_body) ~= "table" or poll_body.result ~= "fulfilled" or type(poll_body.blessing) ~= "string" then
         return nil, "pending"
     end
 
-    local chip = nil
-    if type(data) == "table" then
-        chip = data.chip or data.identity
-        if not chip and type(data.result) == "table" then
-            chip = data.result.chip
+    local blessing = poll_body.blessing
+    log.info("libbee api: received clone blessing, completing pairing")
+
+    -- Step 3: Clone by blessing (with missing_chip auto-refresh)
+    local clone_resp, clone_err = _request("POST", "/chip/clone", {
+        identity = pending_identity,
+        json     = { blessing = blessing },
+    })
+
+    if clone_resp and clone_resp.status == 403 and _responseResult(clone_resp) == "missing_chip" then
+        log.info("libbee api: missing_chip on clone, refreshing chip")
+        local refreshed, refresh_err = M.getChip(pending_identity, false)
+        if refreshed and type(refreshed.identity) == "string" then
+            pending_identity = refreshed.identity
+            State.savePendingIdentity(pending_identity, code)
+            clone_resp, clone_err = _request("POST", "/chip/clone", {
+                identity = pending_identity,
+                json     = { blessing = blessing },
+            })
         end
     end
 
-    if not chip or chip == "" then
-        log.debug("Poll response had no chip identity yet")
-        return nil, "pending"
+    if not clone_resp or clone_resp.status ~= 200 then
+        local err_msg = "Libby clone blessing claim failed: " .. tostring(clone_err or (clone_resp and clone_resp.status))
+        log.err("libbee api: " .. err_msg)
+        return nil, err_msg
     end
 
+    -- Step 4: Refresh chip to get final authenticated identity
+    local refreshed, refresh_err = M.getChip(pending_identity, false)
+    if not refreshed or type(refreshed.identity) ~= "string" then
+        local err_msg = "Libby chip refresh after clone failed: " .. tostring(refresh_err)
+        log.err("libbee api: " .. err_msg)
+        return nil, err_msg
+    end
+    local auth_identity = refreshed.identity
+
+    -- Step 5: Verify sync and fetch card details (with missing_chip auto-refresh)
+    local sync_resp, sync_err = _request("GET", "/chip/sync", {
+        identity = auth_identity,
+    })
+    if sync_resp and sync_resp.status == 403 and _responseResult(sync_resp) == "missing_chip" then
+        local sync_refreshed, sync_ref_err = M.getChip(auth_identity, false)
+        if sync_refreshed and type(sync_refreshed.identity) == "string" then
+            auth_identity = sync_refreshed.identity
+            sync_resp, sync_err = _request("GET", "/chip/sync", {
+                identity = auth_identity,
+            })
+        end
+    end
+
+    if not sync_resp or sync_resp.status ~= 200 or type(sync_resp.body) ~= "table" then
+        local err_msg = "Libby sync failed: " .. tostring(sync_err or (sync_resp and sync_resp.status))
+        log.err("libbee api: " .. err_msg)
+        return nil, err_msg
+    end
+
+    local state_data = sync_resp.body
+    local cards = state_data.cards or {}
     local library_name = ""
-    if type(data) == "table" and data.cards and type(data.cards) == "table" and data.cards[1] then
-        local card = data.cards[1]
-        if type(card) == "table" then
-            library_name = (card.library and type(card.library) == "table" and card.library.name) or
-                           (card.advantageKey) or ""
-        end
+    if cards[1] and type(cards[1]) == "table" then
+        local card = cards[1]
+        library_name = (card.library and type(card.library) == "table" and card.library.name) or
+                       card.libraryName or card.name or card.advantageKey or ""
     end
 
-    log.debug("Chip successfully cloned via polling. Library: " .. tostring(library_name))
+    -- Step 6: Save permanent authenticated state
+    State.saveChipIdentity(auth_identity, library_name, cards)
+    State.clearPendingIdentity()
+    log.info("libbee api: pairing complete, saved chip identity and " .. #cards .. " cards")
 
-    -- Persist to state
-    State.saveChipIdentity(chip, library_name)
-
-    return { chip = chip, library_name = library_name }
+    return { chip = auth_identity, library_name = library_name, cards = cards }
 end
 
 -- ---------------------------------------------------------------------------
--- Public: Shelf / Loans
+-- Loan & Card Parsing Helpers
 -- ---------------------------------------------------------------------------
 
--- Fetches the current loans from the Libby shelf.
--- config: the loaded libbee_config table (for bearer_token fallback)
--- Returns: array of loan tables, or nil, errmsg
--- Each loan table contains at minimum:
---   { id, title, author, format, days_remaining, is_ebook, ... }
+local function _firstNonempty(...)
+    for i = 1, select("#", ...) do
+        local val = select(i, ...)
+        if type(val) == "string" and val ~= "" then return val end
+    end
+    return nil
+end
+
+local function _cardName(card)
+    if type(card) ~= "table" then return "Library Card" end
+    local lib = type(card.library) == "table" and card.library or nil
+    return _firstNonempty(
+        lib and lib.name,
+        card.libraryName,
+        card.name,
+        lib and lib.websiteId,
+        card.advantageKey
+    ) or "Library Card"
+end
+
+local function _loanLibraryName(loan, cards)
+    if type(loan) ~= "table" or type(cards) ~= "table" then return nil end
+    local card_id = tostring(loan.cardId or loan.card_id or "")
+    if card_id == "" then return nil end
+    for _, card in ipairs(cards) do
+        if type(card) == "table" then
+            local cid = tostring(card.id or card.cardId or "")
+            if cid == card_id then
+                return _cardName(card)
+            end
+        end
+    end
+    return nil
+end
+
+local function _loanAuthor(loan)
+    if type(loan) ~= "table" then return "Unknown Author" end
+    if type(loan.creators) == "table" and loan.creators[1] then
+        local c = loan.creators[1]
+        if type(c) == "table" then
+            return _firstNonempty(c.name, c.displayName, c.fullName) or "Unknown Author"
+        elseif type(c) == "string" then
+            return c
+        end
+    end
+    return _firstNonempty(loan.firstCreatorName, loan.author) or "Unknown Author"
+end
+
+local function _preferredAdobeFormat(loan)
+    if type(loan) ~= "table" or type(loan.formats) ~= "table" then
+        return "ebook-epub-adobe"
+    end
+    for _, fmt in ipairs(loan.formats) do
+        if type(fmt) == "table" and fmt.id == "ebook-epub-adobe" then
+            return "ebook-epub-adobe"
+        end
+    end
+    for _, fmt in ipairs(loan.formats) do
+        if type(fmt) == "table" and (fmt.id == "ebook-pdf-adobe" or fmt.id == "ebook-epub-open") then
+            return fmt.id
+        end
+    end
+    return "ebook-epub-adobe"
+end
+
+local function _loanCoverUrl(loan)
+    if type(loan) ~= "table" then return nil end
+    local covers = type(loan.covers) == "table" and loan.covers or nil
+    if covers then
+        for _, k in ipairs({ "cover510Wide", "cover300Wide", "cover150Wide", "large", "medium", "small" }) do
+            local val = covers[k]
+            if type(val) == "string" and val ~= "" then return val end
+            if type(val) == "table" and type(val.href) == "string" then return val.href end
+        end
+    end
+    return _firstNonempty(
+        type(loan.cover) == "string" and loan.cover or nil,
+        type(loan.coverUrl) == "string" and loan.coverUrl or nil,
+        type(loan.coverURL) == "string" and loan.coverURL or nil
+    )
+end
+
+-- ---------------------------------------------------------------------------
+-- Shelf Sync / Fetch Loans
+-- ---------------------------------------------------------------------------
+
 function M.fetchShelf(config)
-    local auth_headers = _getBearerHeader(config)
-    if not auth_headers then
+    local identity = State.getChipIdentity()
+    if not identity and config and config.bearer_token and config.bearer_token ~= "" then
+        identity = config.bearer_token
+    end
+
+    if not identity or identity == "" then
         return nil, "Not authenticated — please run setup first"
     end
 
-    log.info("libbee api: fetching shelf")
+    log.info("libbee api: syncing shelf from Libby")
 
-    -- The sync endpoint returns loans, holds, and identity info
-    local url = SENTRY_BASE .. "/chip/sync"
-    local body, err = _httpGet(url, auth_headers)
-    if not body then
-        return nil, "Shelf fetch failed: " .. tostring(err)
+    local response, err = _request("GET", "/chip/sync", { identity = identity })
+    if not response then return nil, err end
+
+    -- Handle missing_chip / token expiration
+    if response.status == 403 and _responseResult(response) == "missing_chip" then
+        log.info("libbee api: missing_chip received, attempting refresh")
+        local refreshed, refresh_err = M.getChip(identity, true)
+        if not refreshed or type(refreshed.identity) ~= "string" then
+            return nil, "AUTH_EXPIRED"
+        end
+        identity = refreshed.identity
+        response, err = _request("GET", "/chip/sync", { identity = identity })
+        if not response then return nil, err end
     end
 
-    local data, parse_err = _decodeJson(body, "shelf sync")
-    if not data then return nil, parse_err end
-
-    -- Check for auth errors
-    if data.result == "unauthorized" or data.code == 401 or data.errorCode == "Unauthorized" then
+    if response.status == 401 or response.status == 403 then
         return nil, "AUTH_EXPIRED"
     end
-
-    -- Parse loans from the response
-    local loans = {}
-    local raw_loans = data.loans or data.items or {}
-
-    for _, loan in ipairs(raw_loans) do
-        -- Determine the format
-        local format = loan.type and loan.type.id or loan.formatId or ""
-
-        -- Skip non-ebook loans entirely (audiobooks, magazines, etc.)
-        local is_ebook = (
-            format == "ebook-epub-adobe" or
-            format == "ebook-pdf-adobe"  or
-            format == "ebook-epub-open"  or
-            format:find("^ebook") ~= nil
-        )
-        if not is_ebook then
-            log.info("libbee api: skipping non-ebook loan: " .. tostring(loan.title) .. " (" .. format .. ")")
-        end
-        if not is_ebook then goto continue end
-
-        -- Calculate days remaining from ISO 8601 expiry string or Unix timestamp
-        local days_remaining = nil
-        if loan.expires then
-            local exp_time = loan.expires
-            if type(exp_time) == "string" then
-                local y, mo, d = exp_time:match("(%d%d%d%d)-(%d%d)-(%d%d)")
-                if y then
-                    local now_date = os.date("*t")
-                    local exp_days  = tonumber(y) * 365 + tonumber(mo) * 30 + tonumber(d)
-                    local now_days  = now_date.year  * 365 + now_date.month  * 30 + now_date.day
-                    days_remaining  = exp_days - now_days
-                end
-            elseif type(exp_time) == "number" then
-                days_remaining = math.floor((exp_time - os.time()) / 86400)
-            end
-        end
-        if days_remaining and days_remaining < 0 then days_remaining = 0 end
-
-        table.insert(loans, {
-            id             = loan.id or loan.loanId or tostring(loan.reserveId or ""),
-            reserveId      = loan.reserveId or loan.id,
-            title          = loan.title or loan.sortTitle or "Unknown Title",
-            author         = loan.firstCreatorName or loan.author or "Unknown Author",
-            format         = format,
-            is_ebook       = true,
-            days_remaining = days_remaining,
-            expires        = loan.expires,
-            raw            = loan,
-        })
-
-        ::continue::
+    if response.status ~= 200 or type(response.body) ~= "table" then
+        return nil, "Shelf sync failed with HTTP " .. tostring(response.status)
     end
 
-    log.info("libbee api: fetched " .. #loans .. " loans")
+    local data = response.body
+    local cards = data.cards or {}
+    local raw_loans = data.loans or {}
+
+    -- Update stored cards in state
+    if #cards > 0 then
+        local lib_name = _cardName(cards[1])
+        State.saveChipIdentity(identity, lib_name, cards)
+    end
+
+    local loans = {}
+    for _, raw in ipairs(raw_loans) do
+        local format_id = _preferredAdobeFormat(raw)
+        local media_type = raw.type and (type(raw.type) == "table" and raw.type.id or tostring(raw.type)) or ""
+
+        -- Check if it is an ebook loan
+        local is_ebook = true
+        if media_type:find("audio", 1, true) or media_type:find("magazine", 1, true) then
+            is_ebook = false
+        end
+
+        local days_remaining = State.loanDaysRemaining(raw)
+        local title = _firstNonempty(raw.title, raw.parentTitle, raw.sortTitle) or "Unknown Title"
+        local author = _loanAuthor(raw)
+        local library = _loanLibraryName(raw, cards) or State.getLibraryName() or ""
+
+        table.insert(loans, {
+            id             = raw.id or raw.loanId or tostring(raw.reserveId or ""),
+            card_id        = raw.cardId or raw.card_id or (cards[1] and cards[1].id),
+            reserveId      = raw.reserveId or raw.id,
+            title          = title,
+            author         = author,
+            library        = library,
+            format         = format_id,
+            is_ebook       = is_ebook,
+            days_remaining = days_remaining,
+            expires        = raw.expires or raw.expireDate or raw.expireTimestamp,
+            cover_url      = _loanCoverUrl(raw),
+            raw            = raw,
+        })
+    end
+
+    log.info("libbee api: successfully fetched " .. #loans .. " loans")
     return loans
 end
 
 -- ---------------------------------------------------------------------------
--- Public: Download ACSM
+-- Fulfillment & ACSM Download
 -- ---------------------------------------------------------------------------
 
--- Gets the fulfillment URL for a loan, then downloads the .acsm file to dest_path.
--- loan:      a loan table from fetchShelf()
--- dest_path: full path where the .acsm file should be written
--- config:    the loaded libbee_config table
--- Returns: true or nil, errmsg
+local function _recoverFulfillmentOnSameConnection(path, identity)
+    local transport = _getTransport()
+    if type(transport.request_sequence) ~= "function" then
+        return nil, "Persistent connection transport unavailable"
+    end
+
+    local short_id, short_err = M.short_chip_id(identity)
+    if not short_id then return nil, short_err end
+
+    local function headers(token, language)
+        local result = _defaultHeaders()
+        result["Authorization"] = "Bearer " .. token
+        result["Connection"] = "keep-alive"
+        if language then result["Accept-Language"] = language end
+        return result
+    end
+
+    local sequence, err = transport:request_sequence({
+        {
+            method   = "GET",
+            base_url = M.SENTRY_BASE,
+            path     = path,
+            headers  = headers(identity),
+        },
+        function(responses)
+            if _responseResult(responses[1]) ~= "missing_chip" then return nil end
+            return {
+                method   = "POST",
+                base_url = M.SENTRY_BASE,
+                path     = "/chip",
+                query    = { c = M.CLIENT_VERSION, s = "0", v = short_id },
+                headers  = headers(identity, M.chip_accept_language(identity)),
+            }
+        end,
+        function(responses)
+            local chip = responses[2]
+            local new_id = chip and type(chip.body) == "table" and chip.body.identity
+            if type(new_id) ~= "string" then return nil end
+            return {
+                method   = "GET",
+                base_url = M.SENTRY_BASE,
+                path     = path,
+                headers  = headers(new_id),
+            }
+        end,
+    })
+
+    if not sequence then return nil, err end
+
+    local chip_step = sequence[2]
+    local retry_step = sequence[3]
+    local new_identity = chip_step and type(chip_step.body) == "table" and chip_step.body.identity
+    if not chip_step or chip_step.status ~= 200 or type(new_identity) ~= "string" then
+        return nil, "Libby chip recovery failed"
+    end
+    if not retry_step or retry_step.status ~= 200 then
+        return nil, "Libby fulfillment retry failed with HTTP " .. tostring(retry_step and retry_step.status or "unknown")
+    end
+
+    State.saveChipIdentity(new_identity, State.getLibraryName(), State.getCards())
+
+    local href = type(retry_step.body) == "table" and retry_step.body.fulfill and retry_step.body.fulfill.href
+    if type(href) ~= "string" or href == "" then
+        return nil, "Libby fulfillment response did not contain fulfill.href"
+    end
+
+    return href
+end
+
 function M.downloadACSM(loan, dest_path, config)
-    local auth_headers = _getBearerHeader(config)
-    if not auth_headers then
-        return nil, "Not authenticated"
+    local identity = State.getChipIdentity()
+    if not identity and config and config.bearer_token and config.bearer_token ~= "" then
+        identity = config.bearer_token
+    end
+
+    if not identity or identity == "" then
+        return nil, "Not authenticated — please run setup first"
     end
 
     if not loan.is_ebook then
         return nil, "This loan is not a downloadable ebook"
     end
 
-    local reserve_id = loan.reserveId or loan.id
-    if not reserve_id or reserve_id == "" then
-        return nil, "Loan has no valid ID"
+    local card_id = loan.card_id or loan.cardId
+    if not card_id then
+        local cards = State.getCards()
+        card_id = cards and cards[1] and (cards[1].id or cards[1].cardId)
+    end
+    local loan_id = loan.id or loan.reserveId
+    local format_id = loan.format or "ebook-epub-adobe"
+
+    if not card_id or not loan_id then
+        return nil, "Loan identifiers (card_id / loan_id) are missing"
     end
 
-    -- Step 1: Request the fulfill URL from Thunder API
-    -- Try the standard ebook-epub-adobe format first, fall back to loan's format
-    local formats_to_try = { FULFILL_FORMAT }
-    if loan.format and loan.format ~= FULFILL_FORMAT then
-        table.insert(formats_to_try, loan.format)
-    end
-    -- Also try open epub (no DRM) as a last resort
-    if loan.format ~= "ebook-epub-open" then
-        table.insert(formats_to_try, "ebook-epub-open")
-    end
+    local path = "/card/" .. tostring(card_id) .. "/loan/" .. tostring(loan_id) .. "/fulfill/" .. tostring(format_id)
+    log.info("libbee api: requesting fulfillment: " .. path)
+
+    local response, err = _request("GET", path, { identity = identity })
+    if not response then return nil, err end
 
     local fulfill_url = nil
-    local fulfill_err = nil
-
-    for _, fmt in ipairs(formats_to_try) do
-        local url = THUNDER_BASE .. "/v2/loans/" .. tostring(reserve_id) .. "/fulfill/" .. fmt
-        log.info("libbee api: requesting fulfill URL: " .. url)
-
-        local body, err, resp_headers = _httpGet(url, auth_headers)
-        if body then
-            -- If Content-Type is application/json, it's a redirect URL in JSON
-            local ct = resp_headers and (resp_headers["content-type"] or resp_headers["Content-Type"]) or ""
-            if ct:find("application/json") then
-                local fdata, _ = _decodeJson(body, "fulfill")
-                if fdata and fdata.href then
-                    fulfill_url = fdata.href
-                    break
-                elseif fdata and fdata.links then
-                    -- Some responses nest the URL in links
-                    for _, link in ipairs(fdata.links) do
-                        if link.href and (link.type == "application/vnd.adobe.adept+xml" or
-                                          link.rel == "license") then
-                            fulfill_url = link.href
-                            break
-                        end
-                    end
-                    if fulfill_url then break end
-                end
-            else
-                -- The response body itself IS the .acsm content
-                -- Write it directly
-                local fh = io.open(dest_path, "wb")
-                if fh then
-                    fh:write(body)
-                    fh:close()
-                    log.info("libbee api: ACSM written directly (inline response)")
-                    return true
-                end
-            end
-        else
-            fulfill_err = err
-            log.warn("libbee api: fulfill attempt failed for format " .. fmt .. ": " .. tostring(err))
+    if response.status == 403 and _responseResult(response) == "missing_chip" then
+        log.info("libbee api: 403 missing_chip during fulfillment, running sticky recovery sequence")
+        fulfill_url, err = _recoverFulfillmentOnSameConnection(path, identity)
+        if not fulfill_url then return nil, err end
+    elseif response.status ~= 200 then
+        return nil, "Libby fulfillment request failed with HTTP " .. tostring(response.status)
+    else
+        local href = type(response.body) == "table" and response.body.fulfill and response.body.fulfill.href
+        if type(href) ~= "string" or href == "" then
+            return nil, "Libby fulfillment response did not contain fulfill.href"
         end
+        fulfill_url = href
     end
 
-    if not fulfill_url then
-        return nil, "Could not get download link" .. (fulfill_err and (": " .. fulfill_err) or "")
+    log.info("libbee api: downloading ACSM payload from " .. tostring(fulfill_url):sub(1, 80))
+
+    local transport = _getTransport()
+    local dl_resp, dl_err = transport:request({
+        method   = "GET",
+        base_url = fulfill_url,
+        path     = "",
+        headers  = {
+            ["User-Agent"] = M.USER_AGENT,
+            ["Accept"]     = "*/*",
+        },
+    })
+
+    if not dl_resp then return nil, "Download failed: " .. tostring(dl_err) end
+    if dl_resp.status ~= 200 then
+        return nil, "ACSM download failed with HTTP " .. tostring(dl_resp.status)
+    end
+    if type(dl_resp.raw_body) ~= "string" or dl_resp.raw_body == "" then
+        return nil, "ACSM download returned empty body"
     end
 
-    -- Step 2: Download the actual ACSM file
-    log.info("libbee api: downloading ACSM from: " .. tostring(fulfill_url):sub(1, 80))
-    local ok, dl_err = _httpGetToFile(fulfill_url, dest_path, auth_headers)
-    if not ok then
-        return nil, "Download failed: " .. tostring(dl_err)
-    end
+    -- Write to destination file
+    local fh, open_err = io.open(dest_path, "wb")
+    if not fh then return nil, "Cannot create file: " .. tostring(open_err) end
+    fh:write(dl_resp.raw_body)
+    fh:close()
 
-    log.info("libbee api: ACSM downloaded to " .. tostring(dest_path))
+    log.info("libbee api: successfully downloaded ACSM to " .. dest_path .. " (" .. tostring(#dl_resp.raw_body) .. " bytes)")
     return true
 end
 
 -- ---------------------------------------------------------------------------
--- Public: Derive download path for a loan
+-- File Path Helpers
 -- ---------------------------------------------------------------------------
 
--- Returns a safe file path for saving a loan's ACSM file.
--- base_dir: directory to save in (from config or default storage)
--- loan:     a loan table from fetchShelf()
 function M.getAcsmPath(base_dir, loan)
-    -- Sanitize title for use as filename
     local title = (loan.title or "download"):gsub('[/\\:*?"<>|]', "_"):gsub("%s+", "_")
     if #title > 60 then title = title:sub(1, 60) end
     local ext = ".acsm"
-    -- Open epub doesn't need ACSM, use .epub
     if loan.format == "ebook-epub-open" then ext = ".epub" end
     return base_dir .. "/" .. title .. ext
 end
 
--- ---------------------------------------------------------------------------
--- Public: Determine default download directory
--- ---------------------------------------------------------------------------
-
--- Returns the best available download directory on this device.
 function M.getDefaultDownloadDir()
-    -- Try DataStorage first (configured KOReader storage root)
+    -- 1. Check KOReader user-configured Library / Home folder
+    if G_reader_settings and type(G_reader_settings.readSetting) == "function" then
+        local home_dir = G_reader_settings:readSetting("home_dir")
+        if home_dir and home_dir ~= "" then
+            local lfs_ok, lfs = pcall(require, "libs/libkoreader-lfs")
+            if not lfs_ok then lfs_ok, lfs = pcall(require, "lfs") end
+            if lfs_ok and lfs and lfs.attributes(home_dir, "mode") == "directory" then
+                return home_dir .. "/Libby"
+            end
+        end
+    end
+
     local ok, DS = pcall(require, "datastorage")
     if ok and DS then
-        -- Try various paths used on different devices
         local candidates = {
             DS.getDataDir and DS:getDataDir() or nil,
             DS.getSettingsDir and (DS:getSettingsDir() .. "/..") or nil,
@@ -650,13 +697,12 @@ function M.getDefaultDownloadDir()
         end
     end
 
-    -- Platform-specific fallbacks
     local candidates = {
-        "/mnt/us/documents",        -- Kindle
-        "/mnt/onboard",             -- Kobo
-        "/sdcard/Books",            -- Android
-        "/storage/emulated/0/Books", -- Android alternative
-        "/tmp",                     -- Last resort
+        "/mnt/us/documents",
+        "/mnt/onboard",
+        "/sdcard/Books",
+        "/storage/emulated/0/Books",
+        "/tmp",
     }
     local lfs_ok, lfs = pcall(require, "libs/libkoreader-lfs")
     if not lfs_ok then lfs_ok, lfs = pcall(require, "lfs") end
@@ -669,7 +715,6 @@ function M.getDefaultDownloadDir()
     return "/tmp/Libby"
 end
 
--- Ensures the download directory exists, creating it if necessary.
 function M.ensureDownloadDir(dir)
     local lfs_ok, lfs = pcall(require, "libs/libkoreader-lfs")
     if not lfs_ok then lfs_ok, lfs = pcall(require, "lfs") end
@@ -677,7 +722,6 @@ function M.ensureDownloadDir(dir)
 
     if lfs.attributes(dir, "mode") == "directory" then return true end
 
-    -- Create it (may need to create parent too)
     local parent = dir:match("^(.+)/[^/]+$")
     if parent and lfs.attributes(parent, "mode") ~= "directory" then
         pcall(lfs.mkdir, parent)

@@ -35,7 +35,15 @@ package.loaded["lfs"] = {
         end
         return nil
     end,
-    mkdir = function() return true end
+    mkdir = function(p)
+        if p and os.execute then
+            pcall(os.execute, "mkdir -p " .. tostring(p) .. " 2>/dev/null")
+        end
+        return true
+    end,
+    dir = function(path)
+        return function() return nil end
+    end,
 }
 
 package.loaded["logger"] = {
@@ -46,7 +54,8 @@ package.loaded["logger"] = {
 }
 
 package.loaded["datastorage"] = {
-    getSettingsDir = function() return "/tmp/koreader/settings" end
+    getSettingsDir = function() return "/tmp" end,
+    getDataDir = function() return "/tmp" end,
 }
 
 -- UI tracking for testing
@@ -127,20 +136,80 @@ package.loaded["ui/widget/table"] = {
 package.loaded["ui/widget/textwidget"] = {
     new = function(a, b) 
         local tw = { type = "TextWidget", args = b or a }
-        tw.getSize = function() return nil end
+        tw.getSize = function() return { w = 100, h = 20 } end
         return tw
     end
+}
+package.loaded["ui/widget/textboxwidget"] = {
+    new = function(a, b) 
+        local tb = { type = "TextBoxWidget", args = b or a }
+        tb.getSize = function() return { w = 200, h = 40 } end
+        return tb
+    end
+}
+package.loaded["ui/widget/linewidget"] = {
+    new = function(a, b) 
+        local lw = { type = "LineWidget", args = b or a }
+        lw.getSize = function() return { w = 100, h = 1 } end
+        return lw
+    end
+}
+package.loaded["ui/widget/verticalspan"] = {
+    new = function(a, b) return { type = "VerticalSpan", args = b or a, getSize = function() return { w = 0, h = 0 } end } end
+}
+package.loaded["ui/widget/horizontalspan"] = {
+    new = function(a, b) return { type = "HorizontalSpan", args = b or a, getSize = function() return { w = 0, h = 0 } end } end
+}
+package.loaded["ui/widget/overlapgroup"] = {
+    new = function(a, b) return { type = "OverlapGroup", args = b or a, getSize = function() return { w = 200, h = 50 } end } end
+}
+package.loaded["ui/widget/container/scrollablecontainer"] = {
+    new = function(a, b) return { type = "ScrollableContainer", args = b or a, getSize = function() return { w = 600, h = 700 } end } end
+}
+package.loaded["ui/widget/container/centercontainer"] = {
+    new = function(a, b) return { type = "CenterContainer", args = b or a, getSize = function() return { w = 200, h = 200 } end } end
+}
+package.loaded["ui/widget/container/bottomcontainer"] = {
+    new = function(a, b) return { type = "BottomContainer", args = b or a, getSize = function() return { w = 600, h = 100 } end } end
+}
+package.loaded["ui/widget/container/leftcontainer"] = {
+    new = function(a, b) return { type = "LeftContainer", args = b or a, getSize = function() return { w = 200, h = 50 } end } end
+}
+package.loaded["ui/widget/container/rightcontainer"] = {
+    new = function(a, b) return { type = "RightContainer", args = b or a, getSize = function() return { w = 80, h = 30 } end } end
+}
+package.loaded["ui/widget/imagewidget"] = {
+    new = function(a, b) return { type = "ImageWidget", args = b or a, getSize = function() return { w = 50, h = 50 } end } end
+}
+package.loaded["ui/renderimage"] = {
+    renderImageFile = function() return nil end,
+    scaleBlitBuffer = function() return nil end
 }
 package.loaded["ui/widget/button"] = {
     new = function(a, b) 
         local btn = { type = "Button", args = b or a }
-        btn.getSize = function() return nil end
+        btn.getSize = function() return { w = 60, h = 30 } end
         return btn
     end
 }
 package.loaded["ffi/blitbuffer"] = {
     COLOR_BLACK = 0,
-    COLOR_WHITE = 1
+    COLOR_WHITE = 1,
+    COLOR_DARK_GRAY = 2,
+    COLOR_LIGHT_GRAY = 3,
+    COLOR_GRAY = 4,
+    TYPE_BPP24 = 24,
+    Color8 = function(c) return c end,
+    new = function(w, h, t)
+        return {
+            getWidth = function() return w end,
+            getHeight = function() return h end,
+            getType = function() return t end,
+            fill = function() end,
+            blitFrom = function() end,
+            free = function() end
+        }
+    end
 }
 package.loaded["ui/font"] = {
     getFace = function() return {} end
@@ -179,14 +248,64 @@ package.loaded["ltn12"] = {}
 package.loaded["socket"] = {}
 package.loaded["socketutil"] = {}
 local json_lib = nil
-pcall(function() json_lib = require("dkjson") end)
+pcall(function() json_lib = require("rapidjson") end)
 if not json_lib then
+    pcall(function() json_lib = require("dkjson") end)
+end
+if not json_lib then
+    local function simple_encode(val)
+        local t = type(val)
+        if t == "table" then
+            local is_array = (#val > 0)
+            local parts = {}
+            if is_array then
+                for _, v in ipairs(val) do
+                    table.insert(parts, simple_encode(v))
+                end
+                return "[" .. table.concat(parts, ",") .. "]"
+            else
+                for k, v in pairs(val) do
+                    local safe_k = tostring(k):gsub('\\', '\\\\'):gsub('"', '\\"')
+                    table.insert(parts, '"' .. safe_k .. '":' .. simple_encode(v))
+                end
+                return "{" .. table.concat(parts, ",") .. "}"
+            end
+        elseif t == "string" then
+            local safe_v = tostring(val):gsub('\\', '\\\\'):gsub('"', '\\"')
+            return '"' .. safe_v .. '"'
+        elseif t == "number" or t == "boolean" then
+            return tostring(val)
+        else
+            return "null"
+        end
+    end
+
+    local function simple_decode(str)
+        if not str or str == "" then return nil end
+        -- Basic json parser fallback for test key-values
+        local res = {}
+        for k, v in str:gmatch('"([%w_%-]+)"%s*:%s*"([^"]*)"') do
+            res[k] = v
+        end
+        for k, v in str:gmatch('"([%w_%-]+)"%s*:%s*([%d%.]+)') do
+            res[k] = tonumber(v)
+        end
+        for k, v in str:gmatch('"([%w_%-]+)"%s*:%s*(true)') do
+            res[k] = true
+        end
+        for k, v in str:gmatch('"([%w_%-]+)"%s*:%s*(false)') do
+            res[k] = false
+        end
+        return res
+    end
+
     json_lib = {
-        encode = function(t) return "{}" end,
-        decode = function(s) return {} end
+        encode = simple_encode,
+        decode = simple_decode
     }
 end
 package.loaded["json"] = json_lib
+package.loaded["rapidjson"] = json_lib
 
 function _G.createMockPlugin()
     local plugin = {

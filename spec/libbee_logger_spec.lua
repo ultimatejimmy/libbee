@@ -5,6 +5,7 @@ describe("libbee_logger", function()
     local logger
 
     setup(function()
+        os.execute("mkdir -p /tmp/test_dir")
         -- Clear mock to test the real implementation
         package.loaded["libbee_logger"] = nil
         logger = require("libbee_logger")

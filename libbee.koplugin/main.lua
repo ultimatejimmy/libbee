@@ -115,38 +115,10 @@ function LibbeePlugin:addToMainMenu(menu_items)
     menu_items.libbee = {
         text         = "Libbee",
         sorting_hint = "tools",
-        sub_item_table = {
-            {
-                text     = "Browse Shelf",
-                callback = function()
-                    local ui = _ui()
-                    if ui then ui.showShelfBrowser(path) end
-                end,
-            },
-            {
-                text     = "Setup / Re-authenticate",
-                callback = function()
-                    local ui = _ui()
-                    if ui then
-                        ui.showSetupDialog(path, function(success)
-                            if success then
-                                UIManager:scheduleIn(0.5, function()
-                                    ui.showShelfBrowser(path)
-                                end)
-                            end
-                        end)
-                    end
-                end,
-                separator = true,
-            },
-            {
-                text     = "About / Check for Updates",
-                callback = function()
-                    local ui = _ui()
-                    if ui then ui.showAbout(path) end
-                end,
-            },
-        },
+        callback     = function()
+            local ui = _ui()
+            if ui then ui.showShelfBrowser(path) end
+        end,
     }
 end
 
@@ -169,17 +141,9 @@ end
 
 function LibbeePlugin:onLibbeeBrowseShelf()
     local ui = _ui()
-    if ui then ui.showShelfBrowser(_plugin_dir) end
+    if ui then ui.showShelfBrowser(self.path) end
     return true
 end
-
--- ---------------------------------------------------------------------------
--- File manager integration: show Libbee in the file browser toolbar (optional)
--- ---------------------------------------------------------------------------
--- KOReader's file manager calls onShowingReader / onCloseReader to signal
--- context changes. We don't need to hook those, but we do respond to
--- the standard network event so the shelf can auto-refresh if connectivity
--- becomes available while the menu is open.
 
 function LibbeePlugin:onNetworkConnected()
     -- Nothing to do proactively; the shelf browser checks auth on open.
