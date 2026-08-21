@@ -386,21 +386,153 @@ local function _loanAuthor(loan)
     return _firstNonempty(loan.firstCreatorName, loan.author) or "Unknown Author"
 end
 
+function M.analyzeLoanFormats(loan)
+    if type(loan) ~= "table" then
+        return {
+            is_downloadable   = true,
+            format            = "ebook-epub-adobe",
+            is_ebook          = true,
+            restriction_type  = nil,
+            available_formats = {},
+        }
+    end
+
+    local raw = loan.raw or loan
+    local media_type = raw.type and (type(raw.type) == "table" and raw.type.id or tostring(raw.type)) or ""
+    local is_audio = media_type:find("audio", 1, true) ~= nil
+    local is_magazine = media_type:find("magazine", 1, true) ~= nil
+    local is_ebook = not (is_audio or is_magazine)
+
+    local format_list = {}
+    local format_ids = {}
+    if type(raw.formats) == "table" then
+        for _, fmt in ipairs(raw.formats) do
+            if type(fmt) == "table" and type(fmt.id) == "string" then
+                table.insert(format_list, fmt)
+                format_ids[fmt.id] = true
+            elseif type(fmt) == "string" then
+                table.insert(format_list, { id = fmt })
+                format_ids[fmt] = true
+            end
+        end
+    end
+
+    -- If format specified directly on loan (e.g. from existing cache or mock)
+    if #format_list == 0 and type(loan.format) == "string" and loan.format ~= "" then
+        table.insert(format_list, { id = loan.format })
+        format_ids[loan.format] = true
+    end
+
+    -- If no formats array is present, fallback gracefully based on media type
+    if #format_list == 0 then
+        if is_audio then
+            return {
+                is_downloadable   = false,
+                format            = "audiobook-overdrive",
+                is_ebook          = false,
+                restriction_type  = "audiobook",
+                available_formats = {},
+            }
+        elseif is_magazine then
+            return {
+                is_downloadable   = false,
+                format            = "magazine-overdrive",
+                is_ebook          = false,
+                restriction_type  = "magazine",
+                available_formats = {},
+            }
+        else
+            return {
+                is_downloadable   = true,
+                format            = "ebook-epub-adobe",
+                is_ebook          = true,
+                restriction_type  = nil,
+                available_formats = {},
+            }
+        end
+    end
+
+    -- Check for downloadable formats in priority order
+    local downloadable_priority = {
+        "ebook-epub-adobe",
+        "ebook-pdf-adobe",
+        "ebook-epub-open",
+        "ebook-pdf-open",
+    }
+    for _, fid in ipairs(downloadable_priority) do
+        if format_ids[fid] then
+            return {
+                is_downloadable   = true,
+                format            = fid,
+                is_ebook          = is_ebook,
+                restriction_type  = nil,
+                available_formats = format_list,
+            }
+        end
+    end
+
+    -- Non-downloadable formats
+    if is_audio or format_ids["audiobook-overdrive"] or format_ids["audiobook-mp3"] then
+        return {
+            is_downloadable   = false,
+            format            = format_ids["audiobook-overdrive"] and "audiobook-overdrive" or (format_list[1] and format_list[1].id or "audiobook-overdrive"),
+            is_ebook          = false,
+            restriction_type  = "audiobook",
+            available_formats = format_list,
+        }
+    end
+
+    if is_magazine or format_ids["magazine-overdrive"] then
+        return {
+            is_downloadable   = false,
+            format            = "magazine-overdrive",
+            is_ebook          = false,
+            restriction_type  = "magazine",
+            available_formats = format_list,
+        }
+    end
+
+    local has_kindle = format_ids["ebook-kindle"] ~= nil
+    local has_overdrive = format_ids["ebook-overdrive"] ~= nil
+
+    if has_kindle and has_overdrive then
+        return {
+            is_downloadable   = false,
+            format            = "ebook-overdrive",
+            is_ebook          = true,
+            restriction_type  = "kindle_or_libby",
+            available_formats = format_list,
+        }
+    elseif has_kindle then
+        return {
+            is_downloadable   = false,
+            format            = "ebook-kindle",
+            is_ebook          = true,
+            restriction_type  = "kindle_only",
+            available_formats = format_list,
+        }
+    elseif has_overdrive then
+        return {
+            is_downloadable   = false,
+            format            = "ebook-overdrive",
+            is_ebook          = true,
+            restriction_type  = "libby_only",
+            available_formats = format_list,
+        }
+    end
+
+    return {
+        is_downloadable   = false,
+        format            = format_list[1] and format_list[1].id or "unsupported",
+        is_ebook          = is_ebook,
+        restriction_type  = "unsupported",
+        available_formats = format_list,
+    }
+end
+
 local function _preferredAdobeFormat(loan)
-    if type(loan) ~= "table" or type(loan.formats) ~= "table" then
-        return "ebook-epub-adobe"
-    end
-    for _, fmt in ipairs(loan.formats) do
-        if type(fmt) == "table" and fmt.id == "ebook-epub-adobe" then
-            return "ebook-epub-adobe"
-        end
-    end
-    for _, fmt in ipairs(loan.formats) do
-        if type(fmt) == "table" and (fmt.id == "ebook-pdf-adobe" or fmt.id == "ebook-epub-open") then
-            return fmt.id
-        end
-    end
-    return "ebook-epub-adobe"
+    local analysis = M.analyzeLoanFormats(loan)
+    return analysis.format or "ebook-epub-adobe"
 end
 
 local function _loanCoverUrl(loan)
@@ -424,6 +556,69 @@ end
 -- Shelf Sync / Fetch Loans
 -- ---------------------------------------------------------------------------
 
+local function _syncShelfOnSameConnection(identity)
+    local transport = _getTransport()
+    if type(transport.request_sequence) ~= "function" then
+        return nil, "Persistent connection transport unavailable"
+    end
+
+    local short_id, short_err = M.short_chip_id(identity)
+    if not short_id then return nil, short_err end
+
+    local function headers(token, language)
+        local result = _defaultHeaders()
+        result["Authorization"] = "Bearer " .. token
+        result["Connection"] = "keep-alive"
+        if language then result["Accept-Language"] = language end
+        return result
+    end
+
+    local sequence, err = transport:request_sequence({
+        {
+            method   = "GET",
+            base_url = M.SENTRY_BASE,
+            path     = "/chip/sync",
+            headers  = headers(identity),
+        },
+        function(responses)
+            if _responseResult(responses[1]) ~= "missing_chip" then return nil end
+            return {
+                method   = "POST",
+                base_url = M.SENTRY_BASE,
+                path     = "/chip",
+                query    = { c = M.CLIENT_VERSION, s = "0", v = short_id },
+                headers  = headers(identity, M.chip_accept_language(identity)),
+            }
+        end,
+        function(responses)
+            local chip = responses[2]
+            local new_id = chip and type(chip.body) == "table" and chip.body.identity
+            if type(new_id) ~= "string" then return nil end
+            return {
+                method   = "GET",
+                base_url = M.SENTRY_BASE,
+                path     = "/chip/sync",
+                headers  = headers(new_id),
+            }
+        end,
+    })
+
+    if not sequence then return nil, err end
+
+    local chip_step = sequence[2]
+    local retry_step = sequence[3]
+    local new_identity = chip_step and type(chip_step.body) == "table" and chip_step.body.identity
+    if not chip_step or chip_step.status ~= 200 or type(new_identity) ~= "string" then
+        return nil, "Libby chip recovery failed"
+    end
+    if not retry_step or retry_step.status ~= 200 then
+        return nil, "Libby sync retry failed with HTTP " .. tostring(retry_step and retry_step.status or "unknown")
+    end
+
+    State.saveChipIdentity(new_identity, State.getLibraryName(), State.getCards())
+    return retry_step
+end
+
 function M.fetchShelf()
     local identity = State.getChipIdentity()
     if not identity or identity == "" then
@@ -435,16 +630,23 @@ function M.fetchShelf()
     local response, err = _request("GET", "/chip/sync", { identity = identity })
     if not response then return nil, err end
 
-    -- Handle missing_chip / token expiration
+    -- Handle missing_chip / token expiration using sticky session sequence
     if response.status == 403 and _responseResult(response) == "missing_chip" then
-        log.info("libbee api: missing_chip received, attempting refresh")
-        local refreshed, refresh_err = M.getChip(identity, true)
-        if not refreshed or type(refreshed.identity) ~= "string" then
-            return nil, "AUTH_EXPIRED"
+        log.info("libbee api: missing_chip received during sync, running sticky recovery sequence")
+        local recovered_resp, rec_err = _syncShelfOnSameConnection(identity)
+        if recovered_resp then
+            response = recovered_resp
+            identity = State.getChipIdentity() or identity
+        else
+            log.info("libbee api: sticky recovery failed, attempting standalone getChip")
+            local refreshed, refresh_err = M.getChip(identity, true)
+            if not refreshed or type(refreshed.identity) ~= "string" then
+                return nil, "AUTH_EXPIRED"
+            end
+            identity = refreshed.identity
+            response, err = _request("GET", "/chip/sync", { identity = identity })
+            if not response then return nil, err end
         end
-        identity = refreshed.identity
-        response, err = _request("GET", "/chip/sync", { identity = identity })
-        if not response then return nil, err end
     end
 
     if response.status == 401 or response.status == 403 then
@@ -466,14 +668,11 @@ function M.fetchShelf()
 
     local loans = {}
     for _, raw in ipairs(raw_loans) do
-        local format_id = _preferredAdobeFormat(raw)
-        local media_type = raw.type and (type(raw.type) == "table" and raw.type.id or tostring(raw.type)) or ""
-
-        -- Check if it is an ebook loan
-        local is_ebook = true
-        if media_type:find("audio", 1, true) or media_type:find("magazine", 1, true) then
-            is_ebook = false
-        end
+        local format_info = M.analyzeLoanFormats(raw)
+        local format_id = format_info.format
+        local is_ebook = format_info.is_ebook
+        local is_downloadable = format_info.is_downloadable
+        local restriction_type = format_info.restriction_type
 
         local days_remaining = State.loanDaysRemaining(raw)
         local title = _firstNonempty(raw.title, raw.parentTitle, raw.sortTitle) or "Unknown Title"
@@ -481,18 +680,21 @@ function M.fetchShelf()
         local library = _loanLibraryName(raw, cards) or State.getLibraryName() or ""
 
         table.insert(loans, {
-            id             = raw.id or raw.loanId or tostring(raw.reserveId or ""),
-            card_id        = raw.cardId or raw.card_id or (cards[1] and cards[1].id),
-            reserveId      = raw.reserveId or raw.id,
-            title          = title,
-            author         = author,
-            library        = library,
-            format         = format_id,
-            is_ebook       = is_ebook,
-            days_remaining = days_remaining,
-            expires        = raw.expires or raw.expireDate or raw.expireTimestamp,
-            cover_url      = _loanCoverUrl(raw),
-            raw            = raw,
+            id                = raw.id or raw.loanId or tostring(raw.reserveId or ""),
+            card_id           = raw.cardId or raw.card_id or (cards[1] and cards[1].id),
+            reserveId         = raw.reserveId or raw.id,
+            title             = title,
+            author            = author,
+            library           = library,
+            format            = format_id,
+            is_ebook          = is_ebook,
+            is_downloadable   = is_downloadable,
+            restriction_type  = restriction_type,
+            formats           = format_info.available_formats,
+            days_remaining    = days_remaining,
+            expires           = raw.expires or raw.expireDate or raw.expireTimestamp,
+            cover_url         = _loanCoverUrl(raw),
+            raw               = raw,
         })
     end
 
@@ -579,6 +781,18 @@ function M.downloadACSM(loan, dest_path)
         return nil, "Not authenticated — please run setup first"
     end
 
+    if loan.is_downloadable == false then
+        if loan.restriction_type == "kindle_or_libby" or loan.restriction_type == "kindle_only" or loan.restriction_type == "libby_only" then
+            return nil, "This book is only available in Libby or on Kindle and cannot be downloaded as EPUB/PDF."
+        elseif loan.restriction_type == "audiobook" then
+            return nil, "This loan is an audiobook and cannot be downloaded as EPUB/PDF."
+        elseif loan.restriction_type == "magazine" then
+            return nil, "This loan is a magazine and cannot be downloaded as EPUB/PDF."
+        else
+            return nil, "This loan format is not supported for download."
+        end
+    end
+
     if not loan.is_ebook then
         return nil, "This loan is not a downloadable ebook"
     end
@@ -606,6 +820,8 @@ function M.downloadACSM(loan, dest_path)
         log.info("libbee api: 403 missing_chip during fulfillment, running sticky recovery sequence")
         fulfill_url, err = _recoverFulfillmentOnSameConnection(path, identity)
         if not fulfill_url then return nil, err end
+    elseif response.status == 400 then
+        return nil, "Libby rejected fulfillment (HTTP 400): Format not available for this loan (title may be restricted to Libby or Kindle)."
     elseif response.status ~= 200 then
         return nil, "Libby fulfillment request failed with HTTP " .. tostring(response.status)
     else

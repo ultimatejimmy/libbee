@@ -354,7 +354,7 @@ local SHELF_CACHE_TTL = 7 * 24 * 60 * 60 -- 7 days
 function M.getShelfCache(allow_stale)
     local data = _readJson(_shelfCachePath())
     if not data or type(data.shelf) ~= "table" then return nil end
-    if allow_stale == false and (os.time() - (data.timestamp or 0)) > SHELF_CACHE_TTL then
+    if not allow_stale and (os.time() - (data.timestamp or 0)) > SHELF_CACHE_TTL then
         logger.info("libbee state: shelf cache expired")
         return nil
     end

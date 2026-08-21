@@ -96,3 +96,57 @@ describe("libbee_state download directory settings", function()
     end)
 end)
 
+describe("libbee_state shelf cache and 7-day TTL", function()
+    local sample_shelf = {
+        { id = "loan-1", title = "The Great Gatsby", days_remaining = 14 },
+        { id = "loan-2", title = "1984", days_remaining = 7 }
+    }
+
+    before_each(function()
+        State.clearShelfCache()
+    end)
+
+    after_each(function()
+        State.clearShelfCache()
+    end)
+
+    it("saves and retrieves shelf cache within 7-day TTL", function()
+        assert.is_nil(State.getShelfCache())
+        State.saveShelfCache(sample_shelf)
+
+        local cached = State.getShelfCache()
+        assert.is_table(cached)
+        assert.are_equal(2, #cached)
+        assert.are_equal("The Great Gatsby", cached[1].title)
+    end)
+
+    it("expires cache after 7 days (7 * 24 * 60 * 60 seconds) when allow_stale is nil or false", function()
+        State.saveShelfCache(sample_shelf)
+
+        local orig_time = os.time
+        -- Advance time by 8 days
+        os.time = function() return orig_time() + (8 * 24 * 60 * 60) end
+
+        local expired = State.getShelfCache()
+        assert.is_nil(expired)
+
+        local expired_explicit = State.getShelfCache(false)
+        assert.is_nil(expired_explicit)
+
+        -- If allow_stale is true, it should return the cached data
+        local stale = State.getShelfCache(true)
+        assert.is_table(stale)
+        assert.are_equal(2, #stale)
+
+        os.time = orig_time
+    end)
+
+    it("clears shelf cache correctly", function()
+        State.saveShelfCache(sample_shelf)
+        assert.is_not_nil(State.getShelfCache())
+
+        State.clearShelfCache()
+        assert.is_nil(State.getShelfCache())
+    end)
+end)
+

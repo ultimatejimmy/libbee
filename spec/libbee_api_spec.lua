@@ -103,4 +103,105 @@ describe("Libbee API & Transport Tests", function()
         end)
     end)
 
+    describe("Loan format analysis & restriction detection", function()
+        it("detects standard downloadable Adobe EPUB loans", function()
+            local loan = {
+                formats = {
+                    { id = "ebook-epub-adobe", name = "Adobe EPUB" },
+                    { id = "ebook-kindle", name = "Kindle Book" },
+                    { id = "ebook-overdrive", name = "OverDrive Read" },
+                }
+            }
+            local info = API.analyzeLoanFormats(loan)
+            assert.is_true(info.is_downloadable)
+            assert.equals("ebook-epub-adobe", info.format)
+            assert.is_nil(info.restriction_type)
+        end)
+
+        it("detects downloadable PDF and open EPUB formats", function()
+            local pdf_loan = {
+                formats = { { id = "ebook-pdf-adobe" } }
+            }
+            local pdf_info = API.analyzeLoanFormats(pdf_loan)
+            assert.is_true(pdf_info.is_downloadable)
+            assert.equals("ebook-pdf-adobe", pdf_info.format)
+
+            local open_loan = {
+                formats = { { id = "ebook-epub-open" } }
+            }
+            local open_info = API.analyzeLoanFormats(open_loan)
+            assert.is_true(open_info.is_downloadable)
+            assert.equals("ebook-epub-open", open_info.format)
+        end)
+
+        it("detects Kindle and Libby only loans", function()
+            local loan = {
+                formats = {
+                    { id = "ebook-kindle" },
+                    { id = "ebook-overdrive" },
+                }
+            }
+            local info = API.analyzeLoanFormats(loan)
+            assert.is_false(info.is_downloadable)
+            assert.equals("kindle_or_libby", info.restriction_type)
+        end)
+
+        it("detects Kindle-only loans", function()
+            local loan = {
+                formats = {
+                    { id = "ebook-kindle" }
+                }
+            }
+            local info = API.analyzeLoanFormats(loan)
+            assert.is_false(info.is_downloadable)
+            assert.equals("kindle_only", info.restriction_type)
+        end)
+
+        it("detects Libby-only web reader loans", function()
+            local loan = {
+                formats = {
+                    { id = "ebook-overdrive" }
+                }
+            }
+            local info = API.analyzeLoanFormats(loan)
+            assert.is_false(info.is_downloadable)
+            assert.equals("libby_only", info.restriction_type)
+        end)
+
+        it("detects audiobook loans", function()
+            local loan = {
+                type = { id = "audiobook" },
+                formats = { { id = "audiobook-overdrive" } }
+            }
+            local info = API.analyzeLoanFormats(loan)
+            assert.is_false(info.is_downloadable)
+            assert.is_false(info.is_ebook)
+            assert.equals("audiobook", info.restriction_type)
+        end)
+
+        it("detects magazine loans", function()
+            local loan = {
+                type = { id = "magazine" },
+                formats = { { id = "magazine-overdrive" } }
+            }
+            local info = API.analyzeLoanFormats(loan)
+            assert.is_false(info.is_downloadable)
+            assert.is_false(info.is_ebook)
+            assert.equals("magazine", info.restriction_type)
+        end)
+
+        it("prevents downloadACSM from requesting fulfillment for restricted loans", function()
+            State.saveChipIdentity("valid_identity_token", "Test Lib", { { id = "123" } })
+            local restricted_loan = {
+                id = "loan1",
+                card_id = "123",
+                is_downloadable = false,
+                restriction_type = "kindle_or_libby",
+            }
+            local res, err = API.downloadACSM(restricted_loan, "/tmp/out.acsm")
+            assert.is_nil(res)
+            assert.is_truthy(err:find("Libby or on Kindle"))
+        end)
+    end)
+
 end)

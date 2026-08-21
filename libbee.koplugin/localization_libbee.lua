@@ -348,6 +348,14 @@ local FALLBACKS = {
     msg_no_loans = "No loans currently on your shelf.",
     msg_no_holds = "No holds currently placed.",
     progress_please_wait = "Please wait...",
+
+    -- Format Restrictions & Badges
+    badge_libby_kindle = "Libby / Kindle",
+    badge_kindle_only = "Kindle only",
+    badge_libby_only = "Libby only",
+    badge_audiobook = "Audiobook",
+    badge_magazine = "Magazine",
+    badge_unsupported = "Unsupported",
 }
 
 local KEY_ALIASES = {

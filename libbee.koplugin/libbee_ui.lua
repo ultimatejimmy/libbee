@@ -853,6 +853,36 @@ local function _createBadge(text, is_urgent)
     }
 end
 
+local function _restrictionBadgeLabel(loan)
+    if not loan then return nil end
+    local r = loan.restriction_type
+    if r == "kindle_or_libby" then
+        return _("Libby / Kindle")
+    elseif r == "kindle_only" then
+        return _("Kindle only")
+    elseif r == "libby_only" then
+        return _("Libby only")
+    elseif r == "audiobook" then
+        return _("Audiobook")
+    elseif r == "magazine" then
+        return _("Magazine")
+    elseif loan.is_downloadable == false or loan.is_ebook == false then
+        return _("Unsupported")
+    end
+    return nil
+end
+
+local function _loanBadge(loan)
+    if not loan then return nil end
+    local rest_label = _restrictionBadgeLabel(loan)
+    if rest_label then
+        return _createBadge(rest_label, false)
+    end
+    local days_str = _fmtDays(loan.days_remaining)
+    local is_urgent = (loan.days_remaining and loan.days_remaining <= 2)
+    return _createBadge(days_str, is_urgent)
+end
+
 -- ---------------------------------------------------------------------------
 -- Shelf Browser (Full-screen Dialog with List & Cover Views)
 -- ---------------------------------------------------------------------------
@@ -1193,9 +1223,7 @@ function M.showShelfBrowser(plugin_dir)
         end
 
         local function render_list_loan(loan, loan_idx)
-            local days_str = _fmtDays(loan.days_remaining)
-            local is_urgent = (loan.days_remaining and loan.days_remaining <= 2)
-            local badge_w = _createBadge(days_str, is_urgent)
+            local badge_w = _loanBadge(loan)
 
             local badge_reserve = badge_w and (badge_w:getSize().w + sc(8)) or 0
             local thumb_w_size = sc(54)
@@ -1374,9 +1402,7 @@ function M.showShelfBrowser(plugin_dir)
                     fgcolor = Blitbuffer.COLOR_BLACK,
                 }
 
-                local days_str = _fmtDays(loan.days_remaining)
-                local is_urgent = (loan.days_remaining and loan.days_remaining <= 2)
-                local badge_widget = _createBadge(days_str, is_urgent)
+                local badge_widget = _loanBadge(loan)
 
                 local cell_content = VerticalGroup:new{
                     align = "center",
@@ -1816,6 +1842,65 @@ function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
         ok_st, State = pcall(require, "libbee_state")
     end
 
+    if loan and (loan.is_downloadable == false or loan.restriction_type) then
+        local rest_type = loan.restriction_type or "unsupported"
+        local title_str = _("Format Not Supported")
+        local desc_str = ""
+        local format_display = _("Unsupported")
+
+        if rest_type == "kindle_or_libby" then
+            title_str = _("Kindle / Libby Only")
+            format_display = _("Libby / Kindle")
+            desc_str = _("This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com.")
+        elseif rest_type == "kindle_only" then
+            title_str = _("Kindle Only")
+            format_display = _("Kindle")
+            desc_str = _("This book is only available in Amazon Kindle format.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, choose 'Read with Kindle' from the Libby app or website.")
+        elseif rest_type == "libby_only" then
+            title_str = _("Libby App Only")
+            format_display = _("Libby Read")
+            desc_str = _("This book can only be read directly in the Libby app or browser reader (OverDrive Read).\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.")
+        elseif rest_type == "audiobook" then
+            title_str = _("Audiobook")
+            format_display = _("Audiobook")
+            desc_str = _("This title is an audiobook and cannot be played in KOReader.\n\nPlease listen to it in the Libby app.")
+        elseif rest_type == "magazine" then
+            title_str = _("Magazine")
+            format_display = _("Magazine")
+            desc_str = _("This magazine is not available as a downloadable EPUB or PDF file for KOReader.\n\nPlease read it in the Libby app.")
+        else
+            title_str = _("Format Not Supported")
+            format_display = loan.format or _("Unsupported")
+            desc_str = _("This title is not available in a downloadable format supported by KOReader.")
+        end
+
+        local days_str = _fmtDays(loan.days_remaining)
+        local body_text = string.format(
+            "%s:  %s\n%s: %s\n%s: %s\n%s:   %s\n\n%s",
+            _("Title"),
+            (loan and loan.title) or _("Unknown Title"),
+            _("Author"),
+            (loan and loan.author) or _("Unknown Author"),
+            _("Available Format"),
+            format_display,
+            _("Loan"),
+            days_str ~= "" and days_str or _("Active"),
+            desc_str
+        )
+
+        M.showCardDialog{
+            title = title_str,
+            body_text = body_text,
+            buttons = {
+                {
+                    text = _("OK"),
+                    is_primary = true,
+                }
+            }
+        }
+        return
+    end
+
     local base_dir = (ok_st and State and State.getDownloadDir and State.getDownloadDir(plugin_dir)) or "/tmp/Libby"
     local dest_path = (ok_api and API and API.getAcsmPath and API.getAcsmPath(base_dir, loan)) or (base_dir .. "/download.acsm")
 
@@ -1944,6 +2029,18 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
                 }
             elseif (err and err:find("AUTH_EXPIRED")) or (type(final_book_path) == "string" and final_book_path:find("AUTH_EXPIRED")) then
                 M._handleAuthExpired(plugin_dir)
+            elseif (err and (err:find("400") or err:find("UNSUPPORTED") or err:find("restricted to Libby") or err:find("Format not available") or err:find("only available in Libby"))) or
+                   (type(final_book_path) == "string" and (final_book_path:find("400") or final_book_path:find("UNSUPPORTED") or final_book_path:find("restricted to Libby") or final_book_path:find("only available in Libby"))) then
+                M.showCardDialog{
+                    title = _("Format Not Supported"),
+                    body_text = _("This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."),
+                    buttons = {
+                        {
+                            text = _("OK"),
+                            is_primary = true,
+                        }
+                    }
+                }
             else
                 local err_str = err or tostring(final_book_path or "Unknown error")
                 M.showCardDialog{
@@ -2343,7 +2440,7 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             local cards = State.getCards() or {}
             local seen_libs = {}
 
-            for _, card_item in ipairs(cards) do
+            for idx, card_item in ipairs(cards) do
                 local c_name = card_item.library_name or card_item.name or (card_item.advantage_key and card_item.advantage_key:upper())
                 if c_name and c_name ~= "" and not seen_libs[c_name] then
                     seen_libs[c_name] = true

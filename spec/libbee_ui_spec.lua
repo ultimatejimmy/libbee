@@ -157,6 +157,36 @@ describe("libbee_ui", function()
             assert.is_true(#_G.ui_tracker.shown > 0)
         end)
 
+        it("showDownloadConfirm shows informative restriction dialog for Kindle/Libby only loan", function()
+            _G.ui_tracker.shown = {}
+            local loan = {
+                title = "Kindle Exclusive Book",
+                author = "Popular Author",
+                is_downloadable = false,
+                restriction_type = "kindle_or_libby",
+                days_remaining = 10,
+            }
+
+            UI.showDownloadConfirm(loan, "/tmp/test_plugin")
+            assert.is_true(#_G.ui_tracker.shown > 0)
+            local dlg = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(dlg)
+        end)
+
+        it("showDownloadConfirm shows informative dialog for audiobook loan", function()
+            _G.ui_tracker.shown = {}
+            local loan = {
+                title = "Audiobook Title",
+                author = "Author",
+                is_downloadable = false,
+                restriction_type = "audiobook",
+                days_remaining = 5,
+            }
+
+            UI.showDownloadConfirm(loan, "/tmp/test_plugin")
+            assert.is_true(#_G.ui_tracker.shown > 0)
+        end)
+
         it("showSetupDialog shows Retry and Cancel on setup code failure", function()
             _G.ui_tracker.shown = {}
             local API = require("libbee_api")
@@ -177,6 +207,102 @@ describe("libbee_ui", function()
             assert.is_table(dlg)
 
             API.requestSetupCode = orig_requestSetupCode
+        end)
+    end)
+
+    describe("download flow and progress toast lifecycle", function()
+        local API = require("libbee_api")
+        local LibbeeDRM = require("libbee_drm")
+        local orig_downloadACSM = API.downloadACSM
+        local orig_fulfillAcsm = LibbeeDRM.fulfillAcsm
+        local orig_parseAcsmMetadata = LibbeeDRM.parseAcsmMetadata
+        local orig_deriveFinalBookPath = LibbeeDRM.deriveFinalBookPath
+
+        after_each(function()
+            API.downloadACSM = orig_downloadACSM
+            LibbeeDRM.fulfillAcsm = orig_fulfillAcsm
+            LibbeeDRM.parseAcsmMetadata = orig_parseAcsmMetadata
+            LibbeeDRM.deriveFinalBookPath = orig_deriveFinalBookPath
+        end)
+
+        it("shows progress toast and handles successful download & fulfillment", function()
+            _G.ui_tracker.shown = {}
+            _G.ui_tracker.closed = {}
+
+            API.downloadACSM = function(loan, target_path) return true end
+            LibbeeDRM.parseAcsmMetadata = function(path) return { title = "Test Book" } end
+            LibbeeDRM.deriveFinalBookPath = function(base, loan, meta) return base .. "/Test Book.epub" end
+            LibbeeDRM.fulfillAcsm = function(acsm, out) return true end
+
+            local loan = { title = "Test Book", author = "Author" }
+            local after_called = false
+
+            UI._doDownload(loan, "/tmp/download.acsm", "/tmp", "", function()
+                after_called = true
+            end)
+
+            -- Toast should be shown
+            assert.is_true(#_G.ui_tracker.shown >= 2)
+            local toast_shown = false
+            for _, widget in ipairs(_G.ui_tracker.shown) do
+                if widget.type == "InputContainer" and widget.label_widget and widget.label_widget.text:find("Downloading") then
+                    toast_shown = true
+                    break
+                end
+            end
+            assert.is_true(toast_shown)
+            assert.is_true(after_called)
+            assert.is_true(#_G.ui_tracker.closed > 0)
+        end)
+
+        it("dismisses progress toast and displays failure dialog on download error", function()
+            _G.ui_tracker.shown = {}
+            _G.ui_tracker.closed = {}
+
+            API.downloadACSM = function(loan, target_path) return false, "Network timeout" end
+
+            local loan = { title = "Failing Book", author = "Author" }
+            UI._doDownload(loan, "/tmp/download.acsm", "/tmp", "", nil)
+
+            assert.is_true(#_G.ui_tracker.shown >= 2)
+            assert.is_true(#_G.ui_tracker.closed > 0)
+            local last_dialog = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(last_dialog)
+        end)
+
+        it("dismisses progress toast and displays multi-device dialog on ALREADY_FULFILLED", function()
+            _G.ui_tracker.shown = {}
+            _G.ui_tracker.closed = {}
+
+            API.downloadACSM = function(loan, target_path) return true end
+            LibbeeDRM.parseAcsmMetadata = function(path) return { title = "Fulfilled Book" } end
+            LibbeeDRM.deriveFinalBookPath = function(base, loan, meta) return base .. "/Fulfilled Book.epub" end
+            LibbeeDRM.fulfillAcsm = function(acsm, out) return false, "ALREADY_FULFILLED" end
+
+            local loan = { title = "Fulfilled Book", author = "Author" }
+            UI._doDownload(loan, "/tmp/download.acsm", "/tmp", "", nil)
+
+            assert.is_true(#_G.ui_tracker.shown >= 2)
+            assert.is_true(#_G.ui_tracker.closed > 0)
+            local last_dialog = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(last_dialog)
+        end)
+
+        it("dismisses progress toast and displays format not supported dialog on HTTP 400 format error", function()
+            _G.ui_tracker.shown = {}
+            _G.ui_tracker.closed = {}
+
+            API.downloadACSM = function(loan, target_path)
+                return nil, "Libby rejected fulfillment (HTTP 400): Format not available for this loan (title may be restricted to Libby or Kindle)."
+            end
+
+            local loan = { title = "Restricted Book", author = "Author" }
+            UI._doDownload(loan, "/tmp/download.acsm", "/tmp", "", nil)
+
+            assert.is_true(#_G.ui_tracker.shown >= 2)
+            assert.is_true(#_G.ui_tracker.closed > 0)
+            local last_dialog = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(last_dialog)
         end)
     end)
 end)

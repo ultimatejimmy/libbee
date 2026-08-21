@@ -65,6 +65,14 @@ msgstr "ACSM işleme başarısız oldu"
 msgid "About"
 msgstr "Hakkında"
 
+# en-hash: bc00c85091c5353809f37cc54f8df9a9
+msgid "About ByteBook"
+msgstr "ByteBook Hakkında"
+
+# en-hash: 4272d0a0d2f92239063b0f5e74297644
+msgid "About ByteBooks"
+msgstr "ByteBooks Hakkında"
+
 # en-hash: 0abf29253505eda680fc9518d8ee74a1
 msgid "Account & Keys"
 msgstr "Hesap ve Anahtarlar"
@@ -89,6 +97,10 @@ msgstr "Aktif"
 msgid "All"
 msgstr "Tümü"
 
+# en-hash: 894bf223f655fcd20eb70039bc62ca12
+msgid "Already Fulfilled on Another Device"
+msgstr "Başka bir cihazda zaten indirildi"
+
 # en-hash: 9ee472f90625d1c24d379203d9d45781
 msgid "Anonymous (Device only)"
 msgstr "Anonim (Yalnızca bu cihaz)"
@@ -96,6 +108,10 @@ msgstr "Anonim (Yalnızca bu cihaz)"
 # en-hash: 0071fc15aed596b342505d9b8d315774
 msgid "Anonymous ›"
 msgstr "Anonim ›"
+
+# en-hash: 6d22c897874db492fb050da174bf189f
+msgid "Audiobook"
+msgstr "Sesli Kitap"
 
 # en-hash: a517747c3d12f99244ae598910d979c5
 msgid "Author"
@@ -117,9 +133,17 @@ msgstr "Yetkilendir"
 msgid "Authorizing ByteBooks account…"
 msgstr "ByteBooks hesabı yetkilendiriliyor…"
 
+# en-hash: 2b984d0065811d967b47b4afc2c6079d
+msgid "Auto on download"
+msgstr "İndirildiğinde otomatik"
+
 # en-hash: 9bd1606c367713265008a2d24b589cad
 msgid "Auto-activates on download"
 msgstr "İndirme sırasında otomatik etkinleşir"
+
+# en-hash: 30aa633ceca3224e6de6cdc62d7e3307
+msgid "Available Format"
+msgstr "Mevcut Format"
 
 # en-hash: 2b1f94ef23b79bf90eb891cae1df7a90
 msgid "Book"
@@ -128,6 +152,14 @@ msgstr "Kitap"
 # en-hash: b41178dec7c52dd70fb71a5a29480e8d
 msgid "Book Already Downloaded"
 msgstr "Kitap Zaten İndirildi"
+
+# en-hash: 899a89322bff5471f9a250d71ff876b5
+msgid "ByteBook"
+msgstr "ByteBook"
+
+# en-hash: 68701363a5d5cf7bbc1eea4208259cf6
+msgid "ByteBooks"
+msgstr "ByteBooks"
 
 # en-hash: 3b763e85d6cde7e5d2c086802276b5a2
 msgid "ByteBooks DRM"
@@ -177,6 +209,14 @@ msgstr "Kodun süresi doldu. Yeniden denemek için Yeni Kod'a dokunun."
 msgid "Connect with Libby code"
 msgstr "Libby koduyla bağlan"
 
+# en-hash: 2ec0d16e4ca169baedb9b2d50ec5c6d7
+msgid "Connected"
+msgstr "Bağlandı"
+
+# en-hash: 265725f5f895c4f418183f9cba48fda4
+msgid "Connected Libraries"
+msgstr "Bağlı Kütüphaneler"
+
 # en-hash: 60b7a58e56e8e2665e64fb9f42ec183c
 msgid "Connected ›"
 msgstr "Bağlı ›"
@@ -184,6 +224,14 @@ msgstr "Bağlı ›"
 # en-hash: 4ff77e16703baf1a986734403aa04151
 msgid "Connecting to Libby…"
 msgstr "Libby'ye bağlanılıyor…"
+
+# en-hash: a95bcca04282197a9949388b819897d7
+msgid "Connecting to Libby…\n\nLoading your active loans…"
+msgstr "Libby'ye bağlanılıyor…\n\nAktif ödünçler yükleniyor…"
+
+# en-hash: f3ea2226bfd87c77f77fd5e33575b71d
+msgid "Connection Status"
+msgstr "Bağlantı Durumu"
 
 # en-hash: d6ab5be3edab5ac285b19816029d7547
 msgid "Could Not Load Shelf"
@@ -204,6 +252,10 @@ msgstr "İndirme klasörü oluşturulamadı:\n%s"
 # en-hash: 7391c7d1c8106b898a448f94cc03ea43
 msgid "Could not fulfill loan file:\n\n%s"
 msgstr "Ödünç dosyası işlenemedi:\n\n%s"
+
+# en-hash: f2bab5025e6328c3ca7e3081d6f8e8f1
+msgid "Could not request setup code."
+msgstr "Kurulum kodu alınamadı."
 
 # en-hash: 163dd2076f005559c44b9453e5477c99
 msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
@@ -236,6 +288,10 @@ msgstr "DRM etkinleştirme anahtarları sıfırlandı"
 # en-hash: fd84ab7970c656c94596f0080c1b4e8c
 msgid "Default folder ›"
 msgstr "Varsayılan klasör ›"
+
+# en-hash: d4045ad6ac3b251a37c226fba6499def
+msgid "Device DRM"
+msgstr "Cihaz DRM"
 
 # en-hash: 5d538b17286b57664fdbdcb4fc6f9bac
 msgid "Diagnostics & Cache"
@@ -329,6 +385,10 @@ msgstr "Klasör"
 msgid "Format"
 msgstr "Biçim"
 
+# en-hash: 0d0e72a75d3fcd50df8f0af8effdd461
+msgid "Format Not Supported"
+msgstr "Format Desteklenmiyor"
+
 # en-hash: a06971d90ebe8f5f0b40aa9df744a269
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "Libbee ile ACSM ödüncü işleniyor…"
@@ -341,9 +401,29 @@ msgstr "Ayırtılanlar"
 msgid "Install failed (unzip): %s"
 msgstr "Yükleme başarısız (arşiv açma): %s"
 
+# en-hash: 5441bf55ddbc84e8f574acd8d735638b
+msgid "Kindle"
+msgstr "Kindle"
+
+# en-hash: 92e47934b99e8f1ae63d1010034be6f2
+msgid "Kindle / Libby Only"
+msgstr "Yalnızca Kindle / Libby"
+
+# en-hash: 4ab81329076a9572c403d723e23d14e0
+msgid "Kindle Only"
+msgstr "Yalnızca Kindle"
+
+# en-hash: cb67aa2cec583dfd118f1ea63172eac9
+msgid "Kindle only"
+msgstr "Yalnızca Kindle"
+
 # en-hash: 61057a0c84605444201929bdd72014f0
 msgid "Later"
 msgstr "Daha Sonra"
+
+# en-hash: 76374a506e6c678f472608fc19a34615
+msgid "Learn about ByteBook"
+msgstr "ByteBook hakkında bilgi edinin"
 
 # en-hash: c61c67ed568a6d5aa71932f92b67d806
 msgid "Libbee"
@@ -389,13 +469,33 @@ msgstr "Libbee · Kitaplık"
 msgid "Libbee: Browse Shelf"
 msgstr "Libbee: Kitaplığı İncele"
 
+# en-hash: c54dcc922cf18f2a1a36311c1ea2da35
+msgid "Libbee: Open"
+msgstr "Libbee: Aç"
+
+# en-hash: f00151a638d13004add085131a39e548
+msgid "Libby / Kindle"
+msgstr "Libby / Kindle"
+
 # en-hash: 7a83d1914057f5905834756d0d9cb3ac
 msgid "Libby Account"
 msgstr "Libby Hesabı"
 
+# en-hash: be1e6d9305f4d36f162a59065d07bc84
+msgid "Libby App Only"
+msgstr "Yalnızca Libby Uygulaması"
+
+# en-hash: a94c6e1b2275b57db9ab336e4cf5fb31
+msgid "Libby Read"
+msgstr "Libby Read"
+
 # en-hash: c0418b07b48e7490fb6b4b37e7209631
 msgid "Libby account disconnected"
 msgstr "Libby hesabının bağlantısı kesildi"
+
+# en-hash: ce5ce7e1b50a83e70111ecbd2e5dfd52
+msgid "Libby only"
+msgstr "Yalnızca Libby"
 
 # en-hash: 4d70254b3a8e2bc38b6147fa6ee813be
 msgid "Library"
@@ -429,6 +529,10 @@ msgstr "Ödünçler"
 msgid "Local shelf cache cleared"
 msgstr "Yerel kitaplık önbelleği temizlendi"
 
+# en-hash: e949097c0b1568e201f9345c24561863
+msgid "Magazine"
+msgstr "Dergi"
+
 # en-hash: 10d0de28911c5f66463b9c8783f8148a
 msgid "Maintenance"
 msgstr "Bakım"
@@ -436,6 +540,10 @@ msgstr "Bakım"
 # en-hash: ec59d364f67316f8c73663cefa219651
 msgid "Maintenance & Logs"
 msgstr "Bakım ve Günlükler"
+
+# en-hash: c10ed6587598fe5b0c8e012eeaf74a9c
+msgid "Make sure your device is connected to Wi-Fi."
+msgstr "Cihazınızın Wi-Fi'ye bağlı olduğundan emin olun."
 
 # en-hash: 5148905edb46ca87df979cbb369c403d
 msgid "New Folder"
@@ -469,6 +577,10 @@ msgstr "Bu dizinde alt klasör yok.\nKullanmak için aşağıdaki 'Klasör Seç'
 msgid "Not Connected ›"
 msgstr "Bağlı Değil ›"
 
+# en-hash: 7b277018e43d41bc445731092b91547d
+msgid "Not connected"
+msgstr "Bağlı değil"
+
 # en-hash: e0aa021e21dddbd6d8cecec71e9cf564
 msgid "OK"
 msgstr "Tamam"
@@ -484,6 +596,10 @@ msgstr "GitHub'ı Aç"
 # en-hash: e81fda06f0f7eed35d3618df15939df2
 msgid "Open Shelf"
 msgstr "Kitaplığı Aç"
+
+# en-hash: d26c52f54f262a9c0848b86807f0824a
+msgid "Opening \"%s\"…"
+msgstr "\"%s\" açılıyor…"
 
 # en-hash: b8065ad2628f1f82f3167af0947b3e43
 msgid "Page %d of %d"
@@ -545,6 +661,10 @@ msgstr "DRM Etkinleştirme Anahtarlarını Sıfırla"
 msgid "Reset DRM Keys"
 msgstr "DRM Anahtarlarını Sıfırla"
 
+# en-hash: c77aec06a61893fc75834519d46cf2d5
+msgid "Reset DRM activation keys"
+msgstr "DRM etkinleştirme anahtarlarını sıfırla"
+
 # en-hash: 96ed9a35f108f612581794a104f7c2a1
 msgid "Reset Keys"
 msgstr "Anahtarları Sıfırla"
@@ -584,6 +704,10 @@ msgstr "Kaydet"
 # en-hash: 20b4f5bde44dfe7ae815d68bede8b8f9
 msgid "Saved to:\n%s\n\nOpen it from the file browser."
 msgstr "Şuraya kaydedildi:\n%s\n\nDosya tarayıcısından açın."
+
+# en-hash: 14040de38eaa1d7c1be931d35d261679
+msgid "Scan with your phone to learn more."
+msgstr "Daha fazla bilgi için telefonunuzla tarayın."
 
 # en-hash: e03107c5f320c880b61c546d0f6235af
 msgid "Select Download Folder"
@@ -625,6 +749,10 @@ msgstr "Kitapları cihazlar arasında eşitlemek için giriş yapın.\nŞifre as
 msgid "Sign in with ByteBooks ID"
 msgstr "ByteBooks ID ile Giriş Yap"
 
+# en-hash: ec53a8c4f07baed5d8825072c89799be
+msgid "Status"
+msgstr "Durum"
+
 # en-hash: 841037f081328cdc5308528f585512dc
 msgid "Status & Libraries"
 msgstr "Durum ve Kütüphaneler"
@@ -657,6 +785,42 @@ msgstr "Sistem"
 msgid "Tags"
 msgstr "Etiketler"
 
+# en-hash: 02dda5d92b66f09e2004c3357668fdae
+msgid "This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com."
+msgstr "Bu kitap yalnızca Libby uygulamasında veya Kindle'da açılabilir.\n\nYayıncı, KOReader için indirilebilir bir EPUB veya PDF dosyası sağlamamaktadır.\n\nOkumak için Libby uygulamasında açın veya libbyapp.com adresinden 'Read with Kindle'ı seçin."
+
+# en-hash: ffc5ef236f6ce51e868c4caf9b93c39c
+msgid "This book can only be read directly in the Libby app or browser reader (OverDrive Read).\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader."
+msgstr "Bu kitap yalnızca Libby uygulamasında veya web okuyucuda (OverDrive Read) okunabilir.\n\nYayıncı, KOReader için indirilebilir bir EPUB veya PDF sağlamamaktadır."
+
+# en-hash: 85d9b790cf92db1259c444be28a178bc
+msgid "This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."
+msgstr "Bu kitap KOReader'a indirilemez.\n\nLibby bu başlığı yalnızca Libby uygulaması veya Kindle için sunmaktadır. İndirilebilir EPUB/PDF dosyaları mevcut değildir."
+
+# en-hash: 0e40609ebe02b804db237adad5384dd5
+msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
+msgstr "Bu kitap başka bir cihazda zaten indirildi. Libby, her ödünç almanın Adobe ID başına yalnızca bir kez indirilmesine izin verir.\n\nByteBook, ödünçlerinizi tüm e-okuyucularınızda eşzamanlamanıza olanak tanır."
+
+# en-hash: a45f5711eda70d5a863d9ebd09f245a6
+msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
+msgstr "Bu kitap başka bir cihazda zaten indirildi. Libby, her ödünç almanın Adobe ID başına yalnızca bir kez indirilmesine izin verir.\n\nByteBooks, ödünçlerinizi tüm e-okuyucularınızda eşzamanlamanıza olanak tanır."
+
+# en-hash: d0f6b124e23f760507539e55502296a4
+msgid "This book is only available in Amazon Kindle format.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, choose 'Read with Kindle' from the Libby app or website."
+msgstr "Bu kitap yalnızca Amazon Kindle formatında mevcuttur.\n\nYayıncı, KOReader için indirilebilir bir EPUB veya PDF sağlamamaktadır.\n\nLibby uygulamasından veya web sitesinden 'Read with Kindle'ı seçin."
+
+# en-hash: aeba2da5f8dcbe55e7c5695a4ce064ee
+msgid "This magazine is not available as a downloadable EPUB or PDF file for KOReader.\n\nPlease read it in the Libby app."
+msgstr "Bu dergi KOReader için indirilebilir formatta mevcut değildir.\n\nLütfen Libby uygulamasından okuyun."
+
+# en-hash: cc7bfbfb0977ec05533f82734fb76b41
+msgid "This title is an audiobook and cannot be played in KOReader.\n\nPlease listen to it in the Libby app."
+msgstr "Bu bir sesli kitaptır ve KOReader'da oynatılamaz.\n\nLütfen Libby uygulamasından dinleyin."
+
+# en-hash: 26ddfc6b71bdcf8d76f7d3e9ebb74c05
+msgid "This title is not available in a downloadable format supported by KOReader."
+msgstr "Bu başlık KOReader tarafından desteklenen indirilebilir bir formatta mevcut değildir."
+
 # en-hash: b78a3223503896721cca1303f776159b
 msgid "Title"
 msgstr "Başlık"
@@ -672,6 +836,10 @@ msgstr "Bilinmeyen Başlık"
 # en-hash: aee9784c03b80d38d3271cde2b252b8d
 msgid "Unknown error"
 msgstr "Bilinmeyen hata"
+
+# en-hash: b4080bdf74febf04d578ff105cce9d3f
+msgid "Unsupported"
+msgstr "Desteklenmiyor"
 
 # en-hash: 06933067aafd48425d67bcb01bba5cb6
 msgid "Update"
@@ -736,6 +904,34 @@ msgstr "Yenilikler:"
 # en-hash: 3ee9fa061c0bbdddac07b093572bb860
 msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
 msgstr "Libby yetkilendirmenizin süresi doldu.\n\nİndirmeye devam etmek için lütfen yeniden kimlik doğrulayın."
+
+# en-hash: 6d22c897874db492fb050da174bf189f
+msgid "badge_audiobook"
+msgstr "Sesli Kitap"
+
+# en-hash: cb67aa2cec583dfd118f1ea63172eac9
+msgid "badge_kindle_only"
+msgstr "Yalnızca Kindle"
+
+# en-hash: f00151a638d13004add085131a39e548
+msgid "badge_libby_kindle"
+msgstr "Libby / Kindle"
+
+# en-hash: ce5ce7e1b50a83e70111ecbd2e5dfd52
+msgid "badge_libby_only"
+msgstr "Yalnızca Libby"
+
+# en-hash: e949097c0b1568e201f9345c24561863
+msgid "badge_magazine"
+msgstr "Dergi"
+
+# en-hash: b4080bdf74febf04d578ff105cce9d3f
+msgid "badge_unsupported"
+msgstr "Desteklenmiyor"
+
+# en-hash: 821f03288846297c2cf43c34766a38f7
+msgid "book"
+msgstr "kitap"
 
 # en-hash: ea4788705e6873b424c65e91c2846b19
 msgid "btn_cancel"
@@ -929,6 +1125,10 @@ msgstr "‹ Önceki"
 msgid "⏳ %d days remaining on this loan.\n\n"
 msgstr "⏳ Bu ödünç için %d gün kaldı.\n\n"
 
+# en-hash: 57f4d25b2ed89c3ff4eda491b0544bbe
+msgid "✓ Active"
+msgstr "✓ Aktif"
+
 # en-hash: 199d42ba7b73113888ced7202279fa99
 msgid "✓ Anonymous Active"
 msgstr "✓ Anonim Etkinleştirme Aktif"
@@ -953,34 +1153,3 @@ msgstr "✓ Libbee Bağlandı!"
 msgid "✗ Not Connected"
 msgstr "✗ Bağlı Değil"
 
-
-# en-hash: c54dcc922cf18f2a1a36311c1ea2da35
-msgid "Libbee: Open"
-msgstr "Libbee: Aç"
-
-msgid "Already Fulfilled on Another Device"
-msgstr ""
-
-msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
-msgstr ""
-
-msgid "Learn about ByteBook"
-msgstr ""
-
-msgid "About ByteBook"
-msgstr ""
-
-msgid "ByteBook"
-msgstr ""
-
-msgid "Scan with your phone to learn more."
-msgstr ""
-
-msgid "ByteBooks"
-msgstr ""
-
-msgid "About ByteBooks"
-msgstr ""
-
-msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
-msgstr ""

@@ -193,22 +193,30 @@ package.loaded["ui/geometry"] = {
     new = function(a, b) return b or a end
 }
 package.loaded["ui/widget/horizontalgroup"] = {
-    new = function(a, b) return { type = "HorizontalGroup", args = b or a } end
+    new = function(a, b)
+        local hg = { type = "HorizontalGroup", args = b or a }
+        hg.getSize = function() return { w = 360, h = 50 } end
+        return hg
+    end
 }
 package.loaded["ui/widget/table"] = {
     new = function(a, b) return { type = "Table", args = b or a } end
 }
 package.loaded["ui/widget/textwidget"] = {
     new = function(a, b) 
-        local tw = { type = "TextWidget", args = b or a }
+        local args = b or a or {}
+        local tw = { type = "TextWidget", args = args, text = args.text or "" }
         tw.getSize = function() return { w = 100, h = 20 } end
+        tw.setText = function(self, t) self.text = t end
         return tw
     end
 }
 package.loaded["ui/widget/textboxwidget"] = {
     new = function(a, b) 
-        local tb = { type = "TextBoxWidget", args = b or a }
+        local args = b or a or {}
+        local tb = { type = "TextBoxWidget", args = args, text = args.text or "" }
         tb.getSize = function() return { w = 200, h = 40 } end
+        tb.setText = function(self, t) self.text = t end
         return tb
     end
 }
@@ -516,6 +524,29 @@ if not package.loaded["mime"] or type((package.loaded["mime"] or {}).unb64) ~= "
     package.loaded["mime"] = {
         unb64 = pure_unb64,
         b64   = function(s) return s end,  -- stub; not needed for tests
+    }
+end
+
+if not package.loaded["ltn12"] or not (package.loaded["ltn12"] or {}).sink then
+    package.loaded["ltn12"] = {
+        sink = {
+            table = function(t)
+                return function(chunk, err)
+                    if chunk then table.insert(t, chunk) end
+                    return 1
+                end
+            end
+        },
+        source = {
+            string = function(s)
+                local sent = false
+                return function()
+                    if sent then return nil end
+                    sent = true
+                    return s
+                end
+            end
+        }
     }
 end
 

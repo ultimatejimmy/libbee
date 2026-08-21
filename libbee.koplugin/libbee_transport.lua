@@ -153,7 +153,7 @@ function LibbeeTransport:request(request)
     end
 
     local chunks = {}
-    local sink = self.ltn12 and self.ltn12.sink.table(chunks)
+    local sink = self.ltn12 and self.ltn12.sink and self.ltn12.sink.table and self.ltn12.sink.table(chunks) or nil
     if self.socketutil and type(self.socketutil.table_sink) == "function" then
         sink = self.socketutil.table_sink(chunks)
     end
@@ -162,7 +162,7 @@ function LibbeeTransport:request(request)
         url      = url,
         method   = request.method or "GET",
         headers  = headers,
-        source   = body and self.ltn12 and self.ltn12.source.string(body) or nil,
+        source   = body and self.ltn12 and self.ltn12.source and self.ltn12.source.string and self.ltn12.source.string(body) or nil,
         sink     = sink,
         redirect = false,
     }

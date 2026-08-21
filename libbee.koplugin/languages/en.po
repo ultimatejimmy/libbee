@@ -83,6 +83,9 @@ msgstr "Anonymous (Device only)"
 msgid "Anonymous ›"
 msgstr "Anonymous ›"
 
+msgid "Audiobook"
+msgstr "Audiobook"
+
 msgid "Author"
 msgstr "Author"
 
@@ -103,6 +106,9 @@ msgstr "Auto on download"
 
 msgid "Auto-activates on download"
 msgstr "Auto-activates on download"
+
+msgid "Available Format"
+msgstr "Available Format"
 
 msgid "Book"
 msgstr "Book"
@@ -164,6 +170,9 @@ msgstr "Connected ›"
 msgid "Connecting to Libby…"
 msgstr "Connecting to Libby…"
 
+msgid "Connecting to Libby…\n\nLoading your active loans…"
+msgstr "Connecting to Libby…\n\nLoading your active loans…"
+
 msgid "Connection Status"
 msgstr "Connection Status"
 
@@ -181,6 +190,9 @@ msgstr "Could not create download folder:\n%s"
 
 msgid "Could not fulfill loan file:\n\n%s"
 msgstr "Could not fulfill loan file:\n\n%s"
+
+msgid "Could not request setup code."
+msgstr "Could not request setup code."
 
 msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
 msgstr "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
@@ -278,6 +290,9 @@ msgstr "Folder"
 msgid "Format"
 msgstr "Format"
 
+msgid "Format Not Supported"
+msgstr "Format Not Supported"
+
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "Fulfilling ACSM loan with Libbee…"
 
@@ -286,6 +301,18 @@ msgstr "Holds"
 
 msgid "Install failed (unzip): %s"
 msgstr "Install failed (unzip): %s"
+
+msgid "Kindle"
+msgstr "Kindle"
+
+msgid "Kindle / Libby Only"
+msgstr "Kindle / Libby Only"
+
+msgid "Kindle Only"
+msgstr "Kindle Only"
+
+msgid "Kindle only"
+msgstr "Kindle only"
 
 msgid "Later"
 msgstr "Later"
@@ -329,11 +356,23 @@ msgstr "Libbee: Browse Shelf"
 msgid "Libbee: Open"
 msgstr "Libbee: Open"
 
+msgid "Libby / Kindle"
+msgstr "Libby / Kindle"
+
 msgid "Libby Account"
 msgstr "Libby Account"
 
+msgid "Libby App Only"
+msgstr "Libby App Only"
+
+msgid "Libby Read"
+msgstr "Libby Read"
+
 msgid "Libby account disconnected"
 msgstr "Libby account disconnected"
+
+msgid "Libby only"
+msgstr "Libby only"
 
 msgid "Library"
 msgstr "Library"
@@ -359,11 +398,17 @@ msgstr "Loans"
 msgid "Local shelf cache cleared"
 msgstr "Local shelf cache cleared"
 
+msgid "Magazine"
+msgstr "Magazine"
+
 msgid "Maintenance"
 msgstr "Maintenance"
 
 msgid "Maintenance & Logs"
 msgstr "Maintenance & Logs"
+
+msgid "Make sure your device is connected to Wi-Fi."
+msgstr "Make sure your device is connected to Wi-Fi."
 
 msgid "New Folder"
 msgstr "New Folder"
@@ -545,11 +590,32 @@ msgstr "System"
 msgid "Tags"
 msgstr "Tags"
 
+msgid "This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com."
+msgstr "This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com."
+
+msgid "This book can only be read directly in the Libby app or browser reader (OverDrive Read).\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader."
+msgstr "This book can only be read directly in the Libby app or browser reader (OverDrive Read).\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader."
+
+msgid "This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."
+msgstr "This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."
+
 msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
 msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
 
 msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
 msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
+
+msgid "This book is only available in Amazon Kindle format.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, choose 'Read with Kindle' from the Libby app or website."
+msgstr "This book is only available in Amazon Kindle format.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, choose 'Read with Kindle' from the Libby app or website."
+
+msgid "This magazine is not available as a downloadable EPUB or PDF file for KOReader.\n\nPlease read it in the Libby app."
+msgstr "This magazine is not available as a downloadable EPUB or PDF file for KOReader.\n\nPlease read it in the Libby app."
+
+msgid "This title is an audiobook and cannot be played in KOReader.\n\nPlease listen to it in the Libby app."
+msgstr "This title is an audiobook and cannot be played in KOReader.\n\nPlease listen to it in the Libby app."
+
+msgid "This title is not available in a downloadable format supported by KOReader."
+msgstr "This title is not available in a downloadable format supported by KOReader."
 
 msgid "Title"
 msgstr "Title"
@@ -562,6 +628,9 @@ msgstr "Unknown Title"
 
 msgid "Unknown error"
 msgstr "Unknown error"
+
+msgid "Unsupported"
+msgstr "Unsupported"
 
 msgid "Update"
 msgstr "Update"
@@ -610,6 +679,24 @@ msgstr "What's new:"
 
 msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
 msgstr "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
+
+msgid "badge_audiobook"
+msgstr "Audiobook"
+
+msgid "badge_kindle_only"
+msgstr "Kindle only"
+
+msgid "badge_libby_kindle"
+msgstr "Libby / Kindle"
+
+msgid "badge_libby_only"
+msgstr "Libby only"
+
+msgid "badge_magazine"
+msgstr "Magazine"
+
+msgid "badge_unsupported"
+msgstr "Unsupported"
 
 msgid "book"
 msgstr "book"
