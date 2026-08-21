@@ -274,6 +274,9 @@ function M.createPlaceholderWidget(target_w, target_h, title)
 end
 
 function M.cleanupExpiredCovers(active_loans)
+    if not active_loans or #active_loans == 0 then
+        return 0
+    end
     local cache_dir = M.getCacheDir()
     local ok_lfs, lfs = pcall(require, "libs/libkoreader-lfs")
     if not ok_lfs then ok_lfs, lfs = pcall(require, "lfs") end

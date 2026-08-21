@@ -50,6 +50,12 @@ msgstr "ACSM fulfillment failed"
 msgid "About"
 msgstr "About"
 
+msgid "About ByteBook"
+msgstr "About ByteBook"
+
+msgid "About ByteBooks"
+msgstr "About ByteBooks"
+
 msgid "Account & Keys"
 msgstr "Account & Keys"
 
@@ -67,6 +73,9 @@ msgstr "Active"
 
 msgid "All"
 msgstr "All"
+
+msgid "Already Fulfilled on Another Device"
+msgstr "Already Fulfilled on Another Device"
 
 msgid "Anonymous (Device only)"
 msgstr "Anonymous (Device only)"
@@ -89,6 +98,9 @@ msgstr "Authorize"
 msgid "Authorizing ByteBooks account…"
 msgstr "Authorizing ByteBooks account…"
 
+msgid "Auto on download"
+msgstr "Auto on download"
+
 msgid "Auto-activates on download"
 msgstr "Auto-activates on download"
 
@@ -97,6 +109,12 @@ msgstr "Book"
 
 msgid "Book Already Downloaded"
 msgstr "Book Already Downloaded"
+
+msgid "ByteBook"
+msgstr "ByteBook"
+
+msgid "ByteBooks"
+msgstr "ByteBooks"
 
 msgid "ByteBooks DRM"
 msgstr "ByteBooks DRM"
@@ -136,6 +154,9 @@ msgstr "Connect with Libby code"
 
 msgid "Connected"
 msgstr "Connected"
+
+msgid "Connected Libraries"
+msgstr "Connected Libraries"
 
 msgid "Connected ›"
 msgstr "Connected ›"
@@ -184,6 +205,9 @@ msgstr "DRM activation keys reset"
 
 msgid "Default folder ›"
 msgstr "Default folder ›"
+
+msgid "Device DRM"
+msgstr "Device DRM"
 
 msgid "Diagnostics & Cache"
 msgstr "Diagnostics & Cache"
@@ -265,6 +289,9 @@ msgstr "Install failed (unzip): %s"
 
 msgid "Later"
 msgstr "Later"
+
+msgid "Learn about ByteBook"
+msgstr "Learn about ByteBook"
 
 msgid "Libbee"
 msgstr "Libbee"
@@ -377,6 +404,9 @@ msgstr "Open GitHub"
 msgid "Open Shelf"
 msgstr "Open Shelf"
 
+msgid "Opening \"%s\"…"
+msgstr "Opening \"%s\"…"
+
 msgid "Page %d of %d"
 msgstr "Page %d of %d"
 
@@ -422,6 +452,9 @@ msgstr "Reset DRM Activation Keys"
 msgid "Reset DRM Keys"
 msgstr "Reset DRM Keys"
 
+msgid "Reset DRM activation keys"
+msgstr "Reset DRM activation keys"
+
 msgid "Reset Keys"
 msgstr "Reset Keys"
 
@@ -451,6 +484,9 @@ msgstr "Save"
 
 msgid "Saved to:\n%s\n\nOpen it from the file browser."
 msgstr "Saved to:\n%s\n\nOpen it from the file browser."
+
+msgid "Scan with your phone to learn more."
+msgstr "Scan with your phone to learn more."
 
 msgid "Select Download Folder"
 msgstr "Select Download Folder"
@@ -508,6 +544,12 @@ msgstr "System"
 
 msgid "Tags"
 msgstr "Tags"
+
+msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
+msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
+
+msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
+msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
 
 msgid "Title"
 msgstr "Title"
@@ -568,6 +610,9 @@ msgstr "What's new:"
 
 msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
 msgstr "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
+
+msgid "book"
+msgstr "book"
 
 msgid "btn_cancel"
 msgstr "Cancel"
@@ -713,6 +758,9 @@ msgstr "‹ Prev"
 msgid "⏳ %d days remaining on this loan.\n\n"
 msgstr "⏳ %d days remaining on this loan.\n\n"
 
+msgid "✓ Active"
+msgstr "✓ Active"
+
 msgid "✓ Anonymous Active"
 msgstr "✓ Anonymous Active"
 
@@ -731,30 +779,3 @@ msgstr "✓ Libbee Connected!"
 msgid "✗ Not Connected"
 msgstr "✗ Not Connected"
 
-
-msgid "Already Fulfilled on Another Device"
-msgstr "Already Fulfilled on Another Device"
-
-msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
-
-msgid "Learn about ByteBook"
-msgstr "Learn about ByteBook"
-
-msgid "About ByteBook"
-msgstr "About ByteBook"
-
-msgid "ByteBook"
-msgstr "ByteBook"
-
-msgid "Scan with your phone to learn more."
-msgstr "Scan with your phone to learn more."
-
-msgid "ByteBooks"
-msgstr "ByteBooks"
-
-msgid "About ByteBooks"
-msgstr "About ByteBooks"
-
-msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."

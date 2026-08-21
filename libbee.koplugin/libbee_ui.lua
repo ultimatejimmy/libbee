@@ -34,6 +34,22 @@ if not ok_lfs then ok_lfs, lfs = pcall(require, "lfs") end
 local ok_ds, DataStorage = pcall(require, "datastorage")
 
 local plugin_path = ((...) or ""):match("(.-)[^%.]+$") or ""
+
+-- Configure package.path for embedded DRM & XML dependencies
+local info = debug.getinfo(1, "S")
+local plugin_root = (info and info.source and info.source:match("^@(.*[/\\])")) or "./"
+plugin_root = plugin_root:gsub("[/\\]+$", "")
+local extra_paths = {
+    plugin_root .. "/?.lua",
+    plugin_root .. "/dependencies/?.lua",
+    plugin_root .. "/dependencies/xmlhandler/?.lua",
+}
+for _, ep in ipairs(extra_paths) do
+    if not package.path:find(ep, 1, true) then
+        package.path = ep .. ";" .. package.path
+    end
+end
+
 local ok_loc, Localization = pcall(require, plugin_path .. "localization_libbee")
 if not ok_loc or not Localization then
     ok_loc, Localization = pcall(require, "localization_libbee")
@@ -313,7 +329,12 @@ local function makeTapItem(frame, callback)
         }
     }
     item.onTap = function()
-        if callback then callback() end
+        if callback then
+            local ok, err = pcall(callback)
+            if not ok then
+                log.err("libbee ui: tap callback error: " .. tostring(err))
+            end
+        end
         return true
     end
     return item
@@ -1407,8 +1428,10 @@ function M.showShelfBrowser(plugin_dir)
 
         -- Render the current page items
         if #loans == 0 then
+            local empty_msg = from_cache and _("Connecting to Libby…\n\nLoading your active loans…")
+                or _("No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!")
             local empty_text = TextBoxWidget:new{
-                text = _("No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"),
+                text = empty_msg,
                 face = Font:getFace("cfont", 16),
                 fgcolor = Blitbuffer.COLOR_BLACK,
                 width = sw - sc(40),
@@ -1632,9 +1655,25 @@ function M.showShelfBrowser(plugin_dir)
         UIManager:show(active_shelf_overlay, "ui")
     end
 
-    -- Always render cached shelf (or empty list) immediately with zero blocking dialogs
-    pcall(Covers.cleanupExpiredCovers, cached_shelf or {})
-    renderShelf(cached_shelf or {}, true)
+    local function loansEqual(a, b)
+        if not a or not b then return false end
+        if #a ~= #b then return false end
+        for i = 1, #a do
+            local ida = a[i].id or a[i].reserveId
+            local idb = b[i].id or b[i].reserveId
+            if ida ~= idb then return false end
+            if a[i].days_remaining ~= b[i].days_remaining then return false end
+        end
+        return true
+    end
+
+    local current_rendered_loans = cached_shelf or {}
+
+    -- Always render cached shelf (or loading placeholder) immediately with zero blocking dialogs
+    if cached_shelf and #cached_shelf > 0 then
+        pcall(Covers.cleanupExpiredCovers, cached_shelf)
+    end
+    renderShelf(current_rendered_loans, true)
 
     local is_syncing = false
     local function doBackgroundSync()
@@ -1647,9 +1686,14 @@ function M.showShelfBrowser(plugin_dir)
             is_syncing = false
             if ok and type(result) == "table" then
                 State.saveShelfCache(result)
-                pcall(Covers.cleanupExpiredCovers, result)
+                if #result > 0 then
+                    pcall(Covers.cleanupExpiredCovers, result)
+                end
                 if active_shelf_overlay then
-                    renderShelf(result, false)
+                    if not loansEqual(current_rendered_loans, result) or #current_rendered_loans == 0 then
+                        current_rendered_loans = result
+                        renderShelf(result, false)
+                    end
                 end
             elseif ok and (result == "AUTH_EXPIRED" or err == "AUTH_EXPIRED") then
                 if active_shelf_overlay then
@@ -1678,64 +1722,97 @@ end
 -- ---------------------------------------------------------------------------
 
 function M.findExistingBook(loan, base_dir)
-    if not loan then return nil end
+    if not loan or not base_dir then return nil end
     local title = loan.title or ""
     if title == "" then return nil end
 
-    local naming = require("adobe.util.naming")
-    local safe_title = naming.sanitizeTitle(title) or title:gsub('[/\\:*?"<>|]', " "):gsub("%s+", " "):match("^%s*(.-)%s*$")
-    local underscore_title = title:gsub('[/\\:*?"<>|]', "_"):gsub("%s+", "_")
-
-    local candidates = {
-        base_dir .. "/" .. safe_title .. ".epub",
-        base_dir .. "/" .. safe_title .. ".pdf",
-        base_dir .. "/" .. underscore_title .. ".epub",
-        base_dir .. "/" .. underscore_title .. ".pdf",
-    }
-    for i = 1, 10 do
-        table.insert(candidates, base_dir .. "/" .. safe_title .. " (" .. i .. ").epub")
-        table.insert(candidates, base_dir .. "/" .. safe_title .. " (" .. i .. ").pdf")
-        table.insert(candidates, base_dir .. "/" .. underscore_title .. " (" .. i .. ").epub")
-        table.insert(candidates, base_dir .. "/" .. underscore_title .. " (" .. i .. ").pdf")
+    local ok_naming, naming = pcall(require, plugin_path .. "adobe.util.naming")
+    if not ok_naming or not naming then
+        ok_naming, naming = pcall(require, "adobe.util.naming")
     end
 
-    for _, p in ipairs(candidates) do
+    local safe_title = (ok_naming and naming and naming.sanitizeTitle and naming.sanitizeTitle(title))
+        or title:gsub('[/\\:*?"<>|]', " "):gsub("%s+", " "):match("^%s*(.-)%s*$")
+    local underscore_title = title:gsub('[/\\:*?"<>|]', "_"):gsub("%s+", "_")
+
+    if not safe_title or safe_title == "" then return nil end
+
+    local safe_title_60 = safe_title
+    if #safe_title_60 > 60 then safe_title_60 = safe_title_60:sub(1, 60) end
+
+    local underscore_title_60 = underscore_title
+    if #underscore_title_60 > 60 then underscore_title_60 = underscore_title_60:sub(1, 60) end
+
+    local extensions = { ".epub", ".pdf" }
+    local title_variants = {
+        safe_title,
+        safe_title_60,
+        underscore_title,
+        underscore_title_60,
+    }
+
+    local function isValidBookFile(p)
+        if not p or p == "" then return false end
         local f = io.open(p, "rb")
         if f then
             local size = f:seek("end") or 0
             f:close()
             if size > 0 then
-                return p
+                return true
+            end
+        end
+        return false
+    end
+
+    -- 1. Check exact candidate paths
+    for _, t in ipairs(title_variants) do
+        for _, ext in ipairs(extensions) do
+            local p = base_dir .. "/" .. t .. ext
+            if isValidBookFile(p) then return p end
+            for i = 1, 10 do
+                local pi = base_dir .. "/" .. t .. " (" .. i .. ")" .. ext
+                if isValidBookFile(pi) then return pi end
             end
         end
     end
 
-    -- Also check directory listing for fuzzy match in base_dir
+    -- 2. Check directory listing with strict normalization match in base_dir
     local ok_lfs, lfs = pcall(require, "libs/libkoreader-lfs")
     if not ok_lfs then ok_lfs, lfs = pcall(require, "lfs") end
     if ok_lfs and lfs and lfs.dir then
         local safe_lower = safe_title:lower()
-        local ok_iter, iter = pcall(lfs.dir, base_dir)
-        if ok_iter and iter then
-            for entry in iter do
+        local safe_lower_60 = safe_title_60:lower()
+        local und_lower = underscore_title:lower()
+        local und_lower_60 = underscore_title_60:lower()
+
+        local ok_scan, found_file = pcall(function()
+            for entry in lfs.dir(base_dir) do
                 if entry ~= "." and entry ~= ".." then
                     local lower = entry:lower()
                     if (lower:sub(-5) == ".epub" or lower:sub(-4) == ".pdf") then
                         local entry_name = lower:gsub("%.epub$", ""):gsub("%.pdf$", ""):gsub("%s*%(%d+%)%s*$", "")
-                        if entry_name == safe_lower or entry_name:gsub("_", " ") == safe_lower or safe_lower:find(entry_name, 1, true) then
+                        local entry_clean_spaces = entry_name:gsub("_", " "):gsub("%s+", " "):match("^%s*(.-)%s*$")
+                        if entry_name ~= "" and (
+                            entry_name == safe_lower or
+                            entry_name == safe_lower_60 or
+                            entry_name == und_lower or
+                            entry_name == und_lower_60 or
+                            entry_clean_spaces == safe_lower or
+                            entry_clean_spaces == safe_lower_60
+                        ) then
                             local full_path = base_dir .. "/" .. entry
-                            local f = io.open(full_path, "rb")
-                            if f then
-                                local size = f:seek("end") or 0
-                                f:close()
-                                if size > 0 then
-                                    return full_path
-                                end
+                            if isValidBookFile(full_path) then
+                                return full_path
                             end
                         end
                     end
                 end
             end
+            return nil
+        end)
+
+        if ok_scan and found_file then
+            return found_file
         end
     end
 
@@ -1743,28 +1820,36 @@ function M.findExistingBook(loan, base_dir)
 end
 
 function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
-    local API = require(plugin_path .. "libbee_api")
-    local State = require(plugin_path .. "libbee_state")
+    local ok_api, API = pcall(require, plugin_path .. "libbee_api")
+    if not ok_api or not API then
+        ok_api, API = pcall(require, "libbee_api")
+    end
+    local ok_st, State = pcall(require, plugin_path .. "libbee_state")
+    if not ok_st or not State then
+        ok_st, State = pcall(require, "libbee_state")
+    end
 
-    local base_dir = State.getDownloadDir(plugin_dir)
-    local dest_path = API.getAcsmPath(base_dir, loan)
+    local base_dir = (ok_st and State and State.getDownloadDir and State.getDownloadDir(plugin_dir)) or "/tmp/Libby"
+    local dest_path = (ok_api and API and API.getAcsmPath and API.getAcsmPath(base_dir, loan)) or (base_dir .. "/download.acsm")
 
     local existing_book = M.findExistingBook(loan, base_dir)
     if existing_book then
-        _toast(string.format(_("Opening \"%s\"…"), loan.title or _("book")), 2)
-        M._openBook(existing_book)
-        return
+        _toast(string.format(_("Opening \"%s\"…"), (loan and loan.title) or _("book")), 2)
+        local opened = M._openBook(existing_book)
+        if opened then
+            return
+        end
     end
 
-    local days_str = _fmtDays(loan.days_remaining)
+    local days_str = _fmtDays(loan and loan.days_remaining)
     local info_text = string.format(
         "%s:  %s\n%s: %s\n%s: %s\n%s:   %s",
         _("Title"),
-        loan.title or _("Unknown Title"),
+        (loan and loan.title) or _("Unknown Title"),
         _("Author"),
-        loan.author or _("Unknown Author"),
+        (loan and loan.author) or _("Unknown Author"),
         _("Format"),
-        loan.format or "ebook-epub-adobe",
+        (loan and loan.format) or "ebook-epub-adobe",
         _("Loan"),
         days_str ~= "" and days_str or _("Active")
     )
@@ -1882,7 +1967,7 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
                             text = _("Retry"),
                             is_primary = true,
                             callback = function()
-                                M._doDownload(loan, dest_path, base_dir, cfg, plugin_dir, after_download_fn)
+                                M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
                             end,
                         },
                         {
@@ -1896,6 +1981,23 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
 end
 
 function M._openBook(path)
+    if not path or path == "" then
+        log.warn("libbee ui: _openBook called with empty path")
+        return false
+    end
+
+    local f = io.open(path, "rb")
+    if not f then
+        log.warn("libbee ui: _openBook cannot open file (does not exist): " .. tostring(path))
+        return false
+    end
+    local size = f:seek("end") or 0
+    f:close()
+    if size <= 0 then
+        log.warn("libbee ui: _openBook file is empty (0 bytes): " .. tostring(path))
+        return false
+    end
+
     if active_shelf_overlay then
         local ov = active_shelf_overlay
         active_shelf_overlay = nil
@@ -1911,20 +2013,22 @@ function M._openBook(path)
     if ui then
         local ok_fmu, filemanagerutil = pcall(require, "apps/filemanager/filemanagerutil")
         if ok_fmu and filemanagerutil and filemanagerutil.openFile then
-            filemanagerutil.openFile(ui, path, nil, true)
-            return
+            local ok_open = pcall(filemanagerutil.openFile, ui, path, nil, true)
+            return ok_open
         end
         if type(ui.openFile) == "function" then
-            ui:openFile(path)
-            return
+            local ok_open = pcall(ui.openFile, ui, path)
+            return ok_open
         end
     end
 
     local ok2, Event = pcall(require, "ui/event")
     if ok2 then
         UIManager:broadcastEvent(Event:new("SetupShowReader", { file = path }))
+        return true
     else
         _toast(_("Saved to:\n%s\n\nOpen it from the file browser.", path), 6)
+        return true
     end
 end
 

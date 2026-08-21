@@ -88,4 +88,73 @@ describe("libbee_ui", function()
         assert.is_true(res_browse)
         assert.is_true(#_G.ui_tracker.shown > 0)
     end)
+
+    describe("deleted / missing book checks", function()
+        local tmp_dir = "/tmp/libbee_spec_test"
+
+        before_each(function()
+            pcall(os.execute, "mkdir -p " .. tmp_dir)
+        end)
+
+        after_each(function()
+            pcall(os.remove, tmp_dir .. "/The Great Gatsby.epub")
+            pcall(os.remove, tmp_dir .. "/The.epub")
+            pcall(os.remove, tmp_dir .. "/Existing Book.epub")
+            pcall(os.remove, tmp_dir .. "/Empty Book.epub")
+            pcall(os.remove, tmp_dir .. "/non_existent_book.epub")
+        end)
+
+        it("findExistingBook returns nil when book does not exist or was deleted", function()
+            local loan = { title = "Deleted Book Title" }
+            local found = UI.findExistingBook(loan, tmp_dir)
+            assert.is_nil(found)
+        end)
+
+        it("findExistingBook does not false-match unrelated books with substring names", function()
+            -- Create an unrelated short-named book "The.epub"
+            local f = io.open(tmp_dir .. "/The.epub", "wb")
+            if f then f:write("sample content"); f:close() end
+
+            local loan = { title = "The Great Gatsby" }
+            local found = UI.findExistingBook(loan, tmp_dir)
+            assert.is_nil(found)
+        end)
+
+        it("findExistingBook finds an existing non-empty book file", function()
+            local f = io.open(tmp_dir .. "/Existing Book.epub", "wb")
+            if f then f:write("valid book data"); f:close() end
+
+            local loan = { title = "Existing Book" }
+            local found = UI.findExistingBook(loan, tmp_dir)
+            assert.is_not_nil(found)
+            assert.is_truthy(found:find("Existing Book.epub"))
+        end)
+
+        it("_openBook returns false and does not crash on non-existent or empty files", function()
+            local res_missing = UI._openBook(tmp_dir .. "/non_existent_book.epub")
+            assert.is_false(res_missing)
+
+            local f_empty = io.open(tmp_dir .. "/Empty Book.epub", "wb")
+            if f_empty then f_empty:close() end
+
+            local res_empty = UI._openBook(tmp_dir .. "/Empty Book.epub")
+            assert.is_false(res_empty)
+        end)
+
+        it("showDownloadConfirm shows download dialog when book does not exist", function()
+            _G.ui_tracker.shown = {}
+            local State = require("libbee_state")
+            State.setCustomDownloadDir(tmp_dir)
+
+            local loan = {
+                title = "Un-downloaded Book",
+                author = "Author Name",
+                format = "ebook-epub-adobe",
+                days_remaining = 14,
+            }
+
+            UI.showDownloadConfirm(loan, "/tmp/test_plugin")
+            assert.is_true(#_G.ui_tracker.shown > 0)
+        end)
+    end)
 end)
