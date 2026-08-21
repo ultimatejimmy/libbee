@@ -252,15 +252,17 @@ local function _runNetwork(work_fn, on_done)
     local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
     if ok_nm and NetworkMgr and type(NetworkMgr.runWhenOnline) == "function" then
         NetworkMgr:runWhenOnline(function()
-            local ok, r1, r2 = pcall(work_fn)
-            if ok then
-                on_done(r1, r2)
-            else
-                on_done(nil, tostring(r1 or _("Unknown error")))
-            end
+            UIManager:scheduleIn(0.05, function()
+                local ok, r1, r2 = pcall(work_fn)
+                if ok then
+                    on_done(r1, r2)
+                else
+                    on_done(nil, tostring(r1 or _("Unknown error")))
+                end
+            end)
         end)
     else
-        UIManager:scheduleIn(0.1, function()
+        UIManager:scheduleIn(0.05, function()
             local ok, r1, r2 = pcall(work_fn)
             if ok then
                 on_done(r1, r2)
