@@ -54,6 +54,10 @@ Comprehensive guides, setup instructions, and feature details are available on t
 
 ---
 
+## Attribution/Credits
+https://github.com/kaikozlov/acsm.koplugin
+<a href="https://www.flaticon.com/free-icons/bee" title="bee icons">Bee icons created by Magnific - Flaticon</a>
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
