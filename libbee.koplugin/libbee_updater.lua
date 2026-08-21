@@ -423,12 +423,30 @@ local function _applyUpdate(download_url, new_version)
         end
         _clearCache(true)
         _clearCache(false)
-        UIManager:show(ConfirmBox:new{
-            text        = "Libbee updated to v" .. new_version .. ". Restart KOReader to apply?",
-            ok_text     = "Restart Now",
-            cancel_text = "Later",
-            ok_callback = function() UIManager:restartKOReader() end,
-        })
+        local ok_ui, UI = pcall(require, plugin_path .. "libbee_ui")
+        if ok_ui and UI and UI.showCardDialog then
+            UI.showCardDialog{
+                title = "Update Installed",
+                body_text = "Libbee has been updated to v" .. new_version .. ".\n\nRestart KOReader now to apply the changes?",
+                buttons = {
+                    {
+                        text = "Restart Now",
+                        is_primary = true,
+                        callback = function() UIManager:restartKOReader() end,
+                    },
+                    {
+                        text = "Later",
+                    }
+                }
+            }
+        else
+            UIManager:show(ConfirmBox:new{
+                text        = "Libbee updated to v" .. new_version .. ". Restart KOReader to apply?",
+                ok_text     = "Restart Now",
+                cancel_text = "Later",
+                ok_callback = function() UIManager:restartKOReader() end,
+            })
+        end
     end
 
     if ok_tr and Trapper and Trapper.dismissableRunInSubprocess then
@@ -471,30 +489,74 @@ local function _showUpdateDialog(release, current)
     local header = "Libbee v" .. latest .. " is available (current: v" .. current .. ")."
     local notes_block = notes and ("\n\nWhat's new:\n" .. notes) or ""
 
+    local ok_ui, UI = pcall(require, plugin_path .. "libbee_ui")
+
     if not download_url then
-        UIManager:show(ConfirmBox:new{
-            text        = header .. notes_block .. "\n\nNo download asset found. Visit GitHub to update manually.",
-            ok_text     = "Open GitHub",
-            cancel_text = "Cancel",
-            ok_callback = function()
-                local Device = require("device")
-                if Device:canOpenLink() then
-                    Device:openLink(string.format(
-                        "https://github.com/%s/%s/releases/latest",
-                        GITHUB_OWNER, GITHUB_REPO
-                    ))
-                end
-            end,
-        })
+        if ok_ui and UI and UI.showCardDialog then
+            UI.showCardDialog{
+                title = "Update Available",
+                body_text = header .. notes_block .. "\n\nNo automatic download asset found. Visit GitHub to update manually.",
+                buttons = {
+                    {
+                        text = "Open GitHub",
+                        is_primary = true,
+                        callback = function()
+                            local Device = require("device")
+                            if Device:canOpenLink() then
+                                Device:openLink(string.format(
+                                    "https://github.com/%s/%s/releases/latest",
+                                    GITHUB_OWNER, GITHUB_REPO
+                                ))
+                            end
+                        end,
+                    },
+                    {
+                        text = "Cancel",
+                    }
+                }
+            }
+        else
+            UIManager:show(ConfirmBox:new{
+                text        = header .. notes_block .. "\n\nNo download asset found. Visit GitHub to update manually.",
+                ok_text     = "Open GitHub",
+                cancel_text = "Cancel",
+                ok_callback = function()
+                    local Device = require("device")
+                    if Device:canOpenLink() then
+                        Device:openLink(string.format(
+                            "https://github.com/%s/%s/releases/latest",
+                            GITHUB_OWNER, GITHUB_REPO
+                        ))
+                    end
+                end,
+            })
+        end
         return
     end
 
-    UIManager:show(ConfirmBox:new{
-        text        = header .. notes_block .. "\n\nDownload and install now?",
-        ok_text     = "Update",
-        cancel_text = "Cancel",
-        ok_callback = function() _applyUpdate(download_url, latest) end,
-    })
+    if ok_ui and UI and UI.showCardDialog then
+        UI.showCardDialog{
+            title = "Update Available",
+            body_text = header .. notes_block .. "\n\nDownload and install now?",
+            buttons = {
+                {
+                    text = "Update Now",
+                    is_primary = true,
+                    callback = function() _applyUpdate(download_url, latest) end,
+                },
+                {
+                    text = "Cancel",
+                }
+            }
+        }
+    else
+        UIManager:show(ConfirmBox:new{
+            text        = header .. notes_block .. "\n\nDownload and install now?",
+            ok_text     = "Update",
+            cancel_text = "Cancel",
+            ok_callback = function() _applyUpdate(download_url, latest) end,
+        })
+    end
 end
 
 local function _doFetch(use_beta)

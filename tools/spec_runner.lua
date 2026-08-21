@@ -134,6 +134,9 @@ _G.assert = {
     }
 }
 _G.assert.equals = _G.assert.are.equal
+_G.assert.are_equal = _G.assert.are.equal
+_G.assert.is_truthy = _G.assert.truthy
+_G.assert.is_falsy = _G.assert.falsy
 _G.assert.same = _G.assert.are.same
 
 -- List of spec files to execute

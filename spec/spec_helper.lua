@@ -45,12 +45,19 @@ package.loaded["lfs"] = {
         return function() return nil end
     end,
 }
+package.loaded["libs/libkoreader-lfs"] = package.loaded["lfs"]
+package.loaded["libs/libkoreader-lfs"] = package.loaded["lfs"]
 
 package.loaded["logger"] = {
     info = function(...) end,
     warn = function(...) end,
     err = function(...) end,
     debug = function(...) end
+}
+
+package.loaded["util"] = {
+    fixUtf8 = function(s) return s end,
+    tableShallowCopy = function(t) local c = {} for k,v in pairs(t) do c[k]=v end return c end,
 }
 
 package.loaded["datastorage"] = {
@@ -110,20 +117,39 @@ package.loaded["ui/widget/menu"] = {
     new = function(a, b) return { type = "Menu", args = b or a } end
 }
 package.loaded["ui/widget/verticalgroup"] = {
-    new = function(a, b) return { type = "VerticalGroup", args = b or a } end
+    new = function(a, b)
+        local vg = { type = "VerticalGroup", args = b or a }
+        vg.getSize = function() return { w = 360, h = 200 } end
+        return vg
+    end
 }
-package.loaded["ui/widget/widget"] = {
-    new = function(a, b) return { type = "Widget", args = b or a } end
-}
-package.loaded["ui/widget/widgetcontainer"] = {
-    new = function(a, b) return { type = "WidgetContainer", args = b or a } end
-}
-package.loaded["ui/widget/container/framecontainer"] = {
-    new = function(a, b) return { type = "FrameContainer", args = b or a } end
-}
-package.loaded["ui/widget/container/inputcontainer"] = {
-    new = function(a, b) return { type = "InputContainer", args = b or a } end
-}
+local function _mockWidgetClass(name)
+    local cls = { type = name }
+    cls.new = function(self, o)
+        if type(self) ~= "table" or self == cls or getmetatable(self) then
+            o = o or (type(self) == "table" and self or {})
+        end
+        o = o or {}
+        setmetatable(o, { __index = self or cls })
+        if o.init then o:init() end
+        o.getSize = o.getSize or function() return { w = 360, h = 200 } end
+        return o
+    end
+    cls.extend = function(self, child)
+        child = child or {}
+        setmetatable(child, { __index = self })
+        child.new = self.new
+        child.extend = self.extend
+        return child
+    end
+    return cls
+end
+
+package.loaded["ui/widget/widget"] = _mockWidgetClass("Widget")
+package.loaded["ui/widget/widgetcontainer"] = _mockWidgetClass("WidgetContainer")
+package.loaded["ui/widget/container/framecontainer"] = _mockWidgetClass("FrameContainer")
+package.loaded["ui/widget/container/inputcontainer"] = _mockWidgetClass("InputContainer")
+package.loaded["ui/widget/container/scrollablecontainer"] = _mockWidgetClass("ScrollableContainer")
 package.loaded["ui/geometry"] = {
     new = function(a, b) return b or a end
 }
@@ -241,6 +267,11 @@ package.loaded["libbee_logger"] = {
     err   = function(m) end,
     debug = function(m) end,
     path  = function()  return "/tmp/libbee_debug.log" end,
+}
+package.loaded["ffi/util"] = {}
+package.loaded["ffi.sha2"] = {
+    base642bin = function(s) return s end,
+    bin2base64 = function(s) return s end,
 }
 package.loaded["socket.http"] = {}
 package.loaded["ssl.https"] = {}

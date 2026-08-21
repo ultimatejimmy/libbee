@@ -2,17 +2,16 @@
 
 Browse your **Libby library shelf** and download ebook loans directly to KOReader.
 
-> **Requires:** [`acsm.koplugin`](https://github.com/Quill-OS/acsm.koplugin) must be installed to open downloaded `.acsm` files. Adobe Digital Editions registration is also required (handled by `acsm.koplugin` on first use).
-
 ---
 
 ## Features
 
 - Browse all active ebook loans from your Libby shelf
-- See title, author, and days remaining for each loan
-- Download `.acsm` files directly to your device with one tap
-- Hands off to `acsm.koplugin` automatically after download
-- Works from the KOReader **file manager** (no book needs to be open)
+- See title, author, cover, and days remaining for each loan
+- **Direct on-device fulfillment**: Download and decrypt `.acsm` loans directly into readable `.epub` or `.pdf` files — **no separate plugin or computer required!**
+- **Anonymous DRM by default**: Works out of the box with automatic one-time anonymous device activation.
+- **Optional ByteBooks Multi-Device Sync**: Sign in with your ByteBooks ID in Settings to read the same loan across multiple devices. Passwords are never saved to storage.
+- Works from the KOReader **file manager** and reader
 - OTA updates via GitHub Releases
 
 ---
@@ -25,7 +24,20 @@ Browse your **Libby library shelf** and download ebook loans directly to KOReade
    koreader/plugins/libbee.koplugin/
    ```
 3. Restart KOReader.
-4. Open the **Tools** menu → **Libbee** → **Setup / Re-authenticate**.
+4. Open the **Tools** menu → **Libbee** → **Link Libby Account**.
+
+---
+
+## DRM & Multi-Device (ByteBooks)
+
+Libbee includes full native ACSM fulfillment and ADEPT DRM management.
+
+- **Single Device (Default)**: You don't need to configure anything. On your first book download, Libbee automatically activates your device anonymously.
+- **Multiple Devices (ByteBooks)**: If you borrow a book on Libby and want to open it across multiple e-readers or apps under the same account:
+  1. Open Libbee → Settings icon (⚙) → **DRM & Multi-Device**.
+  2. Tap **Sign in with ByteBooks ID**.
+  3. Enter your ByteBooks email and password.
+  4. Your device is authorized and linked. Your password is used only during the handshake and is **never stored on device**.
 
 ---
 
@@ -102,8 +114,8 @@ return {
 
 1. **Authentication**: Your Libby account is registered as a "chip identity" — the same mechanism Kobo eReaders use. This is obtained once using a one-time clone code from the Libby app.
 2. **Shelf fetch**: The plugin calls Libby's internal API (`sentry-read.svc.overdrive.com`) to retrieve your active loans.
-3. **Download**: When you tap a book, the plugin requests a fulfillment URL from OverDrive's API and downloads the `.acsm` file to your device.
-4. **Open**: The `.acsm` file is passed to `acsm.koplugin`, which handles Adobe DRM fulfillment and delivers the actual EPUB to KOReader.
+3. **Download & Decrypt**: When you tap a book, the plugin downloads the `.acsm` fulfillment token, automatically performs ADEPT device authorization (anonymous or ByteBooks ID), decrypts the stream, and saves a ready-to-read `.epub` or `.pdf` file.
+4. **Open**: The fulfilled book is ready to open immediately in KOReader.
 
 ---
 
@@ -125,8 +137,8 @@ A: Make sure you're entering the code quickly — Libby codes expire in a few mi
 **Q: "Could not load shelf" / network error**
 A: Check that KOReader is connected to Wi-Fi. If the error says `HTTP 401` or `AUTH_EXPIRED`, your session has expired — use **Setup / Re-authenticate** to get a new session.
 
-**Q: My loan downloaded but KOReader can't open it**
-A: You need `acsm.koplugin` installed. Also make sure your device has been activated with Adobe Digital Editions at least once (acsm.koplugin will prompt you on first use).
+**Q: Do I need `acsm.koplugin` installed?**
+A: No. Libbee now includes embedded ACSM fulfillment and Adobe/ByteBooks DRM support.
 
 **Q: I only see some of my loans, not all of them**
 A: Libbee only shows ebook loans (EPUB/PDF). Audiobooks and magazines are not currently supported.

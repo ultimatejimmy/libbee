@@ -46,6 +46,21 @@ end
 -- ---------------------------------------------------------------------------
 
 function LibbeePlugin:init()
+    -- Configure package.path for embedded DRM & XML dependencies
+    if self.path then
+        local p = self.path
+        local extra = {
+            p .. "/?.lua",
+            p .. "/dependencies/?.lua",
+            p .. "/dependencies/xmlhandler/?.lua",
+        }
+        for _, ep in ipairs(extra) do
+            if not package.path:find(ep, 1, true) then
+                package.path = ep .. ";" .. package.path
+            end
+        end
+    end
+
     -- Initialize our logger with the plugin directory
     local log = require(plugin_path .. "libbee_logger")
     log.init(self.path)
@@ -54,6 +69,9 @@ function LibbeePlugin:init()
     if self.ui and self.ui.menu then
         self.ui.menu:registerToMainMenu(self)
     end
+
+    -- Register ACSM document provider so standalone .acsm files can be fulfilled directly
+    self:registerDocumentRegistryAuxProvider()
 
     -- Silent weekly update check (10 seconds after reader ready)
     -- Uses a flag to avoid multiple checks in the same session
@@ -67,6 +85,84 @@ function LibbeePlugin:init()
     end
 
     logger.info("libbee: initialized")
+end
+
+function LibbeePlugin:registerDocumentRegistryAuxProvider()
+    local ok_dr, DocumentRegistry = pcall(require, "document/documentregistry")
+    if not ok_dr or not DocumentRegistry then return end
+
+    local provider = {
+        provider_name = "Libbee (ACSM)",
+        provider = self.name,
+        order = 30,
+        disable_file = true,
+        disable_type = false,
+        enabled_func = function()
+            return false
+        end,
+    }
+
+    local acsm_registered = false
+    for i = #DocumentRegistry.providers, 1, -1 do
+        local entry = DocumentRegistry.providers[i]
+        if entry.extension == "acsm" and entry.provider and entry.provider.provider == self.name then
+            if acsm_registered then
+                table.remove(DocumentRegistry.providers, i)
+            else
+                entry.mimetype = "application/vnd.adobe.adept+xml"
+                entry.provider = provider
+                entry.weight = 100
+                acsm_registered = true
+            end
+        end
+    end
+
+    if not acsm_registered then
+        DocumentRegistry:addProvider("acsm", "application/vnd.adobe.adept+xml", provider, 100)
+    else
+        DocumentRegistry.known_providers[self.name] = provider
+    end
+end
+
+function LibbeePlugin:openFile(file)
+    if not file or not file:find("%.[Aa][Cc][Ss][Mm]$") then return false end
+    local LibbeeDRM = require(plugin_path .. "libbee_drm")
+    local Trapper = require("ui/trapper")
+    local InfoMessage = require("ui/widget/infomessage")
+
+    local info_toast = InfoMessage:new{ text = "Fulfilling ACSM loan with Libbee…", timeout = 120 }
+    UIManager:show(info_toast)
+
+    Trapper:wrap(function()
+        local meta = LibbeeDRM.parseAcsmMetadata(file)
+        local base_dir = file:match("^(.+)/[^/]+$") or "."
+        local final_path = LibbeeDRM.deriveFinalBookPath(base_dir, nil, meta)
+
+        local completed, ok, ful_ok, err = Trapper:dismissableRunInSubprocess(
+            function()
+                return pcall(LibbeeDRM.fulfillAcsm, file, final_path)
+            end,
+            info_toast
+        )
+        UIManager:close(info_toast, "ui")
+
+        if completed and ok and ful_ok then
+            pcall(os.remove, file)
+            local ui = _ui()
+            if ui then ui._openBook(final_path) end
+        else
+            local err_msg = tostring(err or ful_ok or "ACSM fulfillment failed")
+            local ui = _ui()
+            if ui then
+                ui.showCardDialog{
+                    title = "ACSM Fulfillment Failed",
+                    body_text = "Could not fulfill loan file:\n\n" .. err_msg,
+                    buttons = { { text = "OK", is_primary = true } }
+                }
+            end
+        end
+    end)
+    return true
 end
 
 function LibbeePlugin:_weeklyUpdateCheck()
@@ -105,12 +201,44 @@ function LibbeePlugin:_weeklyUpdateCheck()
 end
 
 -- ---------------------------------------------------------------------------
--- Menu registration
+-- Menu registration & ordering
 -- ---------------------------------------------------------------------------
 
+-- Helper to inject Libbee into Tools menu at top position if not already placed by another plugin / customizer
+local function injectLibbeeIntoToolsMenu()
+    local menu_orders = {
+        "ui/elements/reader_menu_order",
+        "ui/elements/filemanager_menu_order",
+        "ui/elements/menu_order",
+    }
+    local function isItemInOrder(tbl, target_id)
+        if type(tbl) ~= "table" then return false end
+        for _, val in pairs(tbl) do
+            if val == target_id then
+                return true
+            elseif type(val) == "table" then
+                if isItemInOrder(val, target_id) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    for _, order_path in ipairs(menu_orders) do
+        local ok, order = pcall(require, order_path)
+        if ok and type(order) == "table" and type(order.tools) == "table" then
+            if not isItemInOrder(order, "libbee") and not isItemInOrder(order, "Libbee") then
+                table.insert(order.tools, 1, "libbee")
+            end
+        end
+    end
+end
+
 -- addToMainMenu is called by KOReader's menu system when building the Tools menu.
--- It must return a table describing our top-level menu entry.
+-- It returns a table describing our top-level menu entry.
 function LibbeePlugin:addToMainMenu(menu_items)
+    injectLibbeeIntoToolsMenu()
     local path = self.path
     menu_items.libbee = {
         text         = "Libbee",

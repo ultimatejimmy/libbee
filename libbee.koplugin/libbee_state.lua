@@ -165,6 +165,52 @@ function M.isAuthenticated()
 end
 
 -- ---------------------------------------------------------------------------
+-- DRM & ByteBooks Activation State
+-- ---------------------------------------------------------------------------
+
+function M.getDrmActivation()
+    local data = _readJson(_statePath())
+    return data and data.drm_activation or nil
+end
+
+function M.saveDrmActivation(activation_blob, mode, email)
+    local data = _readJson(_statePath()) or {}
+    data.drm_activation = activation_blob
+    data.drm_mode       = mode or "anonymous"
+    data.drm_email      = email or ""
+    data.drm_updated_at = os.time()
+    local ok = _writeJson(_statePath(), data)
+    if ok then
+        logger.info("libbee state: DRM activation saved (mode=" .. tostring(data.drm_mode) .. ")")
+    end
+    return ok
+end
+
+function M.getDrmAccountInfo()
+    local data = _readJson(_statePath())
+    local activated = (data and data.drm_activation ~= nil)
+    return {
+        activated = activated,
+        mode      = (data and data.drm_mode) or "anonymous",
+        email     = (data and data.drm_email) or "",
+        updated_at = data and data.drm_updated_at or nil,
+    }
+end
+
+function M.clearDrmActivation()
+    local data = _readJson(_statePath()) or {}
+    data.drm_activation = nil
+    data.drm_mode       = nil
+    data.drm_email      = nil
+    data.drm_updated_at = nil
+    local ok = _writeJson(_statePath(), data)
+    if ok then
+        logger.info("libbee state: DRM activation cleared")
+    end
+    return ok
+end
+
+-- ---------------------------------------------------------------------------
 -- UI Preferences
 -- ---------------------------------------------------------------------------
 

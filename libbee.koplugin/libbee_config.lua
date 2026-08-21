@@ -47,7 +47,7 @@ return {
     -- DOWNLOAD SETTINGS
     -- -----------------------------------------------------------------------
 
-    -- Folder where downloaded .acsm files will be saved.
+    -- Folder where downloaded and fulfilled ebooks (.epub / .pdf) will be saved.
     -- Leave blank to use KOReader's default storage root (recommended).
     -- Example: "/mnt/us/documents/Libby" (Kindle)
     -- Example: "/mnt/onboard/Libby" (Kobo)

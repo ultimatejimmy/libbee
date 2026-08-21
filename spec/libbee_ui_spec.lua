@@ -26,9 +26,27 @@ describe("libbee_ui", function()
         assert.is_true(#_G.ui_tracker.shown > 0)
     end)
 
-    it("opens about dialog", function()
+    it("opens about settings dialog", function()
         _G.ui_tracker.shown = {}
         UI.showAbout("/tmp/test_plugin")
+        assert.is_true(#_G.ui_tracker.shown > 0)
+    end)
+
+    it("opens libby account submenu", function()
+        _G.ui_tracker.shown = {}
+        UI.showLibbyAccountSubmenu("/tmp/test_plugin")
+        assert.is_true(#_G.ui_tracker.shown > 0)
+    end)
+
+    it("opens bytebooks drm submenu", function()
+        _G.ui_tracker.shown = {}
+        UI.showByteBooksDRMSubmenu("/tmp/test_plugin")
+        assert.is_true(#_G.ui_tracker.shown > 0)
+    end)
+
+    it("opens maintenance submenu", function()
+        _G.ui_tracker.shown = {}
+        UI.showMaintenanceSubmenu("/tmp/test_plugin")
         assert.is_true(#_G.ui_tracker.shown > 0)
     end)
 end)
