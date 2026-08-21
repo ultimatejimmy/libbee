@@ -368,23 +368,112 @@ if not json_lib then
         end
     end
 
+    -- Proper recursive-descent JSON decoder.
+    -- Handles nested objects, arrays, strings, numbers, booleans and null.
     local function simple_decode(str)
         if not str or str == "" then return nil end
-        -- Basic json parser fallback for test key-values
-        local res = {}
-        for k, v in str:gmatch('"([%w_%-]+)"%s*:%s*"([^"]*)"') do
-            res[k] = v
+
+        local pos = 1
+
+        local function skip_ws()
+            while pos <= #str and str:sub(pos,pos):match("%s") do pos = pos + 1 end
         end
-        for k, v in str:gmatch('"([%w_%-]+)"%s*:%s*([%d%.]+)') do
-            res[k] = tonumber(v)
+
+        local parse_value  -- forward declaration
+
+        local function parse_string()
+            pos = pos + 1  -- skip opening "
+            local buf = {}
+            while pos <= #str do
+                local ch = str:sub(pos, pos)
+                if ch == '"' then
+                    pos = pos + 1
+                    return table.concat(buf)
+                elseif ch == '\\' then
+                    pos = pos + 1
+                    local esc = str:sub(pos, pos)
+                    if     esc == '"'  then table.insert(buf, '"')
+                    elseif esc == '\\' then table.insert(buf, '\\')
+                    elseif esc == '/'  then table.insert(buf, '/')
+                    elseif esc == 'n'  then table.insert(buf, '\n')
+                    elseif esc == 'r'  then table.insert(buf, '\r')
+                    elseif esc == 't'  then table.insert(buf, '\t')
+                    else                    table.insert(buf, esc)
+                    end
+                    pos = pos + 1
+                else
+                    table.insert(buf, ch)
+                    pos = pos + 1
+                end
+            end
+            return table.concat(buf)
         end
-        for k, v in str:gmatch('"([%w_%-]+)"%s*:%s*(true)') do
-            res[k] = true
+
+        local function parse_object()
+            pos = pos + 1  -- skip {
+            local obj = {}
+            skip_ws()
+            if str:sub(pos, pos) == "}" then pos = pos + 1; return obj end
+            while pos <= #str do
+                skip_ws()
+                local key = parse_string()
+                skip_ws()
+                pos = pos + 1  -- skip :
+                skip_ws()
+                obj[key] = parse_value()
+                skip_ws()
+                local sep = str:sub(pos, pos)
+                if sep == "}" then pos = pos + 1; break end
+                if sep == "," then pos = pos + 1 end
+            end
+            return obj
         end
-        for k, v in str:gmatch('"([%w_%-]+)"%s*:%s*(false)') do
-            res[k] = false
+
+        local function parse_array()
+            pos = pos + 1  -- skip [
+            local arr = {}
+            skip_ws()
+            if str:sub(pos, pos) == "]" then pos = pos + 1; return arr end
+            while pos <= #str do
+                skip_ws()
+                table.insert(arr, parse_value())
+                skip_ws()
+                local sep = str:sub(pos, pos)
+                if sep == "]" then pos = pos + 1; break end
+                if sep == "," then pos = pos + 1 end
+            end
+            return arr
         end
-        return res
+
+        local function parse_number()
+            local numstr = str:match("^-?%d+%.?%d*[eE]?[+-]?%d*", pos)
+            if numstr then pos = pos + #numstr; return tonumber(numstr) end
+            return nil
+        end
+
+        parse_value = function()
+            skip_ws()
+            local ch = str:sub(pos, pos)
+            if ch == '"' then
+                return parse_string()
+            elseif ch == '{' then
+                return parse_object()
+            elseif ch == '[' then
+                return parse_array()
+            elseif ch == 't' then
+                pos = pos + 4; return true
+            elseif ch == 'f' then
+                pos = pos + 5; return false
+            elseif ch == 'n' then
+                pos = pos + 4; return nil
+            else
+                return parse_number()
+            end
+        end
+
+        local ok, result = pcall(parse_value)
+        if ok then return result end
+        return nil
     end
 
     json_lib = {
@@ -394,6 +483,41 @@ if not json_lib then
 end
 package.loaded["json"] = json_lib
 package.loaded["rapidjson"] = json_lib
+
+-- Provide a pure-Lua base64 decoder for the mime module so JWT decode works
+-- in environments where the system mime library is absent.
+if not package.loaded["mime"] or type((package.loaded["mime"] or {}).unb64) ~= "function" then
+    local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    local b64map = {}
+    for i = 1, #b64chars do b64map[b64chars:sub(i,i)] = i - 1 end
+
+    local function pure_unb64(s)
+        s = (s or ""):gsub("[^%w%+%/%=]", "")
+        local result = {}
+        for i = 1, #s, 4 do
+            local c1 = b64map[s:sub(i,   i)]   or 0
+            local c2 = b64map[s:sub(i+1, i+1)] or 0
+            local c3 = b64map[s:sub(i+2, i+2)]
+            local c4 = b64map[s:sub(i+3, i+3)]
+            local byte1 = c1 * 4 + math.floor(c2 / 16)
+            table.insert(result, string.char(byte1))
+            if c3 then
+                local byte2 = (c2 % 16) * 16 + math.floor(c3 / 4)
+                table.insert(result, string.char(byte2))
+            end
+            if c4 then
+                local byte3 = (c3 % 4) * 64 + c4
+                table.insert(result, string.char(byte3))
+            end
+        end
+        return table.concat(result)
+    end
+
+    package.loaded["mime"] = {
+        unb64 = pure_unb64,
+        b64   = function(s) return s end,  -- stub; not needed for tests
+    }
+end
 
 function _G.createMockPlugin()
     local plugin = {
