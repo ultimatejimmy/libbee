@@ -248,20 +248,12 @@ local function _close(w)
     end
 end
 
-local function _runAsync(work_fn, spinner_text, on_done)
-    local ok_tr, Trapper = pcall(require, "ui/trapper")
-    local spinner = _toast(spinner_text, 120)
-
-    if ok_tr and Trapper and Trapper.wrap then
-        Trapper:wrap(function()
-            local completed, ok, r1, r2 = Trapper:dismissableRunInSubprocess(
-                function() return pcall(work_fn) end,
-                spinner
-            )
-            _close(spinner)
-            if not completed then
-                on_done(nil, _("Cancelled"))
-            elseif ok then
+local function _runNetwork(work_fn, on_done)
+    local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
+    if ok_nm and NetworkMgr and type(NetworkMgr.runWhenOnline) == "function" then
+        NetworkMgr:runWhenOnline(function()
+            local ok, r1, r2 = pcall(work_fn)
+            if ok then
                 on_done(r1, r2)
             else
                 on_done(nil, tostring(r1 or _("Unknown error")))
@@ -270,7 +262,6 @@ local function _runAsync(work_fn, spinner_text, on_done)
     else
         UIManager:scheduleIn(0.1, function()
             local ok, r1, r2 = pcall(work_fn)
-            _close(spinner)
             if ok then
                 on_done(r1, r2)
             else
@@ -280,32 +271,16 @@ local function _runAsync(work_fn, spinner_text, on_done)
     end
 end
 
+local function _runAsync(work_fn, spinner_text, on_done)
+    local spinner = _toast(spinner_text, 120)
+    _runNetwork(work_fn, function(r1, r2)
+        _close(spinner)
+        on_done(r1, r2)
+    end)
+end
+
 local function _runAsyncSilent(work_fn, on_done)
-    local ok_tr, Trapper = pcall(require, "ui/trapper")
-    if ok_tr and Trapper and Trapper.wrap then
-        Trapper:wrap(function()
-            local completed, ok, r1, r2 = Trapper:dismissableRunInSubprocess(
-                function() return pcall(work_fn) end,
-                nil
-            )
-            if completed then
-                if ok then
-                    on_done(r1, r2)
-                else
-                    on_done(nil, tostring(r1 or _("Unknown error")))
-                end
-            end
-        end)
-    else
-        UIManager:scheduleIn(0.1, function()
-            local ok, r1, r2 = pcall(work_fn)
-            if ok then
-                on_done(r1, r2)
-            else
-                on_done(nil, tostring(r1 or _("Unknown error")))
-            end
-        end)
-    end
+    _runNetwork(work_fn, on_done)
 end
 
 local function makeTapItem(frame, callback)
@@ -608,11 +583,21 @@ function M.showSetupDialog(plugin_dir, on_done)
                 log.warn("setup code request failed: " .. tostring(err_str))
                 M.showCardDialog{
                     title = _("Setup Failed"),
-                    body_text = _("Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi.", err_str),
+                    body_text = _("Could not request setup code.") .. "\n\n" .. tostring(err_str) .. "\n\n" .. _("Make sure your device is connected to Wi-Fi."),
                     buttons = {
-                        { text = _("OK"), is_primary = true, callback = function()
-                            if on_done then on_done(false) end
-                        end }
+                        {
+                            text = _("Retry"),
+                            is_primary = true,
+                            callback = function()
+                                M.showSetupDialog(plugin_dir, on_done)
+                            end
+                        },
+                        {
+                            text = _("Cancel"),
+                            callback = function()
+                                if on_done then on_done(false) end
+                            end
+                        }
                     },
                     on_close = function()
                         if on_done then on_done(false) end

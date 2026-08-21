@@ -58,7 +58,6 @@ Comprehensive guides, setup instructions, and feature details are available on t
 
 - **[acsm.koplugin](https://github.com/kaikozlov/acsm.koplugin)** by [Kai Kozlov](https://github.com/kaikozlov) — Core on-device Adobe ADEPT fulfillment and ACSM decryption logic.
 - **[Bee icon](https://www.flaticon.com/free-icons/bee)** created by Magnific — [Flaticon](https://www.flaticon.com/).
-- **[KOReader](https://github.com/koreader/koreader)** — The open-source e-book reader platform.
 
 ---
 

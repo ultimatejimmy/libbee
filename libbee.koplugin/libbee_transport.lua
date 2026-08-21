@@ -1,6 +1,8 @@
 -- libbee_transport.lua — HTTP/HTTPS transport & sequence execution
 -- Handles standard requests and persistent TLS connection sequences for Libby Sentry.
 
+local logger = require("logger")
+
 local LibbeeTransport = {}
 LibbeeTransport.__index = LibbeeTransport
 
@@ -43,27 +45,49 @@ end
 function LibbeeTransport:_load()
     if not self.https then
         local ok, module = pcall(require, "ssl.https")
-        if ok then self.https = module end
+        if ok and module then
+            self.https = module
+        else
+            logger.warn("libbee transport: ssl.https module could not be loaded: " .. tostring(module))
+        end
     end
     if not self.http then
         local ok, module = pcall(require, "socket.http")
-        if ok then self.http = module end
+        if ok and module then
+            self.http = module
+        else
+            logger.warn("libbee transport: socket.http module could not be loaded: " .. tostring(module))
+        end
     end
     if not self.ltn12 then
         local ok, module = pcall(require, "ltn12")
-        if ok then self.ltn12 = module end
+        if ok and module then
+            self.ltn12 = module
+        else
+            logger.warn("libbee transport: ltn12 module could not be loaded: " .. tostring(module))
+        end
     end
     if not self.socket then
         local ok, module = pcall(require, "socket")
-        if ok then self.socket = module end
+        if ok and module then
+            self.socket = module
+        else
+            logger.warn("libbee transport: socket module could not be loaded: " .. tostring(module))
+        end
     end
     if not self.socketutil then
         local ok, module = pcall(require, "socketutil")
-        if ok then self.socketutil = module end
+        if ok and module then
+            self.socketutil = module
+        end
     end
     if not self.mime then
         local ok, module = pcall(require, "mime")
-        if ok then self.mime = module end
+        if ok and module then
+            self.mime = module
+        else
+            logger.warn("libbee transport: mime module could not be loaded: " .. tostring(module))
+        end
     end
     if not self.json_encode or not self.json_decode then
         local ok_rj, rapidjson = pcall(require, "rapidjson")
@@ -154,7 +178,13 @@ function LibbeeTransport:request(request)
         if self.socketutil and type(self.socketutil.reset_timeout) == "function" then
             self.socketutil:reset_timeout()
         end
-        return nil, "HTTP client library unavailable"
+        if is_https and not self.https then
+            return nil, "HTTPS unavailable (ssl.https could not be loaded)"
+        elseif not self.http then
+            return nil, "HTTP unavailable (socket.http could not be loaded)"
+        else
+            return nil, "HTTP client request function unavailable"
+        end
     end
 
     local ok, code_or_err, response_headers, status_line = pcall(function()

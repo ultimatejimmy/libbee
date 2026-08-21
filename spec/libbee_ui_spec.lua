@@ -156,5 +156,27 @@ describe("libbee_ui", function()
             UI.showDownloadConfirm(loan, "/tmp/test_plugin")
             assert.is_true(#_G.ui_tracker.shown > 0)
         end)
+
+        it("showSetupDialog shows Retry and Cancel on setup code failure", function()
+            _G.ui_tracker.shown = {}
+            local API = require("libbee_api")
+            local orig_requestSetupCode = API.requestSetupCode
+            API.requestSetupCode = function()
+                return nil, "Test connection refused error"
+            end
+
+            local done_called = false
+            local done_success = nil
+            UI.showSetupDialog("/tmp/test_plugin", function(success)
+                done_called = true
+                done_success = success
+            end)
+
+            assert.is_true(#_G.ui_tracker.shown > 0)
+            local dlg = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(dlg)
+
+            API.requestSetupCode = orig_requestSetupCode
+        end)
     end)
 end)
