@@ -5,3 +5,729 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgid "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
+msgstr "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
+
+msgid "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
+msgstr "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
+
+msgid "%d books found in this folder"
+msgstr "%d books found in this folder"
+
+msgid "%d days left"
+msgstr "%d days left"
+
+msgid "%d libraries"
+msgstr "%d libraries"
+
+msgid "(cached)"
+msgstr "(cached)"
+
+msgid "+ New"
+msgstr "+ New"
+
+msgid ".. (Parent Folder)"
+msgstr ".. (Parent Folder)"
+
+msgid "1 day left"
+msgstr "1 day left"
+
+msgid "1. Open the Libby app on your phone or computer.\n"
+msgstr "1. Open the Libby app on your phone or computer.\n"
+
+msgid "2. Tap Menu (☰) → Your Information → Copy To Another Device.\n"
+msgstr "2. Tap Menu (☰) → Your Information → Copy To Another Device.\n"
+
+msgid "3. Enter the 8-digit setup code below:\n"
+msgstr "3. Enter the 8-digit setup code below:\n"
+
+msgid "ACSM Fulfillment Failed"
+msgstr "ACSM Fulfillment Failed"
+
+msgid "ACSM fulfillment failed"
+msgstr "ACSM fulfillment failed"
+
+msgid "About"
+msgstr "About"
+
+msgid "Account & Keys"
+msgstr "Account & Keys"
+
+msgid "Accounts & DRM"
+msgstr "Accounts & DRM"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Activation Status"
+msgstr "Activation Status"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "All"
+msgstr "All"
+
+msgid "Anonymous (Device only)"
+msgstr "Anonymous (Device only)"
+
+msgid "Anonymous ›"
+msgstr "Anonymous ›"
+
+msgid "Author"
+msgstr "Author"
+
+msgid "Authorization Failed"
+msgstr "Authorization Failed"
+
+msgid "Authorization timed out.\n\nPlease try again from the Libby app."
+msgstr "Authorization timed out.\n\nPlease try again from the Libby app."
+
+msgid "Authorize"
+msgstr "Authorize"
+
+msgid "Authorizing ByteBooks account…"
+msgstr "Authorizing ByteBooks account…"
+
+msgid "Auto-activates on download"
+msgstr "Auto-activates on download"
+
+msgid "Book"
+msgstr "Book"
+
+msgid "Book Already Downloaded"
+msgstr "Book Already Downloaded"
+
+msgid "ByteBooks DRM"
+msgstr "ByteBooks DRM"
+
+msgid "ByteBooks Email"
+msgstr "ByteBooks Email"
+
+msgid "ByteBooks ID ›"
+msgstr "ByteBooks ID ›"
+
+msgid "ByteBooks Password"
+msgstr "ByteBooks Password"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Cancelled"
+msgstr "Cancelled"
+
+msgid "Check for updates"
+msgstr "Check for updates"
+
+msgid "Checking for Libbee updates…"
+msgstr "Checking for Libbee updates…"
+
+msgid "Clear local shelf cache"
+msgstr "Clear local shelf cache"
+
+msgid "Close"
+msgstr "Close"
+
+msgid "Code expired. Tap New Code to retry."
+msgstr "Code expired. Tap New Code to retry."
+
+msgid "Connect with Libby code"
+msgstr "Connect with Libby code"
+
+msgid "Connected"
+msgstr "Connected"
+
+msgid "Connected ›"
+msgstr "Connected ›"
+
+msgid "Connecting to Libby…"
+msgstr "Connecting to Libby…"
+
+msgid "Connection Status"
+msgstr "Connection Status"
+
+msgid "Could Not Load Shelf"
+msgstr "Could Not Load Shelf"
+
+msgid "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
+msgstr "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
+
+msgid "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
+msgstr "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
+
+msgid "Could not create download folder:\n%s"
+msgstr "Could not create download folder:\n%s"
+
+msgid "Could not fulfill loan file:\n\n%s"
+msgstr "Could not fulfill loan file:\n\n%s"
+
+msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
+msgstr "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
+
+msgid "Create"
+msgstr "Create"
+
+msgid "Create subfolder in '%s':"
+msgstr "Create subfolder in '%s':"
+
+msgid "Created '%s'"
+msgstr "Created '%s'"
+
+msgid "Current Mode"
+msgstr "Current Mode"
+
+msgid "Custom folder ›"
+msgstr "Custom folder ›"
+
+msgid "DRM activation keys reset"
+msgstr "DRM activation keys reset"
+
+msgid "Default folder ›"
+msgstr "Default folder ›"
+
+msgid "Diagnostics & Cache"
+msgstr "Diagnostics & Cache"
+
+msgid "Disconnect"
+msgstr "Disconnect"
+
+msgid "Disconnect Account"
+msgstr "Disconnect Account"
+
+msgid "Disconnect Libby account"
+msgstr "Disconnect Libby account"
+
+msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
+msgstr "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
+
+msgid "Done"
+msgstr "Done"
+
+msgid "Download"
+msgstr "Download"
+
+msgid "Download Failed"
+msgstr "Download Failed"
+
+msgid "Download Folder"
+msgstr "Download Folder"
+
+msgid "Download Loan"
+msgstr "Download Loan"
+
+msgid "Download and install now?"
+msgstr "Download and install now?"
+
+msgid "Download failed: %s"
+msgstr "Download failed: %s"
+
+msgid "Download folder set to '%s'"
+msgstr "Download folder set to '%s'"
+
+msgid "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
+msgstr "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
+
+msgid "Downloading & fulfilling \"%s\"…"
+msgstr "Downloading & fulfilling \"%s\"…"
+
+msgid "Downloading Libbee v%s…"
+msgstr "Downloading Libbee v%s…"
+
+msgid "Downloads"
+msgstr "Downloads"
+
+msgid "Email cannot be blank"
+msgstr "Email cannot be blank"
+
+msgid "Enter password for %s:\n(Used in memory only, not stored)"
+msgstr "Enter password for %s:\n(Used in memory only, not stored)"
+
+msgid "Expires today"
+msgstr "Expires today"
+
+msgid "Failed to create folder."
+msgstr "Failed to create folder."
+
+msgid "Folder"
+msgstr "Folder"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Fulfilling ACSM loan with Libbee…"
+msgstr "Fulfilling ACSM loan with Libbee…"
+
+msgid "Holds"
+msgstr "Holds"
+
+msgid "Install failed (unzip): %s"
+msgstr "Install failed (unzip): %s"
+
+msgid "Later"
+msgstr "Later"
+
+msgid "Libbee"
+msgstr "Libbee"
+
+msgid "Libbee Debug Log"
+msgstr "Libbee Debug Log"
+
+msgid "Libbee Settings"
+msgstr "Libbee Settings"
+
+msgid "Libbee Setup Required"
+msgstr "Libbee Setup Required"
+
+msgid "Libbee has been updated to v%s.\n\nRestart KOReader now to apply the changes?"
+msgstr "Libbee has been updated to v%s.\n\nRestart KOReader now to apply the changes?"
+
+msgid "Libbee is not connected yet.\n\nConnect with a Libby setup code to browse and download your loans."
+msgstr "Libbee is not connected yet.\n\nConnect with a Libby setup code to browse and download your loans."
+
+msgid "Libbee is up to date (v%s)"
+msgstr "Libbee is up to date (v%s)"
+
+msgid "Libbee updated to v%s. Restart KOReader to apply?"
+msgstr "Libbee updated to v%s. Restart KOReader to apply?"
+
+msgid "Libbee v%s is available (current: v%s)."
+msgstr "Libbee v%s is available (current: v%s)."
+
+msgid "Libbee · Shelf"
+msgstr "Libbee · Shelf"
+
+msgid "Libbee: Browse Shelf"
+msgstr "Libbee: Browse Shelf"
+
+msgid "Libbee: Open"
+msgstr "Libbee: Open"
+
+msgid "Libby Account"
+msgstr "Libby Account"
+
+msgid "Libby account disconnected"
+msgstr "Libby account disconnected"
+
+msgid "Library"
+msgstr "Library"
+
+msgid "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
+msgstr "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
+
+msgid "Link Libby Account"
+msgstr "Link Libby Account"
+
+msgid "Link another Libby device"
+msgstr "Link another Libby device"
+
+msgid "Loading your Libby shelf…"
+msgstr "Loading your Libby shelf…"
+
+msgid "Loan"
+msgstr "Loan"
+
+msgid "Loans"
+msgstr "Loans"
+
+msgid "Local shelf cache cleared"
+msgstr "Local shelf cache cleared"
+
+msgid "Maintenance"
+msgstr "Maintenance"
+
+msgid "Maintenance & Logs"
+msgstr "Maintenance & Logs"
+
+msgid "New Folder"
+msgstr "New Folder"
+
+msgid "Next"
+msgstr "Next"
+
+msgid "Next ›"
+msgstr "Next ›"
+
+msgid "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
+msgstr "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
+
+msgid "No automatic download asset found. Visit GitHub to update manually."
+msgstr "No automatic download asset found. Visit GitHub to update manually."
+
+msgid "No log file found yet at:\n%s"
+msgstr "No log file found yet at:\n%s"
+
+msgid "No subfolders in this directory.\nTap 'Select Folder' below to use it, or '+ New' to create a subfolder."
+msgstr "No subfolders in this directory.\nTap 'Select Folder' below to use it, or '+ New' to create a subfolder."
+
+msgid "Not Connected ›"
+msgstr "Not Connected ›"
+
+msgid "Not connected"
+msgstr "Not connected"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Open Book"
+msgstr "Open Book"
+
+msgid "Open GitHub"
+msgstr "Open GitHub"
+
+msgid "Open Shelf"
+msgstr "Open Shelf"
+
+msgid "Page %d of %d"
+msgstr "Page %d of %d"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Please enter your ByteBooks email"
+msgstr "Please enter your ByteBooks email"
+
+msgid "Please enter your ByteBooks password"
+msgstr "Please enter your ByteBooks password"
+
+msgid "Re-authenticate"
+msgstr "Re-authenticate"
+
+msgid "Re-authenticate account"
+msgstr "Re-authenticate account"
+
+msgid "Read"
+msgstr "Read"
+
+msgid "Redownload"
+msgstr "Redownload"
+
+msgid "Refresh"
+msgstr "Refresh"
+
+msgid "Refresh failed: %s"
+msgstr "Refresh failed: %s"
+
+msgid "Refreshing shelf from Libby…"
+msgstr "Refreshing shelf from Libby…"
+
+msgid "Regenerating setup code…"
+msgstr "Regenerating setup code…"
+
+msgid "Renew"
+msgstr "Renew"
+
+msgid "Reset DRM Activation Keys"
+msgstr "Reset DRM Activation Keys"
+
+msgid "Reset DRM Keys"
+msgstr "Reset DRM Keys"
+
+msgid "Reset Keys"
+msgstr "Reset Keys"
+
+msgid "Reset saved Adobe / ByteBooks device activation keys?\n\nA fresh activation will be generated automatically on your next download."
+msgstr "Reset saved Adobe / ByteBooks device activation keys?\n\nA fresh activation will be generated automatically on your next download."
+
+msgid "Reset to Default"
+msgstr "Reset to Default"
+
+msgid "Reset to default download folder"
+msgstr "Reset to default download folder"
+
+msgid "Reset ›"
+msgstr "Reset ›"
+
+msgid "Restart Now"
+msgstr "Restart Now"
+
+msgid "Retry"
+msgstr "Retry"
+
+msgid "Return"
+msgstr "Return"
+
+msgid "Save"
+msgstr "Save"
+
+msgid "Saved to:\n%s\n\nOpen it from the file browser."
+msgstr "Saved to:\n%s\n\nOpen it from the file browser."
+
+msgid "Select Download Folder"
+msgstr "Select Download Folder"
+
+msgid "Select Folder"
+msgstr "Select Folder"
+
+msgid "Session Expired"
+msgstr "Session Expired"
+
+msgid "Session Status"
+msgstr "Session Status"
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Setup Failed"
+msgstr "Setup Failed"
+
+msgid "Setup Now"
+msgstr "Setup Now"
+
+msgid "Setup Timed Out"
+msgstr "Setup Timed Out"
+
+msgid "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"
+msgstr "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"
+
+msgid "Sign in with ByteBooks ID"
+msgstr "Sign in with ByteBooks ID"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Status & Libraries"
+msgstr "Status & Libraries"
+
+msgid "Switch"
+msgstr "Switch"
+
+msgid "Switch DRM Mode"
+msgstr "Switch DRM Mode"
+
+msgid "Switch back to anonymous device DRM?\n\nThis will sign out your ByteBooks ID. Subsequent downloads will be single-device only."
+msgstr "Switch back to anonymous device DRM?\n\nThis will sign out your ByteBooks ID. Subsequent downloads will be single-device only."
+
+msgid "Switch to Anonymous DRM"
+msgstr "Switch to Anonymous DRM"
+
+msgid "Switched to anonymous DRM"
+msgstr "Switched to anonymous DRM"
+
+msgid "System"
+msgstr "System"
+
+msgid "Tags"
+msgstr "Tags"
+
+msgid "Title"
+msgstr "Title"
+
+msgid "Unknown Author"
+msgstr "Unknown Author"
+
+msgid "Unknown Title"
+msgstr "Unknown Title"
+
+msgid "Unknown error"
+msgstr "Unknown error"
+
+msgid "Update"
+msgstr "Update"
+
+msgid "Update Available"
+msgstr "Update Available"
+
+msgid "Update Installed"
+msgstr "Update Installed"
+
+msgid "Update Now"
+msgstr "Update Now"
+
+msgid "Update cancelled."
+msgstr "Update cancelled."
+
+msgid "Update check cancelled."
+msgstr "Update check cancelled."
+
+msgid "Update check error: %s"
+msgstr "Update check error: %s"
+
+msgid "Update check failed."
+msgstr "Update check failed."
+
+msgid "Updates"
+msgstr "Updates"
+
+msgid "Updates & Logs ›"
+msgstr "Updates & Logs ›"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "View debug logs"
+msgstr "View debug logs"
+
+msgid "Waiting for Libby app to authorize… (%ds)"
+msgstr "Waiting for Libby app to authorize… (%ds)"
+
+msgid "Waiting for Libby app to authorize… (60s)"
+msgstr "Waiting for Libby app to authorize… (60s)"
+
+msgid "What's new:"
+msgstr "What's new:"
+
+msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
+msgstr "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
+
+msgid "btn_cancel"
+msgstr "Cancel"
+
+msgid "btn_check_updates"
+msgstr "Check for Updates"
+
+msgid "btn_close"
+msgstr "Close"
+
+msgid "btn_download"
+msgstr "Download"
+
+msgid "btn_install_update"
+msgstr "Install Update"
+
+msgid "btn_ok"
+msgstr "OK"
+
+msgid "btn_read"
+msgstr "Read"
+
+msgid "btn_refresh"
+msgstr "Refresh"
+
+msgid "btn_renew"
+msgstr "Renew"
+
+msgid "btn_restart"
+msgstr "Restart KOReader"
+
+msgid "btn_retry"
+msgstr "Retry"
+
+msgid "btn_return"
+msgstr "Return"
+
+msgid "btn_save"
+msgstr "Save"
+
+msgid "btn_setup"
+msgstr "Setup Passkey"
+
+msgid "btn_unlink"
+msgstr "Unlink Account"
+
+msgid "ebook"
+msgstr "ebook"
+
+msgid "error"
+msgstr "error"
+
+msgid "filter_all"
+msgstr "All"
+
+msgid "filter_downloaded"
+msgstr "Downloaded"
+
+msgid "filter_ready"
+msgstr "Ready to Read"
+
+msgid "loan"
+msgstr "loan"
+
+msgid "loans"
+msgstr "loans"
+
+msgid "menu_about"
+msgstr "About Libbee"
+
+msgid "menu_libbee"
+msgstr "Libbee"
+
+msgid "menu_libbee_desc"
+msgstr "Browse your Libby shelf and download ebook loans directly to KOReader."
+
+msgid "menu_settings"
+msgstr "Libbee Settings"
+
+msgid "menu_sync"
+msgstr "Sync Shelf"
+
+msgid "msg_download_complete"
+msgstr "Download complete."
+
+msgid "msg_no_holds"
+msgstr "No holds currently placed."
+
+msgid "msg_no_loans"
+msgstr "No loans currently on your shelf."
+
+msgid "msg_restart_prompt"
+msgstr "Update installed. Restart KOReader now?"
+
+msgid "msg_return_confirm"
+msgstr "Return \\\"%s\\\" early to your library?"
+
+msgid "msg_sync_complete"
+msgstr "Shelf synced successfully."
+
+msgid "msg_syncing"
+msgstr "Syncing with Libby..."
+
+msgid "msg_unlink_confirm"
+msgstr "Unlink your Libby account from this device?"
+
+msgid "progress_please_wait"
+msgstr "Please wait..."
+
+msgid "status_downloading"
+msgstr "Downloading..."
+
+msgid "status_expired"
+msgstr "Expired"
+
+msgid "status_fulfilling"
+msgstr "Fulfilling DRM..."
+
+msgid "status_ready"
+msgstr "Ready"
+
+msgid "tab_holds"
+msgstr "Holds"
+
+msgid "tab_loans"
+msgstr "Loans"
+
+msgid "tab_tags"
+msgstr "Tags"
+
+msgid "view_grid"
+msgstr "Cover Grid"
+
+msgid "view_list"
+msgstr "List View"
+
+msgid "‹ Back to Settings"
+msgstr "‹ Back to Settings"
+
+msgid "‹ Prev"
+msgstr "‹ Prev"
+
+msgid "⏳ %d days remaining on this loan.\n\n"
+msgstr "⏳ %d days remaining on this loan.\n\n"
+
+msgid "✓ Anonymous Active"
+msgstr "✓ Anonymous Active"
+
+msgid "✓ ByteBooks authorized successfully!"
+msgstr "✓ ByteBooks authorized successfully!"
+
+msgid "✓ Connected"
+msgstr "✓ Connected"
+
+msgid "✓ Download Complete!"
+msgstr "✓ Download Complete!"
+
+msgid "✓ Libbee Connected!"
+msgstr "✓ Libbee Connected!"
+
+msgid "✗ Not Connected"
+msgstr "✗ Not Connected"
+

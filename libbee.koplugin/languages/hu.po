@@ -1,0 +1,959 @@
+msgid ""
+msgstr ""
+"Language-Team: Hungarian\n"
+"Language: hu\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# en-hash: a87e97df6b5bbd6c18dc5ea053593991
+msgid "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
+msgstr "\"%s\"\n\nMentve ide:\n%s\n\nKészen áll az olvasásra."
+
+# en-hash: 9e74f4d19312ede861911b38ff4406c0
+msgid "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
+msgstr "A(z) \"%s\" már le van töltve:\n\n%s\n\nMegnyitja most?"
+
+# en-hash: 7a65032593f4ee141a1bb6af19528e5a
+msgid "%d books found in this folder"
+msgstr "%d könyv található ebben a mappában"
+
+# en-hash: 4b0b097f9082388e7883468976c77e60
+msgid "%d days left"
+msgstr "%d nap van hátra"
+
+# en-hash: 585dc4ca1840d70d261ca0fb85defb14
+msgid "%d libraries"
+msgstr "%d könyvtár"
+
+# en-hash: fed3b58ade678c6cccb2787ef13d86f6
+msgid "(cached)"
+msgstr "(gyorsítótárazva)"
+
+# en-hash: 4bc56877a98a3b5f59735f579cf735a6
+msgid "+ New"
+msgstr "+ Új"
+
+# en-hash: d28fdd75f93893891fb2d7e3b40683de
+msgid ".. (Parent Folder)"
+msgstr ".. (Szülőmappa)"
+
+# en-hash: f1a9ffba029332c15ee4a50d7dec57a3
+msgid "1 day left"
+msgstr "1 nap van hátra"
+
+# en-hash: bb9ef8f07574430e20fd0d806b705e99
+msgid "1. Open the Libby app on your phone or computer.\n"
+msgstr "1. Nyissa meg a Libby alkalmazást a telefonján vagy számítógépén.\n"
+
+# en-hash: 647a3a4bc4cbd6500d359a987bd32f96
+msgid "2. Tap Menu (☰) → Your Information → Copy To Another Device.\n"
+msgstr "2. Érintse meg a Menü (☰) → Saját adatok → Másolás másik eszközre lehetőséget.\n"
+
+# en-hash: caeb9077424014d07dbf1041b79d4fd9
+msgid "3. Enter the 8-digit setup code below:\n"
+msgstr "3. Írja be az alábbi 8 jegyű beállítási kódot:\n"
+
+# en-hash: 99a378819e7aae24868bbcba25f40e79
+msgid "ACSM Fulfillment Failed"
+msgstr "ACSM feldolgozás sikertelen"
+
+# en-hash: 5d64d2947fd75fd76be4a5a720f4c7ce
+msgid "ACSM fulfillment failed"
+msgstr "ACSM feldolgozás sikertelen"
+
+# en-hash: 8f7f4c1ce7a4f933663d10543562b096
+msgid "About"
+msgstr "Névjegy"
+
+# en-hash: 0abf29253505eda680fc9518d8ee74a1
+msgid "Account & Keys"
+msgstr "Fiók és kulcsok"
+
+# en-hash: 26e1484950dcc5ba28e9dc97a24ff9ce
+msgid "Accounts & DRM"
+msgstr "Fiókok és DRM"
+
+# en-hash: 06df33001c1d7187fdd81ea1f5b277aa
+msgid "Actions"
+msgstr "Műveletek"
+
+# en-hash: 13e7580cf52772201b8b373bd8864024
+msgid "Activation Status"
+msgstr "Aktiválási állapot"
+
+# en-hash: 4d3d769b812b6faa6b76e1a8abaece2d
+msgid "Active"
+msgstr "Aktív"
+
+# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
+msgid "All"
+msgstr "Mind"
+
+# en-hash: 9ee472f90625d1c24d379203d9d45781
+msgid "Anonymous (Device only)"
+msgstr "Névtelen (Csak ez az eszköz)"
+
+# en-hash: 0071fc15aed596b342505d9b8d315774
+msgid "Anonymous ›"
+msgstr "Névtelen ›"
+
+# en-hash: a517747c3d12f99244ae598910d979c5
+msgid "Author"
+msgstr "Szerző"
+
+# en-hash: 75729e957a6d4bdabddf0c45ba344362
+msgid "Authorization Failed"
+msgstr "Hitelesítés sikertelen"
+
+# en-hash: 051f582cd472abf018063f6a8a7e3db3
+msgid "Authorization timed out.\n\nPlease try again from the Libby app."
+msgstr "Az engedélyezés túllépte az időkorlátot.\n\nKérjük, próbálja újra a Libby alkalmazásból."
+
+# en-hash: 7f83df9cd29577d544efd9ff66d7118a
+msgid "Authorize"
+msgstr "Hitelesítés"
+
+# en-hash: c19ce879be9cb057d1c999527004e83a
+msgid "Authorizing ByteBooks account…"
+msgstr "ByteBooks fiók hitelesítése…"
+
+# en-hash: 9bd1606c367713265008a2d24b589cad
+msgid "Auto-activates on download"
+msgstr "Letöltéskor automatikusan aktiválódik"
+
+# en-hash: 2b1f94ef23b79bf90eb891cae1df7a90
+msgid "Book"
+msgstr "Könyv"
+
+# en-hash: b41178dec7c52dd70fb71a5a29480e8d
+msgid "Book Already Downloaded"
+msgstr "A könyv már le van töltve"
+
+# en-hash: 3b763e85d6cde7e5d2c086802276b5a2
+msgid "ByteBooks DRM"
+msgstr "ByteBooks DRM"
+
+# en-hash: 19943ac7aa8ccf77507a23573f438a0d
+msgid "ByteBooks Email"
+msgstr "ByteBooks e-mail"
+
+# en-hash: 9b186eec1529c483f0936317e2f43234
+msgid "ByteBooks ID ›"
+msgstr "ByteBooks azonosító ›"
+
+# en-hash: a610f01b28bd49b4b4ed49c2926ca1eb
+msgid "ByteBooks Password"
+msgstr "ByteBooks jelszó"
+
+# en-hash: ea4788705e6873b424c65e91c2846b19
+msgid "Cancel"
+msgstr "Mégse"
+
+# en-hash: a149e85a44aeec9140e92733d9ed694e
+msgid "Cancelled"
+msgstr "Megszakítva"
+
+# en-hash: eb1b4bb3667dd670210c7822badc2f1d
+msgid "Check for updates"
+msgstr "Frissítések keresése"
+
+# en-hash: ddcee38f16ad50e7a61a16f294f69de3
+msgid "Checking for Libbee updates…"
+msgstr "Libbee frissítések keresése…"
+
+# en-hash: 1824bacb1ec56aa35770bccb2e6033cb
+msgid "Clear local shelf cache"
+msgstr "Helyi polc gyorsítótár törlése"
+
+# en-hash: d3d2e617335f08df83599665eef8a418
+msgid "Close"
+msgstr "Bezárás"
+
+# en-hash: 27ad7a203b08d23424cf282a7acd9ad6
+msgid "Code expired. Tap New Code to retry."
+msgstr "A kód lejárt. Érintse meg az Új kód gombot a próbálkozáshoz."
+
+# en-hash: 87f76f3bcde4c35b664b0d531a8b2b6f
+msgid "Connect with Libby code"
+msgstr "Csatlakozás Libby kóddal"
+
+# en-hash: 60b7a58e56e8e2665e64fb9f42ec183c
+msgid "Connected ›"
+msgstr "Csatlakoztatva ›"
+
+# en-hash: 4ff77e16703baf1a986734403aa04151
+msgid "Connecting to Libby…"
+msgstr "Csatlakozás a Libbyhez…"
+
+# en-hash: d6ab5be3edab5ac285b19816029d7547
+msgid "Could Not Load Shelf"
+msgstr "A polc betöltése sikertelen"
+
+# en-hash: 50c59941ad78ae04b529b9f589902aaa
+msgid "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
+msgstr "Nem sikerült hitelesíteni a ByteBooks fiókot:\n\n%s\n\nEllenőrizze az e-mail cím és jelszó helyességét."
+
+# en-hash: 0edfcafcbdb5045ab9f536cb3b3c8675
+msgid "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
+msgstr "Nem sikerült csatlakozni a Libbyhez:\n%s\n\nEllenőrizze a Wi-Fi kapcsolatot."
+
+# en-hash: 183b4a6dda12a0b685721cafd8e8edd0
+msgid "Could not create download folder:\n%s"
+msgstr "Nem sikerült létrehozni a letöltési mappát:\n%s"
+
+# en-hash: 7391c7d1c8106b898a448f94cc03ea43
+msgid "Could not fulfill loan file:\n\n%s"
+msgstr "Nem sikerült feldolgozni a kölcsönzési fájlt:\n\n%s"
+
+# en-hash: 163dd2076f005559c44b9453e5477c99
+msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
+msgstr "Nem sikerült lekérni a beállítási kódot:\n%s\n\nGyőződjön meg arról, hogy az eszköz csatlakozik a Wi-Fi-hez."
+
+# en-hash: 686e697538050e4664636337cc3b834f
+msgid "Create"
+msgstr "Létrehozás"
+
+# en-hash: 96cb7ae49077c528192c2bba40c42c69
+msgid "Create subfolder in '%s':"
+msgstr "Almappa létrehozása itt: '%s':"
+
+# en-hash: e6818edb27f4a7711ea452befaa5efd4
+msgid "Created '%s'"
+msgstr "'%s' létrehozva"
+
+# en-hash: 56ab89bac0b1bab13d01fae2271fc13e
+msgid "Current Mode"
+msgstr "Jelenlegi mód"
+
+# en-hash: 254264d04d17c89ee53c7808fe00c0eb
+msgid "Custom folder ›"
+msgstr "Egyéni mappa ›"
+
+# en-hash: 585da6a2da8bb97c4b3e238ba4f6e552
+msgid "DRM activation keys reset"
+msgstr "DRM aktiválási kulcsok visszaállítva"
+
+# en-hash: fd84ab7970c656c94596f0080c1b4e8c
+msgid "Default folder ›"
+msgstr "Alapértelmezett mappa ›"
+
+# en-hash: 5d538b17286b57664fdbdcb4fc6f9bac
+msgid "Diagnostics & Cache"
+msgstr "Diagnosztika és gyorsítótár"
+
+# en-hash: 42ae25231906c83927831e0ef7c317ac
+msgid "Disconnect"
+msgstr "Leválasztás"
+
+# en-hash: fd456a63260bc8f43e73094f0d826863
+msgid "Disconnect Account"
+msgstr "Fiók leválasztása"
+
+# en-hash: 513a57621b57cca0eb03a4ceb37a97a1
+msgid "Disconnect Libby account"
+msgstr "Libby fiók leválasztása"
+
+# en-hash: f9cd62554bc3a60867c3fb15640e1d50
+msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
+msgstr "Leválasztja a Libby fiókot?\n\nA mentett munkamenet és a gyorsítótárazott polc törlődik."
+
+# en-hash: f92965e2c8a7afb3c1b9a5c09a263636
+msgid "Done"
+msgstr "Kész"
+
+# en-hash: 801ab24683a4a8c433c6eb40c48bcd9d
+msgid "Download"
+msgstr "Letöltés"
+
+# en-hash: dc1d0f58b46c30350b739a89bedce104
+msgid "Download Failed"
+msgstr "Letöltés sikertelen"
+
+# en-hash: 9e7892bc3b2c776e3f5ad3df15172a5e
+msgid "Download Folder"
+msgstr "Letöltési mappa"
+
+# en-hash: d0d4d2b2bf2255e7b554dd5cbde3e0b4
+msgid "Download Loan"
+msgstr "Kölcsönzés letöltése"
+
+# en-hash: 52deb32797ca429eba30bc8f5b4869c0
+msgid "Download and install now?"
+msgstr "Letölti és telepíti most?"
+
+# en-hash: 2ae89fbb5548c5c979cdca7a76cc9f1b
+msgid "Download failed: %s"
+msgstr "Letöltés sikertelen: %s"
+
+# en-hash: 61a836c207bb878188f6c4a336f0b59c
+msgid "Download folder set to '%s'"
+msgstr "A letöltési mappa beállítva: '%s'"
+
+# en-hash: c4c81bbfc4574ec8b1dbb31d7d2c9fb6
+msgid "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
+msgstr "Letöltés/feldolgozás sikertelen:\n%s\n\nHa engedélyezési hibát lát, ellenőrizze a Wi-Fi vagy a DRM beállításokat."
+
+# en-hash: 5d3a7d9261c4c23d70edc994065ba958
+msgid "Downloading & fulfilling \"%s\"…"
+msgstr "\"%s\" letöltése és feldolgozása…"
+
+# en-hash: e222f73accf9df22206b9c38f61e26c5
+msgid "Downloading Libbee v%s…"
+msgstr "Libbee v%s letöltése…"
+
+# en-hash: c20c35ef53bf1b70789ce94e66800147
+msgid "Downloads"
+msgstr "Letöltések"
+
+# en-hash: 61600f254d88c842a689e3869b20d442
+msgid "Email cannot be blank"
+msgstr "Az e-mail nem lehet üres"
+
+# en-hash: d88c31f3a550c44386a7c29f6be13c5f
+msgid "Enter password for %s:\n(Used in memory only, not stored)"
+msgstr "Adja meg a jelszót a következőhöz: %s:\n(Csak a memóriában használatos, nem tárolódik)"
+
+# en-hash: 08e250ed5d94333a05e55dfa6482c4c4
+msgid "Expires today"
+msgstr "Ma jár le"
+
+# en-hash: 96310b2cf48706c28110688622ac2cf2
+msgid "Failed to create folder."
+msgstr "Nem sikerült létrehozni a mappát."
+
+# en-hash: b0f2b97dc5d2b76b26e040408bb1d8af
+msgid "Folder"
+msgstr "Mappa"
+
+# en-hash: 520d0db389f362bf79ef56ca0af3dcab
+msgid "Format"
+msgstr "Formátum"
+
+# en-hash: a06971d90ebe8f5f0b40aa9df744a269
+msgid "Fulfilling ACSM loan with Libbee…"
+msgstr "ACSM kölcsönzés feldolgozása a Libbee-vel…"
+
+# en-hash: c60da36641d760351933ace6a9927b41
+msgid "Holds"
+msgstr "Előjegyzések"
+
+# en-hash: 2c62e1568e73336b5cc68211f0c643a1
+msgid "Install failed (unzip): %s"
+msgstr "Telepítés sikertelen (kicsomagolás): %s"
+
+# en-hash: 61057a0c84605444201929bdd72014f0
+msgid "Later"
+msgstr "Később"
+
+# en-hash: c61c67ed568a6d5aa71932f92b67d806
+msgid "Libbee"
+msgstr "Libbee"
+
+# en-hash: f081c6613d5cc08122ae9823d6660adc
+msgid "Libbee Debug Log"
+msgstr "Libbee hibakeresési napló"
+
+# en-hash: e83f2bb8dc1560809bdae464224c4310
+msgid "Libbee Settings"
+msgstr "Libbee beállítások"
+
+# en-hash: 4d84781f0760db8aa54de4a1e1cc0704
+msgid "Libbee Setup Required"
+msgstr "Libbee beállítás szükséges"
+
+# en-hash: 37faaeb2b525a6c942c320d6e0f8cd1e
+msgid "Libbee has been updated to v%s.\n\nRestart KOReader now to apply the changes?"
+msgstr "A Libbee frissült a(z) v%s verzióra.\n\nÚjraindítja a KOReadert a módosítások alkalmazásához?"
+
+# en-hash: c60bc4846552fb57105c2f761e42c2ba
+msgid "Libbee is not connected yet.\n\nConnect with a Libby setup code to browse and download your loans."
+msgstr "A Libbee még nincs csatlakoztatva.\n\nCsatlakozzon egy Libby beállítási kóddal a kölcsönzések letöltéséhez."
+
+# en-hash: 7d39c267dc645f5285a26a084a0fa481
+msgid "Libbee is up to date (v%s)"
+msgstr "A Libbee naprakész (v%s)"
+
+# en-hash: ce84d8bd5076d4d7f00b19460c1a6a96
+msgid "Libbee updated to v%s. Restart KOReader to apply?"
+msgstr "A Libbee frissítve lett v%s verzióra. Újraindítja a KOReadert?"
+
+# en-hash: e72879d503ae106c7541b087700fe43c
+msgid "Libbee v%s is available (current: v%s)."
+msgstr "Elérhető a Libbee v%s (jelenlegi: v%s)."
+
+# en-hash: e2d755fae9c6379b0072ed3efae075f4
+msgid "Libbee · Shelf"
+msgstr "Libbee · Polc"
+
+# en-hash: fdaab53cc017d209b0bad981477f9292
+msgid "Libbee: Browse Shelf"
+msgstr "Libbee: Polc böngészése"
+
+# en-hash: 7a83d1914057f5905834756d0d9cb3ac
+msgid "Libby Account"
+msgstr "Libby fiók"
+
+# en-hash: c0418b07b48e7490fb6b4b37e7209631
+msgid "Libby account disconnected"
+msgstr "Libby fiók leválasztva"
+
+# en-hash: 4d70254b3a8e2bc38b6147fa6ee813be
+msgid "Library"
+msgstr "Könyvtár"
+
+# en-hash: af91e48bf33d040da890c0ceebe1e9f5
+msgid "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
+msgstr "Könyvtár: %s\n\nEszköze sikeresen regisztrálva. Most már böngészheti és letöltheti a polcát."
+
+# en-hash: 661f7beb5acf38e99d3a3ecb488446dd
+msgid "Link Libby Account"
+msgstr "Libby fiók összekapcsolása"
+
+# en-hash: d59189e032a45a99e26263968bd115cf
+msgid "Link another Libby device"
+msgstr "Másik Libby eszköz összekapcsolása"
+
+# en-hash: 4f8712dc31820990e8cdaf0735906eb4
+msgid "Loading your Libby shelf…"
+msgstr "Libby polc betöltése…"
+
+# en-hash: 9ad81a8f8a5c7a6ce9e1ba9bb4759391
+msgid "Loan"
+msgstr "Kölcsönzés"
+
+# en-hash: 64e109fb6dde9d711f1b7cba6ce2e279
+msgid "Loans"
+msgstr "Kölcsönzések"
+
+# en-hash: 6ed59fc0ac82c133ae65d8c7c058c947
+msgid "Local shelf cache cleared"
+msgstr "Helyi polc gyorsítótár törölve"
+
+# en-hash: 10d0de28911c5f66463b9c8783f8148a
+msgid "Maintenance"
+msgstr "Karbantartás"
+
+# en-hash: ec59d364f67316f8c73663cefa219651
+msgid "Maintenance & Logs"
+msgstr "Karbantartás és naplók"
+
+# en-hash: 5148905edb46ca87df979cbb369c403d
+msgid "New Folder"
+msgstr "Új mappa"
+
+# en-hash: 10ac3d04253ef7e1ddc73e6091c0cd55
+msgid "Next"
+msgstr "Következő"
+
+# en-hash: 2d688f4d101a8d1fcb5672e879ffed68
+msgid "Next ›"
+msgstr "Következő ›"
+
+# en-hash: 4f394eff7519830c096186129664be0f
+msgid "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
+msgstr "Nem találhatók aktív kölcsönzések a Libby polcán.\n\nKölcsönözzön egy könyvet a Libby alkalmazásban, majd érintse meg a ↻ Frissítés gombot!"
+
+# en-hash: ed66b9ae0cd34853599752fbf14f97eb
+msgid "No automatic download asset found. Visit GitHub to update manually."
+msgstr "Nem található automatikus letöltési fájl. Kérjük, látogasson el a GitHubra a kézi frissítéshez."
+
+# en-hash: 961efebd9317e9797ad27a0045ef521d
+msgid "No log file found yet at:\n%s"
+msgstr "Még nem található naplófájl itt:\n%s"
+
+# en-hash: 4911d39dfeb5093032e4317a04cef4c1
+msgid "No subfolders in this directory.\nTap 'Select Folder' below to use it, or '+ New' to create a subfolder."
+msgstr "Nincsenek almappák ebben a könyvtárban.\nÉrintse meg a 'Mappa kiválasztása' gombot lent a használathoz, vagy a '+ Új' gombot egy almappa létrehozásához."
+
+# en-hash: 0124b1b7872f10b8029877d8c69ce8ac
+msgid "Not Connected ›"
+msgstr "Nincs csatlakoztatva ›"
+
+# en-hash: e0aa021e21dddbd6d8cecec71e9cf564
+msgid "OK"
+msgstr "OK"
+
+# en-hash: f5ac36a6d8af47f34aeedf97baf66fed
+msgid "Open Book"
+msgstr "Könyv megnyitása"
+
+# en-hash: 66ec93052668cd43d0ec1f100bc1824b
+msgid "Open GitHub"
+msgstr "GitHub megnyitása"
+
+# en-hash: e81fda06f0f7eed35d3618df15939df2
+msgid "Open Shelf"
+msgstr "Polc megnyitása"
+
+# en-hash: b8065ad2628f1f82f3167af0947b3e43
+msgid "Page %d of %d"
+msgstr "%d. oldal / %d"
+
+# en-hash: dc647eb65e6711e155375218212b3964
+msgid "Password"
+msgstr "Jelszó"
+
+# en-hash: 8654dbd70eb49254331a0fdff5a568fa
+msgid "Please enter your ByteBooks email"
+msgstr "Kérjük, adja meg a ByteBooks e-mail címét"
+
+# en-hash: cfa47c33be0f638b6681595dee07bd5f
+msgid "Please enter your ByteBooks password"
+msgstr "Kérjük, adja meg a ByteBooks jelszavát"
+
+# en-hash: 7b77c9535ded2548a4c63da714905b11
+msgid "Re-authenticate"
+msgstr "Újrahitelesítés"
+
+# en-hash: 5641109a265d20644270193e2eeaaf39
+msgid "Re-authenticate account"
+msgstr "Fiók újrahitelesítése"
+
+# en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
+msgid "Read"
+msgstr "Olvasás"
+
+# en-hash: e42ab5e8243c1882cc7eeb878c75920c
+msgid "Redownload"
+msgstr "Újraletöltés"
+
+# en-hash: 63a6a88c066880c5ac42394a22803ca6
+msgid "Refresh"
+msgstr "Frissítés"
+
+# en-hash: 4307fc3d8df05d5834a98d34e953e720
+msgid "Refresh failed: %s"
+msgstr "A frissítés nem sikerült: %s"
+
+# en-hash: 77f05ff2f37e21086732e2843b8a5660
+msgid "Refreshing shelf from Libby…"
+msgstr "Polc frissítése a Libbyből…"
+
+# en-hash: 4fc47d4da89f3021f6ad13893afb1a8c
+msgid "Regenerating setup code…"
+msgstr "Beállítási kód újragenerálása…"
+
+# en-hash: 0b9feba3fbb861d2f822c42a07fc9a04
+msgid "Renew"
+msgstr "Hosszabbítás"
+
+# en-hash: b535360116e57509156ca416fb6ba5a6
+msgid "Reset DRM Activation Keys"
+msgstr "DRM aktiválási kulcsok visszaállítása"
+
+# en-hash: 3a44a6ce49c866e543a8680c261387ab
+msgid "Reset DRM Keys"
+msgstr "DRM kulcsok visszaállítása"
+
+# en-hash: 96ed9a35f108f612581794a104f7c2a1
+msgid "Reset Keys"
+msgstr "Kulcsok visszaállítása"
+
+# en-hash: 17c9363d3d20aace208a8a2f12316830
+msgid "Reset saved Adobe / ByteBooks device activation keys?\n\nA fresh activation will be generated automatically on your next download."
+msgstr "Visszaállítja a mentett Adobe / ByteBooks eszközaktiválási kulcsokat?\n\nA következő letöltéskor automatikusan új aktiválás jön létre."
+
+# en-hash: 4418069f82beb30821c3d9f62283608c
+msgid "Reset to Default"
+msgstr "Alapértelmezett visszaállítása"
+
+# en-hash: fe92ba749089513e672e06313e8ee44e
+msgid "Reset to default download folder"
+msgstr "Visszaállítás az alapértelmezett letöltési mappára"
+
+# en-hash: 6fa05091a7c5300a39f821188bc2da41
+msgid "Reset ›"
+msgstr "Visszaállítás ›"
+
+# en-hash: 2d9c2140c53daf05855033aaceeaa8fd
+msgid "Restart Now"
+msgstr "Újraindítás most"
+
+# en-hash: 6327b4e59f58137083214a1fec358855
+msgid "Retry"
+msgstr "Újra"
+
+# en-hash: 988fd738de9c6d177440c5dcf69e73ce
+msgid "Return"
+msgstr "Visszaadás"
+
+# en-hash: c9cc8cce247e49bae79f15173ce97354
+msgid "Save"
+msgstr "Mentés"
+
+# en-hash: 20b4f5bde44dfe7ae815d68bede8b8f9
+msgid "Saved to:\n%s\n\nOpen it from the file browser."
+msgstr "Mentve ide:\n%s\n\nNyissa meg a fájlkezelőből."
+
+# en-hash: e03107c5f320c880b61c546d0f6235af
+msgid "Select Download Folder"
+msgstr "Letöltési mappa kiválasztása"
+
+# en-hash: deffb03a57b0deaf912f04da4575848f
+msgid "Select Folder"
+msgstr "Mappa kiválasztása"
+
+# en-hash: 86180348ed3fa372f89e00d4279cba3c
+msgid "Session Expired"
+msgstr "A munkamenet lejárt"
+
+# en-hash: bc38cd7cdcb62a99dce1538c5df06d4a
+msgid "Session Status"
+msgstr "Munkamenet állapota"
+
+# en-hash: f4f70727dc34561dfde1a3c529b6205c
+msgid "Settings"
+msgstr "Beállítások"
+
+# en-hash: aca44fd7c349941d557035e53b1c9d3f
+msgid "Setup Failed"
+msgstr "Beállítás sikertelen"
+
+# en-hash: 12487939ef7ed116547c9fb120057761
+msgid "Setup Now"
+msgstr "Beállítás most"
+
+# en-hash: 9293aae4291a7f63e2d389d4c2066f94
+msgid "Setup Timed Out"
+msgstr "Beállítás időtúllépés"
+
+# en-hash: 6a714c5132cbebf09f9e11bbd7b626ca
+msgid "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"
+msgstr "Jelentkezzen be a könyvek több eszköz közötti szinkronizálásához.\nA jelszó soha nem tárolódik.\n\nAdja meg ByteBooks azonosító e-mailjét:"
+
+# en-hash: 03b1763c0055281706c839227b51a433
+msgid "Sign in with ByteBooks ID"
+msgstr "Bejelentkezés ByteBooks azonosítóval"
+
+# en-hash: 841037f081328cdc5308528f585512dc
+msgid "Status & Libraries"
+msgstr "Állapot és könyvtárak"
+
+# en-hash: bbc155fb2b111bf61c4f5ff892915e6b
+msgid "Switch"
+msgstr "Váltás"
+
+# en-hash: 1e283dc77763277d1333bd5fcec788ff
+msgid "Switch DRM Mode"
+msgstr "DRM mód váltása"
+
+# en-hash: 1e0a2d504500f47cda9ff0704eccfba1
+msgid "Switch back to anonymous device DRM?\n\nThis will sign out your ByteBooks ID. Subsequent downloads will be single-device only."
+msgstr "Visszavált a névtelen eszköz-DRM-re?\n\nEz kijelentkezteti a ByteBooks azonosítóját. A további letöltések csak egy eszközre szólnak."
+
+# en-hash: 41783472a3e6c172bc09f9c05660d53c
+msgid "Switch to Anonymous DRM"
+msgstr "Váltás névtelen DRM-re"
+
+# en-hash: fac891a83da5f2381dfe9c48f45a6fad
+msgid "Switched to anonymous DRM"
+msgstr "Átváltva névtelen DRM-re"
+
+# en-hash: a45da96d0bf6575970f2d27af22be28a
+msgid "System"
+msgstr "Rendszer"
+
+# en-hash: 189f63f277cd73395561651753563065
+msgid "Tags"
+msgstr "Címkék"
+
+# en-hash: b78a3223503896721cca1303f776159b
+msgid "Title"
+msgstr "Cím"
+
+# en-hash: 3fe2d769229dfc2cdfdd86f8101fb048
+msgid "Unknown Author"
+msgstr "Ismeretlen szerző"
+
+# en-hash: 3ff03eb2bab0a1640ae2a6d4bc91b100
+msgid "Unknown Title"
+msgstr "Ismeretlen cím"
+
+# en-hash: aee9784c03b80d38d3271cde2b252b8d
+msgid "Unknown error"
+msgstr "Ismeretlen hiba"
+
+# en-hash: 06933067aafd48425d67bcb01bba5cb6
+msgid "Update"
+msgstr "Frissítés"
+
+# en-hash: 8bd7695831e104e2669e086e03927a20
+msgid "Update Available"
+msgstr "Frissítés érhető el"
+
+# en-hash: cfc748234a94d42194aace19023392fa
+msgid "Update Installed"
+msgstr "Frissítés telepítve"
+
+# en-hash: 99b1054c0f320be9f109c877a5efd0b2
+msgid "Update Now"
+msgstr "Frissítés most"
+
+# en-hash: 1e4112df1113e06c77e13d6614f2cd0a
+msgid "Update cancelled."
+msgstr "Frissítés megszakítva."
+
+# en-hash: 092dc0fe2a1709895d0ffb03306ab644
+msgid "Update check cancelled."
+msgstr "Frissítés-ellenőrzés megszakítva."
+
+# en-hash: 8171c00d46f0c7aa4610a0aaabdc5feb
+msgid "Update check error: %s"
+msgstr "Frissítés-ellenőrzési hiba: %s"
+
+# en-hash: 4e73c9b97b111bab1463ebace4ec06d8
+msgid "Update check failed."
+msgstr "A frissítés ellenőrzése nem sikerült."
+
+# en-hash: 9ac41b6a577daadd588f0fcde0071e8b
+msgid "Updates"
+msgstr "Frissítések"
+
+# en-hash: 105a1612a9a6048bab0f5ee69680ce59
+msgid "Updates & Logs ›"
+msgstr "Frissítések és naplók ›"
+
+# en-hash: 34b6cd75171affba6957e308dcbd92be
+msgid "Version"
+msgstr "Verzió"
+
+# en-hash: aa84930f7ce738b1491b759189ae1ec2
+msgid "View debug logs"
+msgstr "Hibakeresési naplók megtekintése"
+
+# en-hash: ad54e7b1c0053ed4729af426200a862a
+msgid "Waiting for Libby app to authorize… (%ds)"
+msgstr "Várakozás a Libby engedélyezésére… (%dmp)"
+
+# en-hash: ce45175ccb46e0984f87472526d39508
+msgid "Waiting for Libby app to authorize… (60s)"
+msgstr "Várakozás a Libby engedélyezésére… (60mp)"
+
+# en-hash: 67b3aeb4ed5299bb57c1e2de1beb0bf5
+msgid "What's new:"
+msgstr "Újdonságok:"
+
+# en-hash: 3ee9fa061c0bbdddac07b093572bb860
+msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
+msgstr "A Libby engedélyezése lejárt.\n\nA letöltés folytatásához jelentkezzen be újra."
+
+# en-hash: ea4788705e6873b424c65e91c2846b19
+msgid "btn_cancel"
+msgstr "Mégse"
+
+# en-hash: f77f38f684c8b974dd4a56bb321cfd5f
+msgid "btn_check_updates"
+msgstr "Frissítések keresése"
+
+# en-hash: d3d2e617335f08df83599665eef8a418
+msgid "btn_close"
+msgstr "Bezárás"
+
+# en-hash: 801ab24683a4a8c433c6eb40c48bcd9d
+msgid "btn_download"
+msgstr "Letöltés"
+
+# en-hash: e71c710a80f4adca5e6ec5b09260c6b5
+msgid "btn_install_update"
+msgstr "Frissítés telepítése"
+
+# en-hash: e0aa021e21dddbd6d8cecec71e9cf564
+msgid "btn_ok"
+msgstr "OK"
+
+# en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
+msgid "btn_read"
+msgstr "Olvasás"
+
+# en-hash: 63a6a88c066880c5ac42394a22803ca6
+msgid "btn_refresh"
+msgstr "Frissítés"
+
+# en-hash: 0b9feba3fbb861d2f822c42a07fc9a04
+msgid "btn_renew"
+msgstr "Hosszabbítás"
+
+# en-hash: d8ffc3650a53fc6fa8d38545e68ea687
+msgid "btn_restart"
+msgstr "KOReader újraindítása"
+
+# en-hash: 6327b4e59f58137083214a1fec358855
+msgid "btn_retry"
+msgstr "Újra"
+
+# en-hash: 988fd738de9c6d177440c5dcf69e73ce
+msgid "btn_return"
+msgstr "Visszaadás"
+
+# en-hash: c9cc8cce247e49bae79f15173ce97354
+msgid "btn_save"
+msgstr "Mentés"
+
+# en-hash: b22a3701a330757c504abab0e9d1c930
+msgid "btn_setup"
+msgstr "Kulcs beállítása"
+
+# en-hash: 3be546f7eb2185fb4da2ba288cefd122
+msgid "btn_unlink"
+msgstr "Leválasztás"
+
+# en-hash: 4684cddc2fdd1f00234aca819c872304
+msgid "ebook"
+msgstr "e-könyv"
+
+# en-hash: cb5e100e5a9a3e7f6d1fd97512215282
+msgid "error"
+msgstr "hiba"
+
+# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
+msgid "filter_all"
+msgstr "Mind"
+
+# en-hash: a6a04307fd90d0c2821b45125e6a0a25
+msgid "filter_downloaded"
+msgstr "Letöltve"
+
+# en-hash: 18c3eb026537c77d26e13928cbc9b6da
+msgid "filter_ready"
+msgstr "Olvasásra kész"
+
+# en-hash: 8b9c2bba829069d84f1e77c3f25cb5ca
+msgid "loan"
+msgstr "kölcsönzés"
+
+# en-hash: f806527a4b4ecb554edad98174334a70
+msgid "loans"
+msgstr "kölcsönzés"
+
+# en-hash: c0b2bf1fcb4ecae262cd4e1b0448be35
+msgid "menu_about"
+msgstr "A Libbee névjegye"
+
+# en-hash: c61c67ed568a6d5aa71932f92b67d806
+msgid "menu_libbee"
+msgstr "Libbee"
+
+# en-hash: eff559167a5f554537476ad7c705968a
+msgid "menu_libbee_desc"
+msgstr "Böngéssze Libby polcát és töltse le a kölcsönzött e-könyveket közvetlenül a KOReaderbe."
+
+# en-hash: e83f2bb8dc1560809bdae464224c4310
+msgid "menu_settings"
+msgstr "Libbee beállítások"
+
+# en-hash: ef493fdb62d480746042b243a2d793b2
+msgid "menu_sync"
+msgstr "Polc szinkronizálása"
+
+# en-hash: 3c2681ea85407c2c0d252e05a8eaf6aa
+msgid "msg_download_complete"
+msgstr "A letöltés befejeződött."
+
+# en-hash: 2d3fae120406509ed7e2c507c3928f3c
+msgid "msg_no_holds"
+msgstr "Jelenleg nincsenek előjegyzések."
+
+# en-hash: ccb3b1ebc6ce4ee688990a3a42ab0e6b
+msgid "msg_no_loans"
+msgstr "Jelenleg nincsenek kölcsönzések a polcán."
+
+# en-hash: 1e14e84d99200c55c89ac12768d5bc8a
+msgid "msg_restart_prompt"
+msgstr "Frissítés telepítve. Újraindítja a KOReadert most?"
+
+# en-hash: 904e8905680c0c4e3076536e54b12770
+msgid "msg_return_confirm"
+msgstr "Visszaadja korábban a(z) \"%s\" könyvet a könyvtárnak?"
+
+# en-hash: 1ae31fe9e8e36bf2fdf26f08994a77b5
+msgid "msg_sync_complete"
+msgstr "A polc sikeresen szinkronizálva."
+
+# en-hash: 1e342f57a003d957c66cb6915f72d8dc
+msgid "msg_syncing"
+msgstr "Szinkronizálás a Libbyvel..."
+
+# en-hash: e09164f3eff6be14589ccb1f277d6546
+msgid "msg_unlink_confirm"
+msgstr "Lecsatlakoztatja a Libby fiókot erről az eszközről?"
+
+# en-hash: 25e8f2fd2871c8423bbe4e254066cd98
+msgid "progress_please_wait"
+msgstr "Kérjük, várjon..."
+
+# en-hash: 96c4d7265c89a6e0ed70ffec22fb1afe
+msgid "status_downloading"
+msgstr "Letöltés..."
+
+# en-hash: 24fe48030f7d3097d5882535b04c3fa8
+msgid "status_expired"
+msgstr "Lejárt"
+
+# en-hash: 4ee157ca9731c1451c7c6f1ffd246695
+msgid "status_fulfilling"
+msgstr "DRM feldolgozása..."
+
+# en-hash: e7d31fc0602fb2ede144d18cdffd816b
+msgid "status_ready"
+msgstr "Kész"
+
+# en-hash: c60da36641d760351933ace6a9927b41
+msgid "tab_holds"
+msgstr "Előjegyzések"
+
+# en-hash: 64e109fb6dde9d711f1b7cba6ce2e279
+msgid "tab_loans"
+msgstr "Kölcsönzések"
+
+# en-hash: 189f63f277cd73395561651753563065
+msgid "tab_tags"
+msgstr "Címkék"
+
+# en-hash: 0db2ad3bff4478b8f7402e6eeb0fe895
+msgid "view_grid"
+msgstr "Borítórács"
+
+# en-hash: 806db08b8d5ab2af924f8401224a9176
+msgid "view_list"
+msgstr "Listanézet"
+
+# en-hash: 781881956a4383935c3239bc4ff7e1be
+msgid "‹ Back to Settings"
+msgstr "‹ Vissza a beállításokhoz"
+
+# en-hash: 57adda7dedc1a318f3bb06fd005867dc
+msgid "‹ Prev"
+msgstr "‹ Előző"
+
+# en-hash: 158fe160015b2b6aa9e10a959bfe03fd
+msgid "⏳ %d days remaining on this loan.\n\n"
+msgstr "⏳ %d nap van hátra ebből a kölcsönzésből.\n\n"
+
+# en-hash: 199d42ba7b73113888ced7202279fa99
+msgid "✓ Anonymous Active"
+msgstr "✓ Névtelen aktiválás aktív"
+
+# en-hash: 3b4da0dc6c6f80e6e69d24ace60f73b3
+msgid "✓ ByteBooks authorized successfully!"
+msgstr "✓ ByteBooks sikeresen hitelesítve!"
+
+# en-hash: 17e80751a7223bf83dc6127a2670f98f
+msgid "✓ Connected"
+msgstr "✓ Csatlakoztatva"
+
+# en-hash: 5409903c4f0d9ff97744f7efde928e46
+msgid "✓ Download Complete!"
+msgstr "✓ Letöltés befejeződött!"
+
+# en-hash: 339e5ff0141bb9d29554609fadf4d52b
+msgid "✓ Libbee Connected!"
+msgstr "✓ Libbee csatlakoztatva!"
+
+# en-hash: 25c78c5528381192b859a353be7fa609
+msgid "✗ Not Connected"
+msgstr "✗ Nincs csatlakoztatva"
+
+
+# en-hash: c54dcc922cf18f2a1a36311c1ea2da35
+msgid "Libbee: Open"
+msgstr "Libbee: Megnyitás"

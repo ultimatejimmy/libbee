@@ -229,6 +229,86 @@ function M.saveViewMode(view_mode)
 end
 
 -- ---------------------------------------------------------------------------
+-- Download Directory Settings
+-- ---------------------------------------------------------------------------
+
+function M.getDefaultDownloadDir()
+    local ok_api, API = pcall(require, "libbee_api")
+    if ok_api and API and API.getDefaultDownloadDir then
+        return API.getDefaultDownloadDir()
+    end
+    return "/tmp/Libby"
+end
+
+function M.getCustomDownloadDir(plugin_dir)
+    local data = _readJson(_statePath())
+    local custom = data and data.download_dir
+    if not custom or custom == "" then
+        if plugin_dir and plugin_dir ~= "" then
+            local ok_cfg, cfg = pcall(dofile, plugin_dir .. "/libbee_config.lua")
+            if ok_cfg and type(cfg) == "table" and cfg.download_dir and cfg.download_dir ~= "" then
+                custom = cfg.download_dir
+            end
+        end
+    end
+    if custom and custom ~= "" then
+        local clean = tostring(custom):match("^%s*(.-)%s*$"):gsub("[/\\]+$", "")
+        local def = M.getDefaultDownloadDir():gsub("[/\\]+$", "")
+        if clean ~= "" and clean ~= def then
+            return clean
+        end
+    end
+    return nil
+end
+
+function M.isCustomDownloadDir(plugin_dir)
+    return M.getCustomDownloadDir(plugin_dir) ~= nil
+end
+
+function M.getDownloadDir(plugin_dir)
+    local custom = M.getCustomDownloadDir(plugin_dir)
+    if custom and custom ~= "" then
+        return custom
+    end
+    return M.getDefaultDownloadDir()
+end
+
+function M.setCustomDownloadDir(path)
+    local data = _readJson(_statePath()) or {}
+    if not path or path:match("^%s*$") then
+        return M.resetCustomDownloadDir()
+    end
+    local clean = tostring(path):match("^%s*(.-)%s*$"):gsub("[/\\]+$", "")
+    local def = M.getDefaultDownloadDir():gsub("[/\\]+$", "")
+    if clean == "" or clean == def then
+        return M.resetCustomDownloadDir()
+    end
+
+    local lfs_ok, lfs = pcall(require, "libs/libkoreader-lfs")
+    if not lfs_ok then lfs_ok, lfs = pcall(require, "lfs") end
+    if lfs_ok and lfs and lfs.attributes and not lfs.attributes(clean) then
+        pcall(function() lfs.mkdir(clean) end)
+    end
+
+    data.download_dir = clean
+    local ok = _writeJson(_statePath(), data)
+    if ok then
+        logger.info("libbee state: custom download_dir set to " .. clean)
+    end
+    return ok
+end
+
+function M.resetCustomDownloadDir()
+    local data = _readJson(_statePath()) or {}
+    data.download_dir = nil
+    local ok = _writeJson(_statePath(), data)
+    if ok then
+        logger.info("libbee state: reset download_dir to default")
+    end
+    return ok
+end
+
+-- ---------------------------------------------------------------------------
 -- Date / Loan helpers
 -- ---------------------------------------------------------------------------
 

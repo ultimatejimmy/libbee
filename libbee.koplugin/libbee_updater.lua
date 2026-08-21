@@ -9,6 +9,18 @@ local InfoMessage = require("ui/widget/infomessage")
 local ConfirmBox  = require("ui/widget/confirmbox")
 local logger      = require("logger")
 
+local plugin_path = ((...) or ""):match("(.-)[^%.]+$") or ""
+local ok_loc, Localization = pcall(require, plugin_path .. "localization_libbee")
+if not ok_loc or not Localization then
+    ok_loc, Localization = pcall(require, "localization_libbee")
+end
+local _ = function(key, ...)
+    if ok_loc and Localization then
+        return Localization:t(key, ...)
+    end
+    return key
+end
+
 -- ---------------------------------------------------------------------------
 -- Configuration — UPDATE THESE WHEN REPO IS CREATED
 -- ---------------------------------------------------------------------------
@@ -107,14 +119,30 @@ local function _versionLessThan(a, b)
     return false
 end
 
-local function _toast(msg, timeout)
-    local w = InfoMessage:new{ text = msg, timeout = timeout or 4 }
-    UIManager:show(w)
-    return w
+local function _toast(msg, timeout, opts)
+    local ok_ui, UI = pcall(require, plugin_path .. "libbee_ui")
+    if not ok_ui or not UI then
+        ok_ui, UI = pcall(require, "libbee_ui")
+    end
+    if ok_ui and UI and (UI.showToast or UI._toast) then
+        return (UI.showToast or UI._toast)(msg, timeout, opts)
+    end
+    local ok_im, InfoMessage = pcall(require, "ui/widget/infomessage")
+    if ok_im and InfoMessage then
+        local w = InfoMessage:new{ text = msg, timeout = timeout or 4 }
+        UIManager:show(w)
+        return w
+    end
 end
 
 local function _closeWidget(w)
-    if w then UIManager:close(w) end
+    if w then
+        if w.close then
+            w:close()
+        else
+            UIManager:close(w, "ui")
+        end
+    end
 end
 
 -- ---------------------------------------------------------------------------
@@ -355,55 +383,19 @@ local function _applyUpdate(download_url, new_version)
     local tmp_zip    = _tmpZipPath()
     local parent_dir = _plugin_dir:match("^(.+)/[^/]+$") or _plugin_dir
 
-    local progress_msg = _toast("Downloading Libbee v" .. new_version .. "…", 120)
+    local progress_msg = _toast(_("Downloading Libbee v%s…", new_version), 120)
 
     local ok_tr, Trapper = pcall(require, "ui/trapper")
 
     local function doDownloadAndInstall()
-        -- 1. Save user config values before overwrite
-        local config_path  = _plugin_dir .. "/libbee_config.lua"
-        local saved = {}
-        local ok_cfg, cfg = pcall(dofile, config_path)
-        if ok_cfg and type(cfg) == "table" then
-            saved.library_id   = cfg.library_id
-            saved.card_number  = cfg.card_number
-            saved.bearer_token = cfg.bearer_token
-            saved.download_dir = cfg.download_dir
-            -- Note: setup_code is intentionally NOT saved — it's single-use
-        end
-
-        -- 2. Download
+        -- 1. Download
         local dl_ok, dl_err = _httpGetToFile(download_url, tmp_zip)
         if not dl_ok then return { success = false, stage = "download", err = dl_err } end
 
-        -- 3. Unzip
+        -- 2. Unzip
         local uz_ok, uz_err = _unzip(tmp_zip, parent_dir)
-        os.remove(tmp_zip)
+        pcall(os.remove, tmp_zip)
         if not uz_ok then return { success = false, stage = "unzip", err = uz_err } end
-
-        -- 4. Smart merge: restore user config into new file
-        if saved.library_id or saved.card_number or saved.bearer_token or saved.download_dir then
-            local nfh = io.open(config_path, "r")
-            if nfh then
-                local content = nfh:read("*a")
-                nfh:close()
-                local function restore(content, key, val)
-                    if val and val ~= "" then
-                        content = content:gsub(
-                            key .. '%s*=%s*""',
-                            key .. ' = "' .. val:gsub('["\\]', '\\%0') .. '"'
-                        )
-                    end
-                    return content
-                end
-                content = restore(content, "library_id",   saved.library_id)
-                content = restore(content, "card_number",  saved.card_number)
-                content = restore(content, "bearer_token", saved.bearer_token)
-                content = restore(content, "download_dir", saved.download_dir)
-                local outh = io.open(config_path, "w")
-                if outh then outh:write(content); outh:close() end
-            end
-        end
 
         return { success = true }
     end
@@ -415,9 +407,9 @@ local function _applyUpdate(download_url, new_version)
             local err   = result and result.err   or "unknown error"
             logger.err("libbee updater: failed at " .. stage .. ": " .. err)
             if stage == "download" then
-                _toast("Download failed: " .. tostring(err))
+                _toast(_("Download failed: %s", tostring(err)))
             else
-                _toast("Install failed (unzip): " .. tostring(err))
+                _toast(_("Install failed (unzip): %s", tostring(err)))
             end
             return
         end
@@ -426,24 +418,24 @@ local function _applyUpdate(download_url, new_version)
         local ok_ui, UI = pcall(require, plugin_path .. "libbee_ui")
         if ok_ui and UI and UI.showCardDialog then
             UI.showCardDialog{
-                title = "Update Installed",
-                body_text = "Libbee has been updated to v" .. new_version .. ".\n\nRestart KOReader now to apply the changes?",
+                title = _("Update Installed"),
+                body_text = _("Libbee has been updated to v%s.\n\nRestart KOReader now to apply the changes?", new_version),
                 buttons = {
                     {
-                        text = "Restart Now",
+                        text = _("Restart Now"),
                         is_primary = true,
                         callback = function() UIManager:restartKOReader() end,
                     },
                     {
-                        text = "Later",
+                        text = _("Later"),
                     }
                 }
             }
         else
             UIManager:show(ConfirmBox:new{
-                text        = "Libbee updated to v" .. new_version .. ". Restart KOReader to apply?",
-                ok_text     = "Restart Now",
-                cancel_text = "Later",
+                text        = _("Libbee updated to v%s. Restart KOReader to apply?", new_version),
+                ok_text     = _("Restart Now"),
+                cancel_text = _("Later"),
                 ok_callback = function() UIManager:restartKOReader() end,
             })
         end
@@ -460,7 +452,7 @@ local function _applyUpdate(download_url, new_version)
         elseif completed == false then
             _closeWidget(progress_msg)
             pcall(os.remove, tmp_zip)
-            _toast("Update cancelled.")
+            _toast(_("Update cancelled."))
         end
     else
         UIManager:scheduleIn(0.3, function()
@@ -476,7 +468,7 @@ end
 local function _showUpdateDialog(release, current)
     if release.up_to_date or not release.version or not _versionLessThan(current, release.version) then
         logger.info("libbee updater: up to date (" .. current .. ")")
-        _toast("Libbee is up to date (v" .. current .. ")")
+        _toast(_("Libbee is up to date (v%s)", current))
         return
     end
 
@@ -486,19 +478,19 @@ local function _showUpdateDialog(release, current)
 
     logger.info("libbee updater: new version available: " .. latest)
 
-    local header = "Libbee v" .. latest .. " is available (current: v" .. current .. ")."
-    local notes_block = notes and ("\n\nWhat's new:\n" .. notes) or ""
+    local header = _("Libbee v%s is available (current: v%s).", latest, current)
+    local notes_block = notes and ("\n\n" .. _("What's new:") .. "\n" .. notes) or ""
 
     local ok_ui, UI = pcall(require, plugin_path .. "libbee_ui")
 
     if not download_url then
         if ok_ui and UI and UI.showCardDialog then
             UI.showCardDialog{
-                title = "Update Available",
-                body_text = header .. notes_block .. "\n\nNo automatic download asset found. Visit GitHub to update manually.",
+                title = _("Update Available"),
+                body_text = header .. notes_block .. "\n\n" .. _("No automatic download asset found. Visit GitHub to update manually."),
                 buttons = {
                     {
-                        text = "Open GitHub",
+                        text = _("Open GitHub"),
                         is_primary = true,
                         callback = function()
                             local Device = require("device")
@@ -511,15 +503,15 @@ local function _showUpdateDialog(release, current)
                         end,
                     },
                     {
-                        text = "Cancel",
+                        text = _("Cancel"),
                     }
                 }
             }
         else
             UIManager:show(ConfirmBox:new{
-                text        = header .. notes_block .. "\n\nNo download asset found. Visit GitHub to update manually.",
-                ok_text     = "Open GitHub",
-                cancel_text = "Cancel",
+                text        = header .. notes_block .. "\n\n" .. _("No automatic download asset found. Visit GitHub to update manually."),
+                ok_text     = _("Open GitHub"),
+                cancel_text = _("Cancel"),
                 ok_callback = function()
                     local Device = require("device")
                     if Device:canOpenLink() then
@@ -536,24 +528,24 @@ local function _showUpdateDialog(release, current)
 
     if ok_ui and UI and UI.showCardDialog then
         UI.showCardDialog{
-            title = "Update Available",
-            body_text = header .. notes_block .. "\n\nDownload and install now?",
+            title = _("Update Available"),
+            body_text = header .. notes_block .. "\n\n" .. _("Download and install now?"),
             buttons = {
                 {
-                    text = "Update Now",
+                    text = _("Update Now"),
                     is_primary = true,
                     callback = function() _applyUpdate(download_url, latest) end,
                 },
                 {
-                    text = "Cancel",
+                    text = _("Cancel"),
                 }
             }
         }
     else
         UIManager:show(ConfirmBox:new{
-            text        = header .. notes_block .. "\n\nDownload and install now?",
-            ok_text     = "Update",
-            cancel_text = "Cancel",
+            text        = header .. notes_block .. "\n\n" .. _("Download and install now?"),
+            ok_text     = _("Update"),
+            cancel_text = _("Cancel"),
             ok_callback = function() _applyUpdate(download_url, latest) end,
         })
     end
@@ -579,18 +571,18 @@ local function _doFetch(use_beta)
 end
 
 function M._doCheckForUpdates(current, use_beta)
-    local checking_msg = _toast("Checking for Libbee updates…", 15)
+    local checking_msg = _toast(_("Checking for Libbee updates…"), 15)
     local ok_tr, Trapper = pcall(require, "ui/trapper")
 
     local function handleCheckResult(release)
         _closeWidget(checking_msg)
         if not release then
-            _toast("Update check failed.")
+            _toast(_("Update check failed."))
             return
         end
         if release.error then
             logger.err("libbee updater: check error: " .. release.error)
-            _toast("Update check error: " .. tostring(release.error))
+            _toast(_("Update check error: %s", tostring(release.error)))
             return
         end
         _showUpdateDialog(release, current)
@@ -606,7 +598,7 @@ function M._doCheckForUpdates(current, use_beta)
             UIManager:scheduleIn(0.2, function() handleCheckResult(result) end)
         elseif completed == false then
             _closeWidget(checking_msg)
-            _toast("Update check cancelled.")
+            _toast(_("Update check cancelled."))
         end
     else
         UIManager:scheduleIn(0.3, function()

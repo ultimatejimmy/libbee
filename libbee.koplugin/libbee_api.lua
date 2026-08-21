@@ -424,12 +424,8 @@ end
 -- Shelf Sync / Fetch Loans
 -- ---------------------------------------------------------------------------
 
-function M.fetchShelf(config)
+function M.fetchShelf()
     local identity = State.getChipIdentity()
-    if not identity and config and config.bearer_token and config.bearer_token ~= "" then
-        identity = config.bearer_token
-    end
-
     if not identity or identity == "" then
         return nil, "Not authenticated — please run setup first"
     end
@@ -577,12 +573,8 @@ local function _recoverFulfillmentOnSameConnection(path, identity)
     return href
 end
 
-function M.downloadACSM(loan, dest_path, config)
+function M.downloadACSM(loan, dest_path)
     local identity = State.getChipIdentity()
-    if not identity and config and config.bearer_token and config.bearer_token ~= "" then
-        identity = config.bearer_token
-    end
-
     if not identity or identity == "" then
         return nil, "Not authenticated — please run setup first"
     end

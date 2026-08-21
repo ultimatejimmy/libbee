@@ -1,0 +1,959 @@
+msgid ""
+msgstr ""
+"Language-Team: Spanish\n"
+"Language: es\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# en-hash: a87e97df6b5bbd6c18dc5ea053593991
+msgid "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
+msgstr "\"%s\"\n\nGuardado en:\n%s\n\nListo para leer."
+
+# en-hash: 9e74f4d19312ede861911b38ff4406c0
+msgid "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
+msgstr "\"%s\" ya está descargado:\n\n%s\n\n¿Abrirlo ahora?"
+
+# en-hash: 7a65032593f4ee141a1bb6af19528e5a
+msgid "%d books found in this folder"
+msgstr "%d libros encontrados en esta carpeta"
+
+# en-hash: 4b0b097f9082388e7883468976c77e60
+msgid "%d days left"
+msgstr "Quedan %d días"
+
+# en-hash: 585dc4ca1840d70d261ca0fb85defb14
+msgid "%d libraries"
+msgstr "%d bibliotecas"
+
+# en-hash: fed3b58ade678c6cccb2787ef13d86f6
+msgid "(cached)"
+msgstr "(en caché)"
+
+# en-hash: 4bc56877a98a3b5f59735f579cf735a6
+msgid "+ New"
+msgstr "+ Nueva"
+
+# en-hash: d28fdd75f93893891fb2d7e3b40683de
+msgid ".. (Parent Folder)"
+msgstr ".. (Carpeta superior)"
+
+# en-hash: f1a9ffba029332c15ee4a50d7dec57a3
+msgid "1 day left"
+msgstr "Queda 1 día"
+
+# en-hash: bb9ef8f07574430e20fd0d806b705e99
+msgid "1. Open the Libby app on your phone or computer.\n"
+msgstr "1. Abre la aplicación Libby en tu teléfono u ordenador.\n"
+
+# en-hash: 647a3a4bc4cbd6500d359a987bd32f96
+msgid "2. Tap Menu (☰) → Your Information → Copy To Another Device.\n"
+msgstr "2. Toca Menú (☰) → Tu información → Copiar a otro dispositivo.\n"
+
+# en-hash: caeb9077424014d07dbf1041b79d4fd9
+msgid "3. Enter the 8-digit setup code below:\n"
+msgstr "3. Introduce el código de configuración de 8 dígitos a continuación:\n"
+
+# en-hash: 99a378819e7aae24868bbcba25f40e79
+msgid "ACSM Fulfillment Failed"
+msgstr "Error al completar ACSM"
+
+# en-hash: 5d64d2947fd75fd76be4a5a720f4c7ce
+msgid "ACSM fulfillment failed"
+msgstr "Error al completar ACSM"
+
+# en-hash: 8f7f4c1ce7a4f933663d10543562b096
+msgid "About"
+msgstr "Acerca de"
+
+# en-hash: 0abf29253505eda680fc9518d8ee74a1
+msgid "Account & Keys"
+msgstr "Cuenta y claves"
+
+# en-hash: 26e1484950dcc5ba28e9dc97a24ff9ce
+msgid "Accounts & DRM"
+msgstr "Cuentas y DRM"
+
+# en-hash: 06df33001c1d7187fdd81ea1f5b277aa
+msgid "Actions"
+msgstr "Acciones"
+
+# en-hash: 13e7580cf52772201b8b373bd8864024
+msgid "Activation Status"
+msgstr "Estado de activación"
+
+# en-hash: 4d3d769b812b6faa6b76e1a8abaece2d
+msgid "Active"
+msgstr "Activo"
+
+# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
+msgid "All"
+msgstr "Todo"
+
+# en-hash: 9ee472f90625d1c24d379203d9d45781
+msgid "Anonymous (Device only)"
+msgstr "Anónimo (Solo este dispositivo)"
+
+# en-hash: 0071fc15aed596b342505d9b8d315774
+msgid "Anonymous ›"
+msgstr "Anónimo ›"
+
+# en-hash: a517747c3d12f99244ae598910d979c5
+msgid "Author"
+msgstr "Autor"
+
+# en-hash: 75729e957a6d4bdabddf0c45ba344362
+msgid "Authorization Failed"
+msgstr "Error de autorización"
+
+# en-hash: 051f582cd472abf018063f6a8a7e3db3
+msgid "Authorization timed out.\n\nPlease try again from the Libby app."
+msgstr "Tiempo de autorización agotado.\n\nPor favor, inténtalo de nuevo desde la app de Libby."
+
+# en-hash: 7f83df9cd29577d544efd9ff66d7118a
+msgid "Authorize"
+msgstr "Autorizar"
+
+# en-hash: c19ce879be9cb057d1c999527004e83a
+msgid "Authorizing ByteBooks account…"
+msgstr "Autorizando cuenta de ByteBooks…"
+
+# en-hash: 9bd1606c367713265008a2d24b589cad
+msgid "Auto-activates on download"
+msgstr "Se activa automáticamente al descargar"
+
+# en-hash: 2b1f94ef23b79bf90eb891cae1df7a90
+msgid "Book"
+msgstr "Libro"
+
+# en-hash: b41178dec7c52dd70fb71a5a29480e8d
+msgid "Book Already Downloaded"
+msgstr "Libro ya descargado"
+
+# en-hash: 3b763e85d6cde7e5d2c086802276b5a2
+msgid "ByteBooks DRM"
+msgstr "DRM de ByteBooks"
+
+# en-hash: 19943ac7aa8ccf77507a23573f438a0d
+msgid "ByteBooks Email"
+msgstr "Correo de ByteBooks"
+
+# en-hash: 9b186eec1529c483f0936317e2f43234
+msgid "ByteBooks ID ›"
+msgstr "ID de ByteBooks ›"
+
+# en-hash: a610f01b28bd49b4b4ed49c2926ca1eb
+msgid "ByteBooks Password"
+msgstr "Contraseña de ByteBooks"
+
+# en-hash: ea4788705e6873b424c65e91c2846b19
+msgid "Cancel"
+msgstr "Cancelar"
+
+# en-hash: a149e85a44aeec9140e92733d9ed694e
+msgid "Cancelled"
+msgstr "Cancelado"
+
+# en-hash: eb1b4bb3667dd670210c7822badc2f1d
+msgid "Check for updates"
+msgstr "Buscar actualizaciones"
+
+# en-hash: ddcee38f16ad50e7a61a16f294f69de3
+msgid "Checking for Libbee updates…"
+msgstr "Buscando actualizaciones de Libbee…"
+
+# en-hash: 1824bacb1ec56aa35770bccb2e6033cb
+msgid "Clear local shelf cache"
+msgstr "Borrar caché local de la estantería"
+
+# en-hash: d3d2e617335f08df83599665eef8a418
+msgid "Close"
+msgstr "Cerrar"
+
+# en-hash: 27ad7a203b08d23424cf282a7acd9ad6
+msgid "Code expired. Tap New Code to retry."
+msgstr "El código ha expirado. Pulsa Nuevo código para reintentar."
+
+# en-hash: 87f76f3bcde4c35b664b0d531a8b2b6f
+msgid "Connect with Libby code"
+msgstr "Conectar con código de Libby"
+
+# en-hash: 60b7a58e56e8e2665e64fb9f42ec183c
+msgid "Connected ›"
+msgstr "Conectado ›"
+
+# en-hash: 4ff77e16703baf1a986734403aa04151
+msgid "Connecting to Libby…"
+msgstr "Conectando con Libby…"
+
+# en-hash: d6ab5be3edab5ac285b19816029d7547
+msgid "Could Not Load Shelf"
+msgstr "No se pudo cargar la estantería"
+
+# en-hash: 50c59941ad78ae04b529b9f589902aaa
+msgid "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
+msgstr "No se pudo autorizar la cuenta de ByteBooks:\n\n%s\n\nAsegúrate de que tu correo y contraseña sean correctos."
+
+# en-hash: 0edfcafcbdb5045ab9f536cb3b3c8675
+msgid "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
+msgstr "No se pudo conectar con Libby:\n%s\n\nComprueba tu conexión Wi-Fi."
+
+# en-hash: 183b4a6dda12a0b685721cafd8e8edd0
+msgid "Could not create download folder:\n%s"
+msgstr "No se pudo crear la carpeta de descargas:\n%s"
+
+# en-hash: 7391c7d1c8106b898a448f94cc03ea43
+msgid "Could not fulfill loan file:\n\n%s"
+msgstr "No se pudo completar el archivo de préstamo:\n\n%s"
+
+# en-hash: 163dd2076f005559c44b9453e5477c99
+msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
+msgstr "No se pudo solicitar el código de configuración:\n%s\n\nAsegúrate de que tu dispositivo esté conectado a Wi-Fi."
+
+# en-hash: 686e697538050e4664636337cc3b834f
+msgid "Create"
+msgstr "Crear"
+
+# en-hash: 96cb7ae49077c528192c2bba40c42c69
+msgid "Create subfolder in '%s':"
+msgstr "Crear subcarpeta en '%s':"
+
+# en-hash: e6818edb27f4a7711ea452befaa5efd4
+msgid "Created '%s'"
+msgstr "'%s' creada"
+
+# en-hash: 56ab89bac0b1bab13d01fae2271fc13e
+msgid "Current Mode"
+msgstr "Modo actual"
+
+# en-hash: 254264d04d17c89ee53c7808fe00c0eb
+msgid "Custom folder ›"
+msgstr "Carpeta personalizada ›"
+
+# en-hash: 585da6a2da8bb97c4b3e238ba4f6e552
+msgid "DRM activation keys reset"
+msgstr "Claves de activación DRM restablecidas"
+
+# en-hash: fd84ab7970c656c94596f0080c1b4e8c
+msgid "Default folder ›"
+msgstr "Carpeta predeterminada ›"
+
+# en-hash: 5d538b17286b57664fdbdcb4fc6f9bac
+msgid "Diagnostics & Cache"
+msgstr "Diagnóstico y caché"
+
+# en-hash: 42ae25231906c83927831e0ef7c317ac
+msgid "Disconnect"
+msgstr "Desconectar"
+
+# en-hash: fd456a63260bc8f43e73094f0d826863
+msgid "Disconnect Account"
+msgstr "Desconectar cuenta"
+
+# en-hash: 513a57621b57cca0eb03a4ceb37a97a1
+msgid "Disconnect Libby account"
+msgstr "Desconectar cuenta de Libby"
+
+# en-hash: f9cd62554bc3a60867c3fb15640e1d50
+msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
+msgstr "¿Desconectar tu cuenta de Libby?\n\nSe borrarán tu sesión guardada y la estantería en caché."
+
+# en-hash: f92965e2c8a7afb3c1b9a5c09a263636
+msgid "Done"
+msgstr "Hecho"
+
+# en-hash: 801ab24683a4a8c433c6eb40c48bcd9d
+msgid "Download"
+msgstr "Descargar"
+
+# en-hash: dc1d0f58b46c30350b739a89bedce104
+msgid "Download Failed"
+msgstr "Error en la descarga"
+
+# en-hash: 9e7892bc3b2c776e3f5ad3df15172a5e
+msgid "Download Folder"
+msgstr "Carpeta de descargas"
+
+# en-hash: d0d4d2b2bf2255e7b554dd5cbde3e0b4
+msgid "Download Loan"
+msgstr "Descargar préstamo"
+
+# en-hash: 52deb32797ca429eba30bc8f5b4869c0
+msgid "Download and install now?"
+msgstr "¿Descargar e instalar ahora?"
+
+# en-hash: 2ae89fbb5548c5c979cdca7a76cc9f1b
+msgid "Download failed: %s"
+msgstr "Descarga fallida: %s"
+
+# en-hash: 61a836c207bb878188f6c4a336f0b59c
+msgid "Download folder set to '%s'"
+msgstr "Carpeta de descargas establecida en '%s'"
+
+# en-hash: c4c81bbfc4574ec8b1dbb31d7d2c9fb6
+msgid "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
+msgstr "Error en la descarga/cumplimiento:\n%s\n\nSi ves un error de autorización, comprueba tu Wi-Fi o ajustes de DRM."
+
+# en-hash: 5d3a7d9261c4c23d70edc994065ba958
+msgid "Downloading & fulfilling \"%s\"…"
+msgstr "Descargando y completando \"%s\"…"
+
+# en-hash: e222f73accf9df22206b9c38f61e26c5
+msgid "Downloading Libbee v%s…"
+msgstr "Descargando Libbee v%s…"
+
+# en-hash: c20c35ef53bf1b70789ce94e66800147
+msgid "Downloads"
+msgstr "Descargas"
+
+# en-hash: 61600f254d88c842a689e3869b20d442
+msgid "Email cannot be blank"
+msgstr "El correo no puede estar en blanco"
+
+# en-hash: d88c31f3a550c44386a7c29f6be13c5f
+msgid "Enter password for %s:\n(Used in memory only, not stored)"
+msgstr "Introduce la contraseña para %s:\n(Usada solo en memoria, no se almacena)"
+
+# en-hash: 08e250ed5d94333a05e55dfa6482c4c4
+msgid "Expires today"
+msgstr "Expira hoy"
+
+# en-hash: 96310b2cf48706c28110688622ac2cf2
+msgid "Failed to create folder."
+msgstr "Error al crear la carpeta."
+
+# en-hash: b0f2b97dc5d2b76b26e040408bb1d8af
+msgid "Folder"
+msgstr "Carpeta"
+
+# en-hash: 520d0db389f362bf79ef56ca0af3dcab
+msgid "Format"
+msgstr "Formato"
+
+# en-hash: a06971d90ebe8f5f0b40aa9df744a269
+msgid "Fulfilling ACSM loan with Libbee…"
+msgstr "Completando préstamo ACSM con Libbee…"
+
+# en-hash: c60da36641d760351933ace6a9927b41
+msgid "Holds"
+msgstr "Reservas"
+
+# en-hash: 2c62e1568e73336b5cc68211f0c643a1
+msgid "Install failed (unzip): %s"
+msgstr "Error de instalación (descompresión): %s"
+
+# en-hash: 61057a0c84605444201929bdd72014f0
+msgid "Later"
+msgstr "Más tarde"
+
+# en-hash: c61c67ed568a6d5aa71932f92b67d806
+msgid "Libbee"
+msgstr "Libbee"
+
+# en-hash: f081c6613d5cc08122ae9823d6660adc
+msgid "Libbee Debug Log"
+msgstr "Registro de depuración de Libbee"
+
+# en-hash: e83f2bb8dc1560809bdae464224c4310
+msgid "Libbee Settings"
+msgstr "Ajustes de Libbee"
+
+# en-hash: 4d84781f0760db8aa54de4a1e1cc0704
+msgid "Libbee Setup Required"
+msgstr "Se requiere configuración de Libbee"
+
+# en-hash: 37faaeb2b525a6c942c320d6e0f8cd1e
+msgid "Libbee has been updated to v%s.\n\nRestart KOReader now to apply the changes?"
+msgstr "Libbee se ha actualizado a v%s.\n\n¿Reiniciar KOReader ahora para aplicar los cambios?"
+
+# en-hash: c60bc4846552fb57105c2f761e42c2ba
+msgid "Libbee is not connected yet.\n\nConnect with a Libby setup code to browse and download your loans."
+msgstr "Libbee aún no está conectado.\n\nConéctate con un código de configuración de Libby para explorar y descargar tus préstamos."
+
+# en-hash: 7d39c267dc645f5285a26a084a0fa481
+msgid "Libbee is up to date (v%s)"
+msgstr "Libbee está actualizado (v%s)"
+
+# en-hash: ce84d8bd5076d4d7f00b19460c1a6a96
+msgid "Libbee updated to v%s. Restart KOReader to apply?"
+msgstr "Libbee actualizado a v%s. ¿Reiniciar KOReader para aplicar?"
+
+# en-hash: e72879d503ae106c7541b087700fe43c
+msgid "Libbee v%s is available (current: v%s)."
+msgstr "Libbee v%s está disponible (actual: v%s)."
+
+# en-hash: e2d755fae9c6379b0072ed3efae075f4
+msgid "Libbee · Shelf"
+msgstr "Libbee · Estantería"
+
+# en-hash: fdaab53cc017d209b0bad981477f9292
+msgid "Libbee: Browse Shelf"
+msgstr "Libbee: Explorar estantería"
+
+# en-hash: 7a83d1914057f5905834756d0d9cb3ac
+msgid "Libby Account"
+msgstr "Cuenta de Libby"
+
+# en-hash: c0418b07b48e7490fb6b4b37e7209631
+msgid "Libby account disconnected"
+msgstr "Cuenta de Libby desconectada"
+
+# en-hash: 4d70254b3a8e2bc38b6147fa6ee813be
+msgid "Library"
+msgstr "Biblioteca"
+
+# en-hash: af91e48bf33d040da890c0ceebe1e9f5
+msgid "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
+msgstr "Biblioteca: %s\n\nTu dispositivo ya está registrado. Puedes explorar y descargar tu estantería."
+
+# en-hash: 661f7beb5acf38e99d3a3ecb488446dd
+msgid "Link Libby Account"
+msgstr "Vincular cuenta de Libby"
+
+# en-hash: d59189e032a45a99e26263968bd115cf
+msgid "Link another Libby device"
+msgstr "Vincular otro dispositivo Libby"
+
+# en-hash: 4f8712dc31820990e8cdaf0735906eb4
+msgid "Loading your Libby shelf…"
+msgstr "Cargando tu estantería de Libby…"
+
+# en-hash: 9ad81a8f8a5c7a6ce9e1ba9bb4759391
+msgid "Loan"
+msgstr "Préstamo"
+
+# en-hash: 64e109fb6dde9d711f1b7cba6ce2e279
+msgid "Loans"
+msgstr "Préstamos"
+
+# en-hash: 6ed59fc0ac82c133ae65d8c7c058c947
+msgid "Local shelf cache cleared"
+msgstr "Caché local de la estantería borrada"
+
+# en-hash: 10d0de28911c5f66463b9c8783f8148a
+msgid "Maintenance"
+msgstr "Mantenimiento"
+
+# en-hash: ec59d364f67316f8c73663cefa219651
+msgid "Maintenance & Logs"
+msgstr "Mantenimiento y registros"
+
+# en-hash: 5148905edb46ca87df979cbb369c403d
+msgid "New Folder"
+msgstr "Nueva carpeta"
+
+# en-hash: 10ac3d04253ef7e1ddc73e6091c0cd55
+msgid "Next"
+msgstr "Siguiente"
+
+# en-hash: 2d688f4d101a8d1fcb5672e879ffed68
+msgid "Next ›"
+msgstr "Siguiente ›"
+
+# en-hash: 4f394eff7519830c096186129664be0f
+msgid "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
+msgstr "No se encontraron préstamos activos en tu estantería de Libby.\n\n¡Toma prestado un libro en la app de Libby y luego pulsa ↻ Actualizar!"
+
+# en-hash: ed66b9ae0cd34853599752fbf14f97eb
+msgid "No automatic download asset found. Visit GitHub to update manually."
+msgstr "No se encontró ningún archivo de descarga automática. Visita GitHub para actualizar manualmente."
+
+# en-hash: 961efebd9317e9797ad27a0045ef521d
+msgid "No log file found yet at:\n%s"
+msgstr "No se encontró ningún archivo de registro todavía en:\n%s"
+
+# en-hash: 4911d39dfeb5093032e4317a04cef4c1
+msgid "No subfolders in this directory.\nTap 'Select Folder' below to use it, or '+ New' to create a subfolder."
+msgstr "No hay subcarpetas en este directorio.\nToca 'Seleccionar carpeta' abajo para usarla, o '+ Nueva' para crear una subcarpeta."
+
+# en-hash: 0124b1b7872f10b8029877d8c69ce8ac
+msgid "Not Connected ›"
+msgstr "No conectado ›"
+
+# en-hash: e0aa021e21dddbd6d8cecec71e9cf564
+msgid "OK"
+msgstr "Aceptar"
+
+# en-hash: f5ac36a6d8af47f34aeedf97baf66fed
+msgid "Open Book"
+msgstr "Abrir libro"
+
+# en-hash: 66ec93052668cd43d0ec1f100bc1824b
+msgid "Open GitHub"
+msgstr "Abrir GitHub"
+
+# en-hash: e81fda06f0f7eed35d3618df15939df2
+msgid "Open Shelf"
+msgstr "Abrir estantería"
+
+# en-hash: b8065ad2628f1f82f3167af0947b3e43
+msgid "Page %d of %d"
+msgstr "Página %d de %d"
+
+# en-hash: dc647eb65e6711e155375218212b3964
+msgid "Password"
+msgstr "Contraseña"
+
+# en-hash: 8654dbd70eb49254331a0fdff5a568fa
+msgid "Please enter your ByteBooks email"
+msgstr "Por favor, introduce tu correo de ByteBooks"
+
+# en-hash: cfa47c33be0f638b6681595dee07bd5f
+msgid "Please enter your ByteBooks password"
+msgstr "Por favor, introduce tu contraseña de ByteBooks"
+
+# en-hash: 7b77c9535ded2548a4c63da714905b11
+msgid "Re-authenticate"
+msgstr "Reautenticar"
+
+# en-hash: 5641109a265d20644270193e2eeaaf39
+msgid "Re-authenticate account"
+msgstr "Reautenticar cuenta"
+
+# en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
+msgid "Read"
+msgstr "Leer"
+
+# en-hash: e42ab5e8243c1882cc7eeb878c75920c
+msgid "Redownload"
+msgstr "Volver a descargar"
+
+# en-hash: 63a6a88c066880c5ac42394a22803ca6
+msgid "Refresh"
+msgstr "Actualizar"
+
+# en-hash: 4307fc3d8df05d5834a98d34e953e720
+msgid "Refresh failed: %s"
+msgstr "Error al actualizar: %s"
+
+# en-hash: 77f05ff2f37e21086732e2843b8a5660
+msgid "Refreshing shelf from Libby…"
+msgstr "Actualizando estantería desde Libby…"
+
+# en-hash: 4fc47d4da89f3021f6ad13893afb1a8c
+msgid "Regenerating setup code…"
+msgstr "Regenerando código de configuración…"
+
+# en-hash: 0b9feba3fbb861d2f822c42a07fc9a04
+msgid "Renew"
+msgstr "Renovar"
+
+# en-hash: b535360116e57509156ca416fb6ba5a6
+msgid "Reset DRM Activation Keys"
+msgstr "Restablecer claves de activación DRM"
+
+# en-hash: 3a44a6ce49c866e543a8680c261387ab
+msgid "Reset DRM Keys"
+msgstr "Restablecer claves DRM"
+
+# en-hash: 96ed9a35f108f612581794a104f7c2a1
+msgid "Reset Keys"
+msgstr "Restablecer claves"
+
+# en-hash: 17c9363d3d20aace208a8a2f12316830
+msgid "Reset saved Adobe / ByteBooks device activation keys?\n\nA fresh activation will be generated automatically on your next download."
+msgstr "¿Restablecer las claves de activación de dispositivo guardadas de Adobe / ByteBooks?\n\nSe generará automáticamente una nueva activación en tu próxima descarga."
+
+# en-hash: 4418069f82beb30821c3d9f62283608c
+msgid "Reset to Default"
+msgstr "Restablecer a predeterminado"
+
+# en-hash: fe92ba749089513e672e06313e8ee44e
+msgid "Reset to default download folder"
+msgstr "Restablecer a la carpeta de descargas predeterminada"
+
+# en-hash: 6fa05091a7c5300a39f821188bc2da41
+msgid "Reset ›"
+msgstr "Restablecer ›"
+
+# en-hash: 2d9c2140c53daf05855033aaceeaa8fd
+msgid "Restart Now"
+msgstr "Reiniciar ahora"
+
+# en-hash: 6327b4e59f58137083214a1fec358855
+msgid "Retry"
+msgstr "Reintentar"
+
+# en-hash: 988fd738de9c6d177440c5dcf69e73ce
+msgid "Return"
+msgstr "Devolver"
+
+# en-hash: c9cc8cce247e49bae79f15173ce97354
+msgid "Save"
+msgstr "Guardar"
+
+# en-hash: 20b4f5bde44dfe7ae815d68bede8b8f9
+msgid "Saved to:\n%s\n\nOpen it from the file browser."
+msgstr "Guardado en:\n%s\n\nÁbrelo desde el explorador de archivos."
+
+# en-hash: e03107c5f320c880b61c546d0f6235af
+msgid "Select Download Folder"
+msgstr "Seleccionar carpeta de descargas"
+
+# en-hash: deffb03a57b0deaf912f04da4575848f
+msgid "Select Folder"
+msgstr "Seleccionar carpeta"
+
+# en-hash: 86180348ed3fa372f89e00d4279cba3c
+msgid "Session Expired"
+msgstr "Sesión expirada"
+
+# en-hash: bc38cd7cdcb62a99dce1538c5df06d4a
+msgid "Session Status"
+msgstr "Estado de la sesión"
+
+# en-hash: f4f70727dc34561dfde1a3c529b6205c
+msgid "Settings"
+msgstr "Ajustes"
+
+# en-hash: aca44fd7c349941d557035e53b1c9d3f
+msgid "Setup Failed"
+msgstr "Error de configuración"
+
+# en-hash: 12487939ef7ed116547c9fb120057761
+msgid "Setup Now"
+msgstr "Configurar ahora"
+
+# en-hash: 9293aae4291a7f63e2d389d4c2066f94
+msgid "Setup Timed Out"
+msgstr "Tiempo de configuración agotado"
+
+# en-hash: 6a714c5132cbebf09f9e11bbd7b626ca
+msgid "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"
+msgstr "Inicia sesión para sincronizar libros en múltiples dispositivos.\nLa contraseña nunca se guarda en el almacenamiento.\n\nIntroduce tu correo de ID de ByteBooks:"
+
+# en-hash: 03b1763c0055281706c839227b51a433
+msgid "Sign in with ByteBooks ID"
+msgstr "Iniciar sesión con ID de ByteBooks"
+
+# en-hash: 841037f081328cdc5308528f585512dc
+msgid "Status & Libraries"
+msgstr "Estado y bibliotecas"
+
+# en-hash: bbc155fb2b111bf61c4f5ff892915e6b
+msgid "Switch"
+msgstr "Cambiar"
+
+# en-hash: 1e283dc77763277d1333bd5fcec788ff
+msgid "Switch DRM Mode"
+msgstr "Cambiar modo de DRM"
+
+# en-hash: 1e0a2d504500f47cda9ff0704eccfba1
+msgid "Switch back to anonymous device DRM?\n\nThis will sign out your ByteBooks ID. Subsequent downloads will be single-device only."
+msgstr "¿Volver al DRM anónimo del dispositivo?\n\nEsto cerrará la sesión de tu ID de ByteBooks. Las descargas posteriores serán solo para un dispositivo."
+
+# en-hash: 41783472a3e6c172bc09f9c05660d53c
+msgid "Switch to Anonymous DRM"
+msgstr "Cambiar a DRM anónimo"
+
+# en-hash: fac891a83da5f2381dfe9c48f45a6fad
+msgid "Switched to anonymous DRM"
+msgstr "Cambiado a DRM anónimo"
+
+# en-hash: a45da96d0bf6575970f2d27af22be28a
+msgid "System"
+msgstr "Sistema"
+
+# en-hash: 189f63f277cd73395561651753563065
+msgid "Tags"
+msgstr "Etiquetas"
+
+# en-hash: b78a3223503896721cca1303f776159b
+msgid "Title"
+msgstr "Título"
+
+# en-hash: 3fe2d769229dfc2cdfdd86f8101fb048
+msgid "Unknown Author"
+msgstr "Autor desconocido"
+
+# en-hash: 3ff03eb2bab0a1640ae2a6d4bc91b100
+msgid "Unknown Title"
+msgstr "Título desconocido"
+
+# en-hash: aee9784c03b80d38d3271cde2b252b8d
+msgid "Unknown error"
+msgstr "Error desconocido"
+
+# en-hash: 06933067aafd48425d67bcb01bba5cb6
+msgid "Update"
+msgstr "Actualizar"
+
+# en-hash: 8bd7695831e104e2669e086e03927a20
+msgid "Update Available"
+msgstr "Actualización disponible"
+
+# en-hash: cfc748234a94d42194aace19023392fa
+msgid "Update Installed"
+msgstr "Actualización instalada"
+
+# en-hash: 99b1054c0f320be9f109c877a5efd0b2
+msgid "Update Now"
+msgstr "Actualizar ahora"
+
+# en-hash: 1e4112df1113e06c77e13d6614f2cd0a
+msgid "Update cancelled."
+msgstr "Actualización cancelada."
+
+# en-hash: 092dc0fe2a1709895d0ffb03306ab644
+msgid "Update check cancelled."
+msgstr "Comprobación de actualizaciones cancelada."
+
+# en-hash: 8171c00d46f0c7aa4610a0aaabdc5feb
+msgid "Update check error: %s"
+msgstr "Error al comprobar actualizaciones: %s"
+
+# en-hash: 4e73c9b97b111bab1463ebace4ec06d8
+msgid "Update check failed."
+msgstr "Error al buscar actualizaciones."
+
+# en-hash: 9ac41b6a577daadd588f0fcde0071e8b
+msgid "Updates"
+msgstr "Actualizaciones"
+
+# en-hash: 105a1612a9a6048bab0f5ee69680ce59
+msgid "Updates & Logs ›"
+msgstr "Actualizaciones y registros ›"
+
+# en-hash: 34b6cd75171affba6957e308dcbd92be
+msgid "Version"
+msgstr "Versión"
+
+# en-hash: aa84930f7ce738b1491b759189ae1ec2
+msgid "View debug logs"
+msgstr "Ver registros de depuración"
+
+# en-hash: ad54e7b1c0053ed4729af426200a862a
+msgid "Waiting for Libby app to authorize… (%ds)"
+msgstr "Esperando autorización de la app de Libby… (%ds)"
+
+# en-hash: ce45175ccb46e0984f87472526d39508
+msgid "Waiting for Libby app to authorize… (60s)"
+msgstr "Esperando autorización de la app de Libby… (60s)"
+
+# en-hash: 67b3aeb4ed5299bb57c1e2de1beb0bf5
+msgid "What's new:"
+msgstr "Novedades:"
+
+# en-hash: 3ee9fa061c0bbdddac07b093572bb860
+msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
+msgstr "Tu autorización de Libby ha expirado.\n\nVuelve a autenticarte para continuar descargando."
+
+# en-hash: ea4788705e6873b424c65e91c2846b19
+msgid "btn_cancel"
+msgstr "Cancelar"
+
+# en-hash: f77f38f684c8b974dd4a56bb321cfd5f
+msgid "btn_check_updates"
+msgstr "Buscar actualizaciones"
+
+# en-hash: d3d2e617335f08df83599665eef8a418
+msgid "btn_close"
+msgstr "Cerrar"
+
+# en-hash: 801ab24683a4a8c433c6eb40c48bcd9d
+msgid "btn_download"
+msgstr "Descargar"
+
+# en-hash: e71c710a80f4adca5e6ec5b09260c6b5
+msgid "btn_install_update"
+msgstr "Instalar actualización"
+
+# en-hash: e0aa021e21dddbd6d8cecec71e9cf564
+msgid "btn_ok"
+msgstr "Aceptar"
+
+# en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
+msgid "btn_read"
+msgstr "Leer"
+
+# en-hash: 63a6a88c066880c5ac42394a22803ca6
+msgid "btn_refresh"
+msgstr "Actualizar"
+
+# en-hash: 0b9feba3fbb861d2f822c42a07fc9a04
+msgid "btn_renew"
+msgstr "Renovar"
+
+# en-hash: d8ffc3650a53fc6fa8d38545e68ea687
+msgid "btn_restart"
+msgstr "Reiniciar KOReader"
+
+# en-hash: 6327b4e59f58137083214a1fec358855
+msgid "btn_retry"
+msgstr "Reintentar"
+
+# en-hash: 988fd738de9c6d177440c5dcf69e73ce
+msgid "btn_return"
+msgstr "Devolver"
+
+# en-hash: c9cc8cce247e49bae79f15173ce97354
+msgid "btn_save"
+msgstr "Guardar"
+
+# en-hash: b22a3701a330757c504abab0e9d1c930
+msgid "btn_setup"
+msgstr "Configurar clave"
+
+# en-hash: 3be546f7eb2185fb4da2ba288cefd122
+msgid "btn_unlink"
+msgstr "Desvincular cuenta"
+
+# en-hash: 4684cddc2fdd1f00234aca819c872304
+msgid "ebook"
+msgstr "libro electrónico"
+
+# en-hash: cb5e100e5a9a3e7f6d1fd97512215282
+msgid "error"
+msgstr "error"
+
+# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
+msgid "filter_all"
+msgstr "Todo"
+
+# en-hash: a6a04307fd90d0c2821b45125e6a0a25
+msgid "filter_downloaded"
+msgstr "Descargado"
+
+# en-hash: 18c3eb026537c77d26e13928cbc9b6da
+msgid "filter_ready"
+msgstr "Listo para leer"
+
+# en-hash: 8b9c2bba829069d84f1e77c3f25cb5ca
+msgid "loan"
+msgstr "préstamo"
+
+# en-hash: f806527a4b4ecb554edad98174334a70
+msgid "loans"
+msgstr "préstamos"
+
+# en-hash: c0b2bf1fcb4ecae262cd4e1b0448be35
+msgid "menu_about"
+msgstr "Acerca de Libbee"
+
+# en-hash: c61c67ed568a6d5aa71932f92b67d806
+msgid "menu_libbee"
+msgstr "Libbee"
+
+# en-hash: eff559167a5f554537476ad7c705968a
+msgid "menu_libbee_desc"
+msgstr "Explora tu estantería de Libby y descarga préstamos de libros electrónicos directamente a KOReader."
+
+# en-hash: e83f2bb8dc1560809bdae464224c4310
+msgid "menu_settings"
+msgstr "Ajustes de Libbee"
+
+# en-hash: ef493fdb62d480746042b243a2d793b2
+msgid "menu_sync"
+msgstr "Sincronizar estantería"
+
+# en-hash: 3c2681ea85407c2c0d252e05a8eaf6aa
+msgid "msg_download_complete"
+msgstr "Descarga completada."
+
+# en-hash: 2d3fae120406509ed7e2c507c3928f3c
+msgid "msg_no_holds"
+msgstr "No hay reservas actualmente."
+
+# en-hash: ccb3b1ebc6ce4ee688990a3a42ab0e6b
+msgid "msg_no_loans"
+msgstr "No hay préstamos actualmente en tu estantería."
+
+# en-hash: 1e14e84d99200c55c89ac12768d5bc8a
+msgid "msg_restart_prompt"
+msgstr "Actualización instalada. ¿Reiniciar KOReader ahora?"
+
+# en-hash: 904e8905680c0c4e3076536e54b12770
+msgid "msg_return_confirm"
+msgstr "¿Devolver \"%s\" antes de tiempo a tu biblioteca?"
+
+# en-hash: 1ae31fe9e8e36bf2fdf26f08994a77b5
+msgid "msg_sync_complete"
+msgstr "Estantería sincronizada correctamente."
+
+# en-hash: 1e342f57a003d957c66cb6915f72d8dc
+msgid "msg_syncing"
+msgstr "Sincronizando con Libby..."
+
+# en-hash: e09164f3eff6be14589ccb1f277d6546
+msgid "msg_unlink_confirm"
+msgstr "¿Desvincular tu cuenta de Libby de este dispositivo?"
+
+# en-hash: 25e8f2fd2871c8423bbe4e254066cd98
+msgid "progress_please_wait"
+msgstr "Por favor, espera..."
+
+# en-hash: 96c4d7265c89a6e0ed70ffec22fb1afe
+msgid "status_downloading"
+msgstr "Descargando..."
+
+# en-hash: 24fe48030f7d3097d5882535b04c3fa8
+msgid "status_expired"
+msgstr "Expirado"
+
+# en-hash: 4ee157ca9731c1451c7c6f1ffd246695
+msgid "status_fulfilling"
+msgstr "Completando DRM..."
+
+# en-hash: e7d31fc0602fb2ede144d18cdffd816b
+msgid "status_ready"
+msgstr "Listo"
+
+# en-hash: c60da36641d760351933ace6a9927b41
+msgid "tab_holds"
+msgstr "Reservas"
+
+# en-hash: 64e109fb6dde9d711f1b7cba6ce2e279
+msgid "tab_loans"
+msgstr "Préstamos"
+
+# en-hash: 189f63f277cd73395561651753563065
+msgid "tab_tags"
+msgstr "Etiquetas"
+
+# en-hash: 0db2ad3bff4478b8f7402e6eeb0fe895
+msgid "view_grid"
+msgstr "Cuadrícula de portadas"
+
+# en-hash: 806db08b8d5ab2af924f8401224a9176
+msgid "view_list"
+msgstr "Vista de lista"
+
+# en-hash: 781881956a4383935c3239bc4ff7e1be
+msgid "‹ Back to Settings"
+msgstr "‹ Volver a ajustes"
+
+# en-hash: 57adda7dedc1a318f3bb06fd005867dc
+msgid "‹ Prev"
+msgstr "‹ Anterior"
+
+# en-hash: 158fe160015b2b6aa9e10a959bfe03fd
+msgid "⏳ %d days remaining on this loan.\n\n"
+msgstr "⏳ Quedan %d días en este préstamo.\n\n"
+
+# en-hash: 199d42ba7b73113888ced7202279fa99
+msgid "✓ Anonymous Active"
+msgstr "✓ Anónimo activo"
+
+# en-hash: 3b4da0dc6c6f80e6e69d24ace60f73b3
+msgid "✓ ByteBooks authorized successfully!"
+msgstr "✓ ¡ByteBooks autorizado correctamente!"
+
+# en-hash: 17e80751a7223bf83dc6127a2670f98f
+msgid "✓ Connected"
+msgstr "✓ Conectado"
+
+# en-hash: 5409903c4f0d9ff97744f7efde928e46
+msgid "✓ Download Complete!"
+msgstr "✓ ¡Descarga completada!"
+
+# en-hash: 339e5ff0141bb9d29554609fadf4d52b
+msgid "✓ Libbee Connected!"
+msgstr "✓ ¡Libbee conectado!"
+
+# en-hash: 25c78c5528381192b859a353be7fa609
+msgid "✗ Not Connected"
+msgstr "✗ No conectado"
+
+
+# en-hash: c54dcc922cf18f2a1a36311c1ea2da35
+msgid "Libbee: Open"
+msgstr "Libbee: Abrir"

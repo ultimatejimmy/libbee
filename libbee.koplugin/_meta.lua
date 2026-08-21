@@ -1,10 +1,19 @@
--- Plugin metadata
-local _ = require("gettext")
+local ok_loc, Localization = pcall(require, "localization_libbee")
+if ok_loc and Localization then
+    Localization:init()
+end
+local _ = function(key, ...)
+    if ok_loc and Localization then
+        return Localization:t(key, ...)
+    end
+    return key
+end
 
 return {
     name        = "libbee",
-    fullname    = _("Libbee"),
-    description = _([[Browse your Libby shelf and download ebook loans directly to KOReader.]]),
+    fullname    = _("menu_libbee"),
+    description = _("menu_libbee_desc"),
     version     = "26.6.16",
     author      = "ultimatejimmy",
 }
+

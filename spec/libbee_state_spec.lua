@@ -72,3 +72,27 @@ describe("libbee_state DRM activation state", function()
     end)
 end)
 
+describe("libbee_state download directory settings", function()
+    it("handles default and custom download dir lifecycle", function()
+        State.resetCustomDownloadDir()
+        assert.is_false(State.isCustomDownloadDir())
+        assert.is_nil(State.getCustomDownloadDir())
+
+        local default_dir = State.getDefaultDownloadDir()
+        assert.is_string(default_dir)
+        assert.are_equal(default_dir, State.getDownloadDir())
+
+        -- Set custom directory
+        State.setCustomDownloadDir("/mnt/onboard/MyCustomLibby")
+        assert.is_true(State.isCustomDownloadDir())
+        assert.are_equal("/mnt/onboard/MyCustomLibby", State.getCustomDownloadDir())
+        assert.are_equal("/mnt/onboard/MyCustomLibby", State.getDownloadDir())
+
+        -- Reset to default
+        State.resetCustomDownloadDir()
+        assert.is_false(State.isCustomDownloadDir())
+        assert.is_nil(State.getCustomDownloadDir())
+        assert.are_equal(default_dir, State.getDownloadDir())
+    end)
+end)
+

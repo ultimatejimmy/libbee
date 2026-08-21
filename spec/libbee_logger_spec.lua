@@ -14,6 +14,7 @@ describe("libbee_logger", function()
     teardown(function()
         -- Restore mock
         package.loaded["libbee_logger"] = {
+            init  = function(p) end,
             info  = function(m) end,
             warn  = function(m) end,
             err   = function(m) end,

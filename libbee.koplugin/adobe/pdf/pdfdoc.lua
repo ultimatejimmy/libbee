@@ -529,45 +529,41 @@ function PDFDocument:open(filepath)
     -- Collect trailer info
     for _, xref in ipairs(self.xrefs) do
         local trailer = xref.trailer
-        if not trailer then
-            goto continue
-        end
-
-        -- Extract encryption info
-        if trailer.Encrypt or trailer["Encrypt"] then
-            local encryptRef = trailer.Encrypt or trailer["Encrypt"]
-            if type(encryptRef) == "table" and encryptRef.ref then
-                self.encrypt_objid = encryptRef.ref.objid
-            end
-            local idList = trailer.ID or trailer["id"] or {}
-            if type(idList) ~= "table" then
-                idList = { idList }
-            end
-            -- Actually load the Encrypt dict object from the file
-            -- (don't use getobj yet — decipher isn't set, and we want the
-            -- raw encrypted dict to read encryption parameters)
-            local encryptDict = {}
-            if type(encryptRef) == "table" and encryptRef.ref then
-                local encObj = self:_loadRawObject(encryptRef.ref.objid)
-                if type(encObj) == "table" and not encObj.ref then
-                    encryptDict = encObj
+        if trailer then
+            -- Extract encryption info
+            if trailer.Encrypt or trailer["Encrypt"] then
+                local encryptRef = trailer.Encrypt or trailer["Encrypt"]
+                if type(encryptRef) == "table" and encryptRef.ref then
+                    self.encrypt_objid = encryptRef.ref.objid
                 end
-            elseif type(encryptRef) == "table" and not encryptRef.ref then
-                encryptDict = encryptRef
+                local idList = trailer.ID or trailer["id"] or {}
+                if type(idList) ~= "table" then
+                    idList = { idList }
+                end
+                -- Actually load the Encrypt dict object from the file
+                -- (don't use getobj yet — decipher isn't set, and we want the
+                -- raw encrypted dict to read encryption parameters)
+                local encryptDict = {}
+                if type(encryptRef) == "table" and encryptRef.ref then
+                    local encObj = self:_loadRawObject(encryptRef.ref.objid)
+                    if type(encObj) == "table" and not encObj.ref then
+                        encryptDict = encObj
+                    end
+                elseif type(encryptRef) == "table" and not encryptRef.ref then
+                    encryptDict = encryptRef
+                end
+                self.encryption = {
+                    docid = idList,
+                    param = encryptDict,
+                }
             end
-            self.encryption = {
-                docid = idList,
-                param = encryptDict,
-            }
-        end
 
-        -- Extract root
-        if trailer.Root or trailer["Root"] then
-            self.root = trailer.Root or trailer["Root"]
-            break
+            -- Extract root
+            if trailer.Root or trailer["Root"] then
+                self.root = trailer.Root or trailer["Root"]
+                break
+            end
         end
-
-        ::continue::
     end
 
     return true

@@ -68,23 +68,7 @@ function Run-Workflow {
     # 3. Sync
     Write-Host "Syncing to WSL..." -NoNewline
     wsl mkdir -p (Split-Path $WSLDest -Parent)
-    
-    # Smart Config Merge
-    # 1. Backup existing keys if file exists
-    $ConfigSubPath = "libbee_config.lua"
-    $BackupPath = "/tmp/libbee_config_backup.lua"
-    wsl sh -c "if [ -f $WSLDest/$ConfigSubPath ]; then cp $WSLDest/$ConfigSubPath $BackupPath; fi"
-
-    # 2. Sync (this will overwrite libbee_config.lua with the one from Windows)
-    # We exclude libbee.log and .sdr folders to avoid deleting runtime data
     wsl rsync -rv --delete --exclude="libbee.log" --exclude="*.sdr/" "./$PluginDir/" "$WSLDest/"
-    
-    # 3. Restore keys from backup
-    $MergeScript = "tools/merge_config.py"
-    $winPath = (Get-Item ".").FullName -replace '\\', '/'
-    $WslCwd = (wsl wslpath -u $winPath).Trim()
-    wsl python3 "$WslCwd/$MergeScript" "$WSLDest/$ConfigSubPath" "$BackupPath"
-    wsl rm -f "$BackupPath"
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host " FAILED" -ForegroundColor Red

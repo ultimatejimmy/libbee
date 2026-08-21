@@ -6,7 +6,7 @@ from luaparser import ast
 
 def check_syntax(directory):
     failed = False
-    lua_files = glob.glob(os.path.join(directory, '*.lua'))
+    lua_files = glob.glob(os.path.join(directory, '**', '*.lua'), recursive=True)
     if not lua_files:
         print(f"No .lua files found in {directory}")
         return False

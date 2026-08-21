@@ -34,6 +34,16 @@ if not ok_lfs then ok_lfs, lfs = pcall(require, "lfs") end
 local ok_ds, DataStorage = pcall(require, "datastorage")
 
 local plugin_path = ((...) or ""):match("(.-)[^%.]+$") or ""
+local ok_loc, Localization = pcall(require, plugin_path .. "localization_libbee")
+if not ok_loc or not Localization then
+    ok_loc, Localization = pcall(require, "localization_libbee")
+end
+local _ = function(key, ...)
+    if ok_loc and Localization then
+        return Localization:t(key, ...)
+    end
+    return key
+end
 local log = require(plugin_path .. "libbee_logger")
 local theme = require(plugin_path .. "libbee_theme")
 local Covers = require(plugin_path .. "libbee_covers")
@@ -119,7 +129,7 @@ function LibbeeToastWidget:init()
         padding = sc(14),
         padding_left = sc(18),
         padding_right = sc(18),
-        radius = theme.radius_btn or sc(4),
+        radius = theme.radius_toast or theme.radius_window or sc(4),
         bordersize = theme.border_window or sc(2),
         color = Blitbuffer.COLOR_BLACK,
         background = theme.color_bg or Blitbuffer.COLOR_WHITE,
@@ -208,6 +218,10 @@ local function _toast(msg, timeout, opts)
     return toast
 end
 
+M.showToast = _toast
+M._toast = _toast
+M.LibbeeToastWidget = LibbeeToastWidget
+
 local function _close(w)
     if w then
         if w.close then
@@ -216,14 +230,6 @@ local function _close(w)
             UIManager:close(w, "ui")
         end
     end
-end
-
-local function _loadConfig(plugin_dir)
-    local config_path = plugin_dir .. "/libbee_config.lua"
-    local ok, cfg = pcall(dofile, config_path)
-    if ok and type(cfg) == "table" then return cfg end
-    log.warn("libbee ui: could not load config from " .. tostring(config_path))
-    return {}
 end
 
 local function _runAsync(work_fn, spinner_text, on_done)
@@ -238,11 +244,11 @@ local function _runAsync(work_fn, spinner_text, on_done)
             )
             _close(spinner)
             if not completed then
-                on_done(nil, "Cancelled")
+                on_done(nil, _("Cancelled"))
             elseif ok then
                 on_done(r1, r2)
             else
-                on_done(nil, tostring(r1 or "Unknown error"))
+                on_done(nil, tostring(r1 or _("Unknown error")))
             end
         end)
     else
@@ -252,7 +258,7 @@ local function _runAsync(work_fn, spinner_text, on_done)
             if ok then
                 on_done(r1, r2)
             else
-                on_done(nil, tostring(r1 or "Unknown error"))
+                on_done(nil, tostring(r1 or _("Unknown error")))
             end
         end)
     end
@@ -270,7 +276,7 @@ local function _runAsyncSilent(work_fn, on_done)
                 if ok then
                     on_done(r1, r2)
                 else
-                    on_done(nil, tostring(r1 or "Unknown error"))
+                    on_done(nil, tostring(r1 or _("Unknown error")))
                 end
             end
         end)
@@ -280,7 +286,7 @@ local function _runAsyncSilent(work_fn, on_done)
             if ok then
                 on_done(r1, r2)
             else
-                on_done(nil, tostring(r1 or "Unknown error"))
+                on_done(nil, tostring(r1 or _("Unknown error")))
             end
         end)
     end
@@ -435,7 +441,7 @@ function M.showCardDialog(opts)
     end
 
     -- Button Row
-    local buttons = opts.buttons or { { text = "OK", is_primary = true } }
+    local buttons = opts.buttons or { { text = _("OK"), is_primary = true } }
     local btn_widgets = {}
     local num_btns = #buttons
     local btn_gap = sc(8)
@@ -468,7 +474,7 @@ function M.showCardDialog(opts)
 
     local card = FrameContainer:new{
         padding = card_padding,
-        radius = theme.radius_btn or sc(4),
+        radius = theme.radius_window or sc(4),
         bordersize = card_border,
         color = Blitbuffer.COLOR_BLACK,
         background = theme.color_bg or Blitbuffer.COLOR_WHITE,
@@ -511,16 +517,16 @@ function M.showSetupDialog(plugin_dir, on_done)
         function()
             return API.requestSetupCode()
         end,
-        "Connecting to Libby…",
+        _("Connecting to Libby…"),
         function(result, err)
             if not result or not result.code then
-                local err_str = err or tostring(result or "Unknown error")
+                local err_str = err or tostring(result or _("Unknown error"))
                 log.warn("setup code request failed: " .. tostring(err_str))
                 M.showCardDialog{
-                    title = "Setup Failed",
-                    body_text = "Could not request setup code:\n" .. err_str .. "\n\nMake sure your device is connected to Wi-Fi.",
+                    title = _("Setup Failed"),
+                    body_text = _("Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi.", err_str),
                     buttons = {
-                        { text = "OK", is_primary = true, callback = function()
+                        { text = _("OK"), is_primary = true, callback = function()
                             if on_done then on_done(false) end
                         end }
                     },
@@ -558,7 +564,7 @@ function M.showSetupDialog(plugin_dir, on_done)
                 if not is_active or is_regenerating then return end
                 is_regenerating = true
                 if waiting_text_w then
-                    waiting_text_w:setText("Regenerating setup code…")
+                    waiting_text_w:setText(_("Regenerating setup code…"))
                     if setup_overlay then UIManager:setDirty(setup_overlay, "ui") end
                 end
 
@@ -575,12 +581,12 @@ function M.showSetupDialog(plugin_dir, on_done)
                             if code_text_w then code_text_w:setText(display_code) end
                             code_expires_in = 60
                             if waiting_text_w then
-                                waiting_text_w:setText("Waiting for Libby app to authorize… (" .. tostring(code_expires_in) .. "s)")
+                                waiting_text_w:setText(_("Waiting for Libby app to authorize… (%ds)", code_expires_in))
                             end
                             if setup_overlay then UIManager:setDirty(setup_overlay, "ui") end
                         else
                             if waiting_text_w then
-                                waiting_text_w:setText("Code expired. Tap New Code to retry.")
+                                waiting_text_w:setText(_("Code expired. Tap New Code to retry."))
                             end
                             if setup_overlay then UIManager:setDirty(setup_overlay, "ui") end
                         end
@@ -596,7 +602,7 @@ function M.showSetupDialog(plugin_dir, on_done)
                         regenerate_code()
                     else
                         if waiting_text_w then
-                            waiting_text_w:setText("Waiting for Libby app to authorize… (" .. tostring(code_expires_in) .. "s)")
+                            waiting_text_w:setText(_("Waiting for Libby app to authorize… (%ds)", code_expires_in))
                             if setup_overlay then UIManager:setDirty(setup_overlay, "ui") end
                         end
                     end
@@ -619,10 +625,10 @@ function M.showSetupDialog(plugin_dir, on_done)
                 if poll_count > max_polls then
                     cleanup()
                     M.showCardDialog{
-                        title = "Setup Timed Out",
-                        body_text = "Authorization timed out.\n\nPlease try again from the Libby app.",
+                        title = _("Setup Timed Out"),
+                        body_text = _("Authorization timed out.\n\nPlease try again from the Libby app."),
                         buttons = {
-                            { text = "OK", is_primary = true, callback = function()
+                            { text = _("OK"), is_primary = true, callback = function()
                                 if on_done then on_done(false) end
                             end }
                         },
@@ -640,11 +646,11 @@ function M.showSetupDialog(plugin_dir, on_done)
                             cleanup()
                             local lib_name = poll_res.library_name or "Libby"
                             M.showCardDialog{
-                                title = "✓ Libbee Connected!",
-                                body_text = "Library: " .. tostring(lib_name) .. "\n\nYour device is now registered. You can browse and download your shelf.",
+                                title = _("✓ Libbee Connected!"),
+                                body_text = _("Library: %s\n\nYour device is now registered. You can browse and download your shelf.", tostring(lib_name)),
                                 buttons = {
                                     {
-                                        text = "Open Shelf",
+                                        text = _("Open Shelf"),
                                         is_primary = true,
                                         callback = function()
                                             M.showShelfBrowser(plugin_dir)
@@ -689,16 +695,16 @@ function M.showSetupDialog(plugin_dir, on_done)
             }
 
             local instructions_text = TextBoxWidget:new{
-                text = "1. Open the Libby app on your phone or computer.\n" ..
-                       "2. Tap Menu (\xE2\x98\xB0) \xE2\x86\x92 Your Information \xE2\x86\x92 Copy To Another Device.\n" ..
-                       "3. Enter the 8-digit setup code below:\n",
+                text = _("1. Open the Libby app on your phone or computer.\n") ..
+                       _("2. Tap Menu (☰) → Your Information → Copy To Another Device.\n") ..
+                       _("3. Enter the 8-digit setup code below:\n"),
                 face = Font:getFace("cfont", 15),
                 fgcolor = Blitbuffer.COLOR_BLACK,
                 width = inner_w,
             }
 
             waiting_text_w = TextWidget:new{
-                text = "Waiting for Libby app to authorize… (60s)",
+                text = _("Waiting for Libby app to authorize… (60s)"),
                 face = Font:getFace("cfont", 13),
                 fgcolor = theme.color_label_dim,
             }
@@ -718,12 +724,12 @@ function M.showSetupDialog(plugin_dir, on_done)
             }
 
             setup_overlay = M.showCardDialog{
-                title = "Link Libby Account",
+                title = _("Link Libby Account"),
                 body_widget = body_vg,
                 width = dialog_w,
                 buttons = {
                     {
-                        text = "Cancel",
+                        text = _("Cancel"),
                         callback = function()
                             cleanup()
                             if on_done then on_done(false) end
@@ -748,9 +754,9 @@ end
 
 local function _fmtDays(days)
     if not days then return "" end
-    if days == 0 then return "Expires today" end
-    if days == 1 then return "1 day left" end
-    return string.format("%d days left", days)
+    if days == 0 then return _("Expires today") end
+    if days == 1 then return _("1 day left") end
+    return _("%d days left", days)
 end
 
 local function _createBadge(text, is_urgent)
@@ -783,18 +789,17 @@ end
 local active_shelf_overlay = nil
 
 function M.showShelfBrowser(plugin_dir)
-    local cfg = _loadConfig(plugin_dir)
     local State = require(plugin_path .. "libbee_state")
     local API   = require(plugin_path .. "libbee_api")
 
     -- Check auth before fetching
-    if not State.isAuthenticated() and (not cfg.bearer_token or cfg.bearer_token == "") then
+    if not State.isAuthenticated() then
         M.showCardDialog{
-            title = "Libbee Setup Required",
-            body_text = "Libbee is not connected yet.\n\nConnect with a Libby setup code to browse and download your loans.",
+            title = _("Libbee Setup Required"),
+            body_text = _("Libbee is not connected yet.\n\nConnect with a Libby setup code to browse and download your loans."),
             buttons = {
                 {
-                    text = "Setup Now",
+                    text = _("Setup Now"),
                     is_primary = true,
                     callback = function()
                         M.showSetupDialog(plugin_dir, function(success)
@@ -802,7 +807,7 @@ function M.showShelfBrowser(plugin_dir)
                         end)
                     end,
                 },
-                { text = "Cancel" }
+                { text = _("Cancel") }
             }
         }
         return
@@ -886,8 +891,8 @@ function M.showShelfBrowser(plugin_dir)
             callback = function()
                 State.clearShelfCache()
                 _runAsync(
-                    function() return API.fetchShelf(cfg) end,
-                    "Refreshing shelf from Libby…",
+                    function() return API.fetchShelf() end,
+                    _("Refreshing shelf from Libby…"),
                     function(result, err)
                         if type(result) == "table" then
                             State.saveShelfCache(result)
@@ -896,7 +901,7 @@ function M.showShelfBrowser(plugin_dir)
                         elseif err == "AUTH_EXPIRED" or result == "AUTH_EXPIRED" then
                             M._handleAuthExpired(plugin_dir)
                         else
-                            _toast("Refresh failed: " .. tostring(err or "error"), 4)
+                            _toast(_("Refresh failed: %s", tostring(err or _("error"))), 4)
                         end
                     end
                 )
@@ -954,21 +959,21 @@ function M.showShelfBrowser(plugin_dir)
             bee_icon,
             HorizontalSpan:new{ width = sc(8) },
             TextWidget:new{
-                text = "Libbee \xC2\xB7 Shelf",
+                text = _("Libbee · Shelf"),
                 face = Font:getFace("NotoSerif-Regular.ttf", theme.title_font_size or 22),
                 bold = true,
                 fgcolor = Blitbuffer.COLOR_BLACK,
             }
         }
 
-        local count_str = string.format("%d %s", loan_count, loan_count == 1 and "loan" or "loans")
-        if from_cache then count_str = count_str .. " (cached)" end
+        local count_str = string.format("%d %s", loan_count, loan_count == 1 and _("loan") or _("loans"))
+        if from_cache then count_str = count_str .. " " .. _("(cached)") end
 
         local sub_text = count_str
         if #lib_order == 1 then
             sub_text = count_str .. "  ·  " .. lib_order[1]
         elseif #lib_order > 1 then
-            sub_text = count_str .. string.format("  ·  %d libraries", #lib_order)
+            sub_text = count_str .. "  ·  " .. _("%d libraries", #lib_order)
         elseif lib_name and lib_name ~= "" then
             sub_text = count_str .. "  ·  " .. lib_name
         end
@@ -1024,14 +1029,22 @@ function M.showShelfBrowser(plugin_dir)
         local COLS = 3
         local items_per_page
 
-        local content_w = sw - sc(20)
+        local grid_gap = sc(10)
+        local border_w = theme.border_preview or sc(2)
+        local target_margin_h = sc(14)
+        local avail_grid_w = sw - (target_margin_h * 2)
+        local cell_w = math.floor((avail_grid_w - (grid_gap * (COLS - 1))) / COLS)
+        local row_total_w = (cell_w * COLS) + (grid_gap * (COLS - 1))
+        local margin_h = math.floor((sw - row_total_w) / 2)
+
+        local content_w = row_total_w
         local content_inner = content_w - sc(16)
 
+        local cover_inner_w = cell_w - (border_w * 2)
+        local cover_inner_h = math.floor(cover_inner_w * 1.38)
+
         if view_mode == "cover" then
-            local grid_gap = sc(8)
-            local cell_w = math.floor((content_inner - (grid_gap * (COLS - 1))) / COLS)
-            local cover_h = math.floor(cell_w * 1.38)
-            local row_h = cover_h + sc(54) + sc(12)
+            local row_h = cover_inner_h + (border_w * 2) + sc(54) + sc(12)
             local num_rows = math.max(1, math.floor((avail_h + sc(12)) / row_h))
             items_per_page = num_rows * COLS
         else
@@ -1056,13 +1069,18 @@ function M.showShelfBrowser(plugin_dir)
                 bold = true,
                 fgcolor = Blitbuffer.COLOR_BLACK,
             }
-            return FrameContainer:new{
+            local frame = FrameContainer:new{
                 padding = sc(4),
                 padding_left = sc(8),
                 bordersize = 0,
                 width = content_w,
                 background = theme.color_bg_dim or Blitbuffer.COLOR_LIGHT_GRAY,
                 label,
+            }
+            return HorizontalGroup:new{
+                HorizontalSpan:new{ width = margin_h },
+                frame,
+                HorizontalSpan:new{ width = margin_h },
             }
         end
 
@@ -1090,7 +1108,7 @@ function M.showShelfBrowser(plugin_dir)
             end
 
             local title_w = TextWidget:new{
-                text = loan.title or "Unknown Title",
+                text = loan.title or _("Unknown Title"),
                 face = Font:getFace("NotoSerif-Regular.ttf", 18),
                 bold = true,
                 fgcolor = Blitbuffer.COLOR_BLACK,
@@ -1155,21 +1173,23 @@ function M.showShelfBrowser(plugin_dir)
                 end)
             end)
 
-            table.insert(page_content_vg, row_tap)
-            table.insert(page_content_vg, LineWidget:new{
-                dimen = Geom:new{ w = content_w, h = sc(1) },
-                background = theme.color_bg_dim or Blitbuffer.COLOR_LIGHT_GRAY,
+            table.insert(page_content_vg, HorizontalGroup:new{
+                HorizontalSpan:new{ width = margin_h },
+                row_tap,
+                HorizontalSpan:new{ width = margin_h },
+            })
+            table.insert(page_content_vg, HorizontalGroup:new{
+                HorizontalSpan:new{ width = margin_h },
+                LineWidget:new{
+                    dimen = Geom:new{ w = content_w, h = sc(1) },
+                    background = theme.color_bg_dim or Blitbuffer.COLOR_LIGHT_GRAY,
+                },
+                HorizontalSpan:new{ width = margin_h },
             })
         end
 
         local function render_cover_grid(page_items, global_start_idx)
             local num_cols = COLS
-            local grid_gap = sc(8)
-            local avail_grid_w = content_inner
-            local cell_w = math.floor((avail_grid_w - (grid_gap * (num_cols - 1))) / num_cols)
-            local cover_w = cell_w
-            local cover_h = math.floor(cover_w * 1.38)
-
             local current_row_widgets = {}
 
             for i, item in ipairs(page_items) do
@@ -1179,11 +1199,11 @@ function M.showShelfBrowser(plugin_dir)
                 local cover_img = nil
 
                 if cached_cover then
-                    cover_img = Covers.createCoverImageWidget(cached_cover, cover_w, cover_h)
+                    cover_img = Covers.createCoverImageWidget(cached_cover, cover_inner_w, cover_inner_h)
                 end
 
                 if not cover_img then
-                    cover_img = Covers.createPlaceholderWidget(cover_w, cover_h, loan.title)
+                    cover_img = Covers.createPlaceholderWidget(cover_inner_w, cover_inner_h, loan.title)
                     UIManager:scheduleIn(global_idx * 0.3, function()
                         Covers.fetchCover(loan, function(loaded_path)
                             if loaded_path and active_shelf_overlay then
@@ -1198,16 +1218,16 @@ function M.showShelfBrowser(plugin_dir)
                 end
 
                 local cover_frame = FrameContainer:new{
-                    bordersize = theme.border_preview or sc(2),
+                    bordersize = border_w,
                     color = Blitbuffer.COLOR_BLACK,
                     padding = 0,
-                    width = cover_w,
-                    height = cover_h,
+                    width = cover_inner_w,
+                    height = cover_inner_h,
                     cover_img,
                 }
 
                 local title_box = TextBoxWidget:new{
-                    text = loan.title or "Unknown Title",
+                    text = loan.title or _("Unknown Title"),
                     face = Font:getFace("NotoSerif-Regular.ttf", 12),
                     bold = true,
                     width = cell_w,
@@ -1237,13 +1257,14 @@ function M.showShelfBrowser(plugin_dir)
                 table.insert(current_row_widgets, cell_tap)
 
                 if #current_row_widgets == num_cols or i == #page_items then
-                    local row_group_items = {}
+                    local row_group_items = { HorizontalSpan:new{ width = margin_h } }
                     for col_i, cell in ipairs(current_row_widgets) do
                         if col_i > 1 then
                             table.insert(row_group_items, HorizontalSpan:new{ width = grid_gap })
                         end
                         table.insert(row_group_items, cell)
                     end
+                    table.insert(row_group_items, HorizontalSpan:new{ width = margin_h })
                     table.insert(page_content_vg, HorizontalGroup:new(row_group_items))
                     table.insert(page_content_vg, VerticalSpan:new{ width = sc(12) })
                     current_row_widgets = {}
@@ -1254,7 +1275,7 @@ function M.showShelfBrowser(plugin_dir)
         -- Render the current page items
         if #loans == 0 then
             local empty_text = TextBoxWidget:new{
-                text = "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!",
+                text = _("No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"),
                 face = Font:getFace("cfont", 16),
                 fgcolor = Blitbuffer.COLOR_BLACK,
                 width = sw - sc(40),
@@ -1316,18 +1337,15 @@ function M.showShelfBrowser(plugin_dir)
         end
 
         -- 3. Content Frame and Pagination Footer (Fixed to Screen Bottom)
-        local body_h = math.max(sc(100), sh - header_h - sc(1) - top_margin - sc(1) - footer_h)
-
-        local page_content_frame = ScrollableContainer:new{
-            dimen = Geom:new{ w = sw, h = body_h },
+        local page_content_frame = FrameContainer:new{
             bordersize = 0,
             padding = 0,
-            scroll_bar_width = 0,
+            width = sw,
             page_content_vg,
         }
 
         local prev_btn = createButton{
-            text = "‹ Prev",
+            text = _("‹ Prev"),
             text_font_size = 14,
             bold = true,
             bordersize = sc(1),
@@ -1343,7 +1361,7 @@ function M.showShelfBrowser(plugin_dir)
         }
 
         local next_btn = createButton{
-            text = "Next ›",
+            text = _("Next ›"),
             text_font_size = 14,
             bold = true,
             bordersize = sc(1),
@@ -1501,7 +1519,7 @@ function M.showShelfBrowser(plugin_dir)
     else
         _runAsync(
             function() return API.fetchShelf(cfg) end,
-            "Loading your Libby shelf…",
+            _("Loading your Libby shelf…"),
             function(result, err)
                 if type(result) == "table" then
                     State.saveShelfCache(result)
@@ -1510,17 +1528,17 @@ function M.showShelfBrowser(plugin_dir)
                 elseif err == "AUTH_EXPIRED" or result == "AUTH_EXPIRED" then
                     M._handleAuthExpired(plugin_dir)
                 else
-                    local err_str = err or tostring(result or "Unknown error")
+                    local err_str = err or tostring(result or _("Unknown error"))
                     M.showCardDialog{
-                        title = "Could Not Load Shelf",
-                        body_text = "Could not connect to Libby:\n" .. err_str .. "\n\nCheck your Wi-Fi connection.",
+                        title = _("Could Not Load Shelf"),
+                        body_text = _("Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection.", err_str),
                         buttons = {
                             {
-                                text = "Retry",
+                                text = _("Retry"),
                                 is_primary = true,
                                 callback = function() M.showShelfBrowser(plugin_dir) end,
                             },
-                            { text = "Cancel" }
+                            { text = _("Cancel") }
                         }
                     }
                 end
@@ -1534,11 +1552,10 @@ end
 -- ---------------------------------------------------------------------------
 
 function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
-    local cfg = _loadConfig(plugin_dir)
     local API = require(plugin_path .. "libbee_api")
+    local State = require(plugin_path .. "libbee_state")
 
-    local base_dir = (cfg.download_dir and cfg.download_dir ~= "") and cfg.download_dir
-                     or API.getDefaultDownloadDir()
+    local base_dir = State.getDownloadDir(plugin_dir)
     local dest_path = API.getAcsmPath(base_dir, loan)
     local epub_path = dest_path:gsub("%.[Aa][Cc][Ss][Mm]$", ".epub")
     local pdf_path  = dest_path:gsub("%.[Aa][Cc][Ss][Mm]$", ".pdf")
@@ -1561,51 +1578,59 @@ function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
             pcall(os.remove, dest_path)
         end
         M.showCardDialog{
-            title = "Book Already Downloaded",
-            body_text = string.format('"%s" is already downloaded:\n\n%s\n\nOpen it now?', loan.title or "Book", existing_book),
+            title = _("Book Already Downloaded"),
+            body_text = _('"%s" is already downloaded:\n\n%s\n\nOpen it now?', loan.title or _("Book"), existing_book),
             buttons = {
                 {
-                    text = "Open Book",
+                    text = _("Open Book"),
                     is_primary = true,
                     callback = function()
-                        M._openBook(existing_book)
+                        local ok_u, UIManager = pcall(require, "ui/uimanager")
+                        local ok_r, ReaderUI = pcall(require, "apps/reader/readerui")
+                        if ok_u and ok_r and ReaderUI and ReaderUI.showReader then
+                            ReaderUI:showReader(existing_book)
+                        end
                     end,
                 },
                 {
-                    text = "Close",
+                    text = _("Redownload"),
                     callback = function()
-                        -- Keeps shelf open
-                    end
-                }
+                        pcall(os.remove, existing_book)
+                        M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
+                    end,
+                },
+                { text = _("Cancel") }
             }
         }
         return
     end
 
-    local days_str = loan.days_remaining and string.format("⏳ %d days remaining on this loan.\n\n", loan.days_remaining) or ""
-    local is_pdf = loan.format and loan.format:find("pdf", 1, true) ~= nil
-    local format_desc = is_pdf and "Adobe PDF" or "Adobe EPUB"
-
-    local info_text = string.format('"%s"\n%s%sDestination:\n%s\n\nFormat: %s (Direct fulfillment)',
-        loan.title or "Book",
-        loan.author and ("by " .. loan.author .. "\n\n") or "\n",
-        days_str,
-        base_dir,
-        format_desc)
+    local days_str = _fmtDays(loan.days_remaining)
+    local info_text = string.format(
+        "%s:  %s\n%s: %s\n%s: %s\n%s:   %s",
+        _("Title"),
+        loan.title or _("Unknown Title"),
+        _("Author"),
+        loan.author or _("Unknown Author"),
+        _("Format"),
+        loan.format or "ebook-epub-adobe",
+        _("Loan"),
+        days_str ~= "" and days_str or _("Active")
+    )
 
     M.showCardDialog{
-        title = "Download Loan",
+        title = _("Download Loan"),
         body_text = info_text,
         buttons = {
             {
-                text = "Download",
+                text = _("Download"),
                 is_primary = true,
                 callback = function()
-                    M._doDownload(loan, dest_path, base_dir, cfg, plugin_dir, after_download_fn)
+                    M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
                 end,
             },
             {
-                text = "Cancel",
+                text = _("Cancel"),
                 callback = function()
                     -- Shelf remains open in background
                 end,
@@ -1614,13 +1639,13 @@ function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
     }
 end
 
-function M._doDownload(loan, dest_path, base_dir, cfg, plugin_dir, after_download_fn)
+function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
     local API = require(plugin_path .. "libbee_api")
     local LibbeeDRM = require(plugin_path .. "libbee_drm")
 
     local dir_ok, dir_err = API.ensureDownloadDir(base_dir)
     if not dir_ok then
-        _toast("Could not create download folder:\n" .. tostring(dir_err), 6)
+        _toast(_("Could not create download folder:\n%s", tostring(dir_err)), 6)
         return
     end
 
@@ -1629,7 +1654,7 @@ function M._doDownload(loan, dest_path, base_dir, cfg, plugin_dir, after_downloa
     _runAsync(
         function()
             -- Step 1: Download ACSM license token from Libby API
-            local dl_ok, dl_err = API.downloadACSM(loan, temp_acsm_path, cfg)
+            local dl_ok, dl_err = API.downloadACSM(loan, temp_acsm_path)
             if not dl_ok then
                 return nil, dl_err
             end
@@ -1648,7 +1673,7 @@ function M._doDownload(loan, dest_path, base_dir, cfg, plugin_dir, after_downloa
 
             return final_path
         end,
-        "Downloading & fulfilling " .. string.format('"%s"', loan.title or "ebook") .. "…",
+        _("Downloading & fulfilling \"%s\"…", loan.title or _("ebook")),
         function(final_book_path, err)
             if type(final_book_path) == "string" and final_book_path ~= "" then
                 local State = require(plugin_path .. "libbee_state")
@@ -1657,18 +1682,18 @@ function M._doDownload(loan, dest_path, base_dir, cfg, plugin_dir, after_downloa
                 if after_download_fn then after_download_fn() end
 
                 M.showCardDialog{
-                    title = "✓ Download Complete!",
-                    body_text = string.format('"%s"\n\nSaved to:\n%s\n\nReady to read.', loan.title or "Book", final_book_path),
+                    title = _("✓ Download Complete!"),
+                    body_text = _('"%s"\n\nSaved to:\n%s\n\nReady to read.', loan.title or _("Book"), final_book_path),
                     buttons = {
                         {
-                            text = "Open Book",
+                            text = _("Open Book"),
                             is_primary = true,
                             callback = function()
                                 M._openBook(final_book_path)
                             end,
                         },
                         {
-                            text = "Done",
+                            text = _("Done"),
                             callback = function()
                                 -- Shelf remains open
                             end,
@@ -1680,18 +1705,18 @@ function M._doDownload(loan, dest_path, base_dir, cfg, plugin_dir, after_downloa
             else
                 local err_str = err or tostring(final_book_path or "Unknown error")
                 M.showCardDialog{
-                    title = "Download Failed",
-                    body_text = "Download/Fulfillment failed:\n" .. err_str .. "\n\nIf you see an authorization error, check your Wi-Fi or DRM settings.",
+                    title = _("Download Failed"),
+                    body_text = _("Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings.", err_str),
                     buttons = {
                         {
-                            text = "Retry",
+                            text = _("Retry"),
                             is_primary = true,
                             callback = function()
                                 M._doDownload(loan, dest_path, base_dir, cfg, plugin_dir, after_download_fn)
                             end,
                         },
                         {
-                            text = "Cancel",
+                            text = _("Cancel"),
                         }
                     }
                 }
@@ -1722,7 +1747,7 @@ function M._openBook(path)
     if ok2 then
         UIManager:broadcastEvent(Event:new("SetupShowReader", { file = path }))
     else
-        _toast("Saved to:\n" .. path .. "\n\nOpen it from the file browser.", 6)
+        _toast(_("Saved to:\n%s\n\nOpen it from the file browser.", path), 6)
     end
 end
 
@@ -1732,11 +1757,11 @@ end
 
 function M._handleAuthExpired(plugin_dir)
     M.showCardDialog{
-        title = "Session Expired",
-        body_text = "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading.",
+        title = _("Session Expired"),
+        body_text = _("Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."),
         buttons = {
             {
-                text = "Re-authenticate",
+                text = _("Re-authenticate"),
                 is_primary = true,
                 callback = function()
                     local State = require(plugin_path .. "libbee_state")
@@ -1747,7 +1772,7 @@ function M._handleAuthExpired(plugin_dir)
                     end)
                 end,
             },
-            { text = "Cancel" }
+            { text = _("Cancel") }
         }
     }
 end
@@ -1777,13 +1802,13 @@ function M._showDebugLog()
     end
 
     if not content then
-        content = "No log file found yet at:\n" .. path
+        content = _("No log file found yet at:\n%s", path)
     end
 
     M.showCardDialog{
-        title = "Libbee Debug Log",
+        title = _("Libbee Debug Log"),
         body_text = content,
-        buttons = { { text = "Close", is_primary = true } }
+        buttons = { { text = _("Close"), is_primary = true } }
     }
 end
 
@@ -1797,12 +1822,12 @@ function M.showByteBooksAuthDialog(plugin_dir, on_done)
 
     local function do_auth(email, password)
         if not email or email:gsub("%s+", "") == "" then
-            _toast("Please enter your ByteBooks email", 4)
+            _toast(_("Please enter your ByteBooks email"), 4)
             if on_done then on_done(false) end
             return
         end
         if not password or password == "" then
-            _toast("Please enter your ByteBooks password", 4)
+            _toast(_("Please enter your ByteBooks password"), 4)
             if on_done then on_done(false) end
             return
         end
@@ -1811,18 +1836,18 @@ function M.showByteBooksAuthDialog(plugin_dir, on_done)
             function()
                 return LibbeeDRM.authorizeByteBooks(email:gsub("%s+", ""), password)
             end,
-            "Authorizing ByteBooks account…",
+            _("Authorizing ByteBooks account…"),
             function(res, err)
                 if res == true then
-                    _toast("✓ ByteBooks authorized successfully!", 4)
+                    _toast(_("✓ ByteBooks authorized successfully!"), 4)
                     if on_done then on_done(true) end
                 else
                     M.showCardDialog{
-                        title = "Authorization Failed",
-                        body_text = "Could not authorize ByteBooks account:\n\n" .. tostring(err or "Unknown error") .. "\n\nMake sure your email and password are correct.",
+                        title = _("Authorization Failed"),
+                        body_text = _("Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct.", tostring(err or _("Unknown error"))),
                         buttons = {
                             {
-                                text = "OK",
+                                text = _("OK"),
                                 is_primary = true,
                                 callback = function()
                                     if on_done then on_done(false) end
@@ -1841,14 +1866,14 @@ function M.showByteBooksAuthDialog(plugin_dir, on_done)
     -- Step 1: Prompt for Email with full PC & on-screen keyboard support
     local email_dialog
     email_dialog = InputDialog:new{
-        title = "ByteBooks Email",
-        description = "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:",
+        title = _("ByteBooks Email"),
+        description = _("Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"),
         input = default_email,
         input_hint = "user@example.com",
         buttons = {
             {
                 {
-                    text = "Cancel",
+                    text = _("Cancel"),
                     id = "close",
                     callback = function()
                         UIManager:close(email_dialog)
@@ -1856,14 +1881,14 @@ function M.showByteBooksAuthDialog(plugin_dir, on_done)
                     end,
                 },
                 {
-                    text = "Next",
+                    text = _("Next"),
                     is_primary = true,
                     is_enter_default = true,
                     callback = function()
                         local email = email_dialog:getInputText()
                         UIManager:close(email_dialog)
                         if not email or email:gsub("%s+", "") == "" then
-                            _toast("Email cannot be blank", 3)
+                            _toast(_("Email cannot be blank"), 3)
                             if on_done then on_done(false) end
                             return
                         end
@@ -1871,15 +1896,15 @@ function M.showByteBooksAuthDialog(plugin_dir, on_done)
                         -- Step 2: Prompt for Password (single-field InputDialog supports PC & virtual keyboards reliably)
                         local pass_dialog
                         pass_dialog = InputDialog:new{
-                            title = "ByteBooks Password",
-                            description = "Enter password for " .. email .. ":\n(Used in memory only, not stored)",
+                            title = _("ByteBooks Password"),
+                            description = _("Enter password for %s:\n(Used in memory only, not stored)", email),
                             input = "",
-                            input_hint = "Password",
+                            input_hint = _("Password"),
                             text_type = "password",
                             buttons = {
                                 {
                                     {
-                                        text = "Cancel",
+                                        text = _("Cancel"),
                                         id = "close",
                                         callback = function()
                                             UIManager:close(pass_dialog)
@@ -1887,7 +1912,7 @@ function M.showByteBooksAuthDialog(plugin_dir, on_done)
                                         end,
                                     },
                                     {
-                                        text = "Authorize",
+                                        text = _("Authorize"),
                                         is_primary = true,
                                         is_enter_default = true,
                                         callback = function()
@@ -1921,6 +1946,9 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
     local sw = Screen:getWidth()
     local sh = Screen:getHeight()
     local dialog_w = math.min(sw - sc(20), sc(380))
+    local card_padding = sc(12)
+    local card_border = theme.border_window or sc(2)
+    local inner_w = dialog_w - (card_padding * 2) - (card_border * 2)
     local ui_font_size = theme.face_label_size or 16
     local title_font_size = theme.title_font_size or 20
 
@@ -1934,25 +1962,21 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
         end
 
         local title_label = TextWidget:new{
-            text = "Libby Account",
+            text = _("Libby Account"),
             face = Font:getFace("NotoSerif-Regular.ttf", title_font_size),
             bold = true,
             fgcolor = Blitbuffer.COLOR_BLACK,
         }
 
-        local title_container = FrameContainer:new{
-            padding = sc(10),
-            bordersize = 0,
-            title_label,
-        }
-
         local content_vg = VerticalGroup:new{
             align = "left",
-            title_container,
+            title_label,
+            VerticalSpan:new{ width = sc(6) },
             LineWidget:new{
-                dimen = Geom:new{ w = dialog_w - sc(4), h = sc(1) },
-                background = Blitbuffer.COLOR_BLACK,
-            }
+                dimen = Geom:new{ w = inner_w, h = sc(1) },
+                background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
+            },
+            VerticalSpan:new{ width = sc(4) },
         }
 
         local function create_section_header(title)
@@ -1965,46 +1989,54 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             return FrameContainer:new{
                 padding = sc(4),
                 padding_left = sc(8),
+                radius = theme.radius_btn or sc(4),
                 bordersize = 0,
-                width = dialog_w - sc(4),
+                width = inner_w,
                 background = Blitbuffer.COLOR_LIGHT_GRAY,
                 label,
             }
         end
 
         local function create_setting_row(left_text, right_widget, callback)
-            local frame_padding = sc(8)
-            local avail_w = dialog_w - (frame_padding * 2) - sc(4)
-            local right_w = right_widget and ((right_widget.getSize and right_widget:getSize().w) or (right_widget.dimen and right_widget.dimen.w) or sc(60)) or 0
+            local frame_padding = sc(6)
+            local avail_w = inner_w - (frame_padding * 2)
 
-            local max_left_w = avail_w - right_w - sc(8)
-            if max_left_w < sc(60) then max_left_w = sc(60) end
+            -- Fixed left label allocation (e.g. 35-40% or min width) so labels don't get squished and wrap strangely
+            local left_label_w = sc(90)
+            local right_avail_w = avail_w - left_label_w - sc(8)
 
             local txt = TextBoxWidget:new{
                 text = left_text,
                 face = Font:getFace("cfont", ui_font_size),
                 fgcolor = Blitbuffer.COLOR_BLACK,
-                width = max_left_w,
+                width = left_label_w,
                 alignment = "left",
             }
 
-            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
-            local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
+            local right_element
+            if right_widget then
+                right_element = right_widget
+            else
+                right_element = HorizontalSpan:new{ width = 0 }
+            end
 
-            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
-            if right_widget then table.insert(row_elements, right_widget) end
+            local row_elements = {
+                txt,
+                HorizontalSpan:new{ width = sc(8) },
+                right_element
+            }
 
             local frame = FrameContainer:new{
                 bordersize = 0,
                 padding = frame_padding,
-                width = dialog_w - sc(4),
+                width = inner_w,
                 HorizontalGroup:new(row_elements),
             }
 
             if not callback then return frame end
 
             local item = InputContainer:new{ frame }
-            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = dialog_w - sc(4), h = sc(30) }
+            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = inner_w, h = sc(30) }
             item.ges_events = {
                 Tap = {
                     GestureRange:new{
@@ -2015,7 +2047,7 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                             return Geom:new{
                                 x = dim.x or 0,
                                 y = dim.y or 0,
-                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or (dialog_w - sc(4)),
+                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or inner_w,
                                 h = (dim.h and dim.h > 0 and dim.h) or row_size.h or 0,
                             }
                         end
@@ -2029,49 +2061,122 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             return item
         end
 
-        table.insert(content_vg, create_section_header("Status & Libraries"))
+        local function create_action_row(text, callback)
+            local frame_padding = sc(6)
+            local avail_w = inner_w - (frame_padding * 2)
+
+            local txt = TextBoxWidget:new{
+                text = text,
+                face = Font:getFace("cfont", ui_font_size),
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                width = avail_w,
+                alignment = "left",
+            }
+
+            local frame = FrameContainer:new{
+                bordersize = 0,
+                padding = frame_padding,
+                width = inner_w,
+                txt,
+            }
+
+            if not callback then return frame end
+
+            local item = InputContainer:new{ frame }
+            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = inner_w, h = sc(30) }
+            item.ges_events = {
+                Tap = {
+                    GestureRange:new{
+                        ges = "tap",
+                        range = function()
+                            local dim = item.dimen
+                            if not dim then return Geom:new{ x = -1, y = -1, w = 1, h = 1 } end
+                            return Geom:new{
+                                x = dim.x or 0,
+                                y = dim.y or 0,
+                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or inner_w,
+                                h = (dim.h and dim.h > 0 and dim.h) or row_size.h or 0,
+                            }
+                        end
+                    }
+                }
+            }
+            item.onTap = function()
+                callback()
+                return true
+            end
+            return item
+        end
+
+        local function create_multiline_info_row(label_text, value_text)
+            local frame_padding = sc(6)
+            local avail_w = inner_w - (frame_padding * 2)
+
+            local label_box = TextBoxWidget:new{
+                text = label_text,
+                face = Font:getFace("cfont", theme.subtext_font_size or 13),
+                bold = true,
+                fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
+                width = avail_w,
+                alignment = "left",
+            }
+
+            local val_box = TextBoxWidget:new{
+                text = value_text,
+                face = Font:getFace("cfont", ui_font_size),
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                width = avail_w,
+                alignment = "left",
+            }
+
+            local vg = VerticalGroup:new{
+                align = "left",
+                label_box,
+                VerticalSpan:new{ width = sc(2) },
+                val_box,
+            }
+
+            return FrameContainer:new{
+                bordersize = 0,
+                padding = frame_padding,
+                width = inner_w,
+                vg,
+            }
+        end
 
         local is_auth = State.isAuthenticated()
-        local auth_status = is_auth and "✓ Connected" or "✗ Not Connected"
+        table.insert(content_vg, create_section_header(_("Connection Status")))
+
+        local status_val = is_auth and _("Connected") or _("Not connected")
         local status_widget = TextWidget:new{
-            text = auth_status,
-            face = Font:getFace("cfont", theme.subtext_font_size or 14),
-            bold = true,
+            text = status_val,
+            face = Font:getFace("cfont", ui_font_size),
+            bold = is_auth,
             fgcolor = is_auth and Blitbuffer.COLOR_BLACK or theme.color_label_dim,
         }
-        table.insert(content_vg, create_setting_row("Session Status", status_widget, nil))
+        table.insert(content_vg, create_setting_row(_("Status"), status_widget, nil))
 
         if is_auth then
             local lib_name = State.getLibraryName()
             local cards = State.getCards() or {}
             local seen_libs = {}
 
-            for _, card in ipairs(cards) do
-                local c_name = card.library_name or card.name or (card.advantage_key and card.advantage_key:upper())
+            for _, card_item in ipairs(cards) do
+                local c_name = card_item.library_name or card_item.name or (card_item.advantage_key and card_item.advantage_key:upper())
                 if c_name and c_name ~= "" and not seen_libs[c_name] then
                     seen_libs[c_name] = true
-                    local lib_w = TextWidget:new{
-                        text = c_name,
-                        face = Font:getFace("cfont", theme.subtext_font_size or 14),
-                        fgcolor = theme.color_label_dim,
-                    }
-                    table.insert(content_vg, create_setting_row("Library", lib_w, nil))
+                    table.insert(content_vg, create_multiline_info_row(_("Active Library"), c_name))
                 end
             end
 
             if lib_name and lib_name ~= "" and not seen_libs[lib_name] then
                 seen_libs[lib_name] = true
-                local lib_w = TextWidget:new{
-                    text = lib_name,
-                    face = Font:getFace("cfont", theme.subtext_font_size or 14),
-                    fgcolor = theme.color_label_dim,
-                }
-                table.insert(content_vg, create_setting_row("Library", lib_w, nil))
+                table.insert(content_vg, create_multiline_info_row(_("Active Library"), lib_name))
             end
 
-            table.insert(content_vg, create_section_header("Actions"))
+            table.insert(content_vg, create_section_header(_("Actions")))
 
-            table.insert(content_vg, create_setting_row("Link another Libby device", nil, function()
+            table.insert(content_vg, create_action_row(_("Link another Libby device"), function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2081,7 +2186,7 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 end)
             end))
 
-            table.insert(content_vg, create_setting_row("Re-authenticate account", nil, function()
+            table.insert(content_vg, create_action_row(_("Re-authenticate account"), function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2101,13 +2206,13 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 end)
             end))
 
-            table.insert(content_vg, create_setting_row("Disconnect Libby account", nil, function()
+            table.insert(content_vg, create_action_row(_("Disconnect Libby account"), function()
                 M.showCardDialog{
-                    title = "Disconnect Account",
-                    body_text = "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared.",
+                    title = _("Disconnect Account"),
+                    body_text = _("Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."),
                     buttons = {
                         {
-                            text = "Disconnect",
+                            text = _("Disconnect"),
                             is_primary = true,
                             callback = function()
                                 State.clearChipIdentity()
@@ -2120,17 +2225,17 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                                 end
                                 refresh()
                                 UIManager:nextTick(function()
-                                    _toast("Libby account disconnected", 3)
+                                    _toast(_("Libby account disconnected"), 3)
                                 end)
                             end,
                         },
-                        { text = "Cancel" }
+                        { text = _("Cancel") }
                     }
                 }
             end))
         else
-            table.insert(content_vg, create_section_header("Actions"))
-            table.insert(content_vg, create_setting_row("Connect with Libby code", nil, function()
+            table.insert(content_vg, create_section_header(_("Actions")))
+            table.insert(content_vg, create_setting_row(_("Connect with Libby code"), nil, function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2142,12 +2247,12 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
         end
 
         local back_btn = createButton{
-            text = "‹ Back to Settings",
+            text = _("‹ Back to Settings"),
             text_font_size = ui_font_size,
             bold = true,
             bordersize = theme.border_btn or sc(1),
             radius = theme.radius_btn or sc(4),
-            width = dialog_w - sc(20),
+            width = inner_w,
             height = sc(36),
             callback = function()
                 if overlay then
@@ -2158,31 +2263,23 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             end,
         }
 
-        local back_frame = FrameContainer:new{
-            padding = sc(8),
-            bordersize = 0,
-            width = dialog_w - sc(4),
-            CenterContainer:new{
-                dimen = Geom:new{ w = dialog_w - sc(20), h = sc(36) },
-                back_btn,
-            }
-        }
-
         local card = FrameContainer:new{
-            padding = 0,
-            radius = theme.radius_window or 0,
-            bordersize = sc(2),
+            padding = card_padding,
+            radius = theme.radius_window or sc(4),
+            bordersize = card_border,
             color = Blitbuffer.COLOR_BLACK,
             background = theme.color_bg or Blitbuffer.COLOR_WHITE,
             width = dialog_w,
             VerticalGroup:new{
                 align = "left",
                 content_vg,
+                VerticalSpan:new{ width = sc(8) },
                 LineWidget:new{
-                    dimen = Geom:new{ w = dialog_w - sc(4), h = sc(1) },
-                    background = Blitbuffer.COLOR_DARK_GRAY,
+                    dimen = Geom:new{ w = inner_w, h = sc(1) },
+                    background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
                 },
-                back_frame,
+                VerticalSpan:new{ width = sc(8) },
+                back_btn,
             }
         }
 
@@ -2221,6 +2318,9 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
     local sw = Screen:getWidth()
     local sh = Screen:getHeight()
     local dialog_w = math.min(sw - sc(20), sc(380))
+    local card_padding = sc(12)
+    local card_border = theme.border_window or sc(2)
+    local inner_w = dialog_w - (card_padding * 2) - (card_border * 2)
     local ui_font_size = theme.face_label_size or 16
     local title_font_size = theme.title_font_size or 20
 
@@ -2236,25 +2336,21 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
         local drm_info = LibbeeDRM.getAccountInfo()
 
         local title_label = TextWidget:new{
-            text = "ByteBooks DRM",
+            text = _("ByteBooks DRM"),
             face = Font:getFace("NotoSerif-Regular.ttf", title_font_size),
             bold = true,
             fgcolor = Blitbuffer.COLOR_BLACK,
         }
 
-        local title_container = FrameContainer:new{
-            padding = sc(10),
-            bordersize = 0,
-            title_label,
-        }
-
         local content_vg = VerticalGroup:new{
             align = "left",
-            title_container,
+            title_label,
+            VerticalSpan:new{ width = sc(6) },
             LineWidget:new{
-                dimen = Geom:new{ w = dialog_w - sc(4), h = sc(1) },
-                background = Blitbuffer.COLOR_BLACK,
-            }
+                dimen = Geom:new{ w = inner_w, h = sc(1) },
+                background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
+            },
+            VerticalSpan:new{ width = sc(4) },
         }
 
         local function create_section_header(title)
@@ -2267,46 +2363,51 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
             return FrameContainer:new{
                 padding = sc(4),
                 padding_left = sc(8),
+                radius = theme.radius_btn or sc(4),
                 bordersize = 0,
-                width = dialog_w - sc(4),
+                width = inner_w,
                 background = Blitbuffer.COLOR_LIGHT_GRAY,
                 label,
             }
         end
 
         local function create_setting_row(left_text, right_widget, callback)
-            local frame_padding = sc(8)
-            local avail_w = dialog_w - (frame_padding * 2) - sc(4)
-            local right_w = right_widget and ((right_widget.getSize and right_widget:getSize().w) or (right_widget.dimen and right_widget.dimen.w) or sc(60)) or 0
+            local frame_padding = sc(6)
+            local avail_w = inner_w - (frame_padding * 2)
 
-            local max_left_w = avail_w - right_w - sc(8)
-            if max_left_w < sc(60) then max_left_w = sc(60) end
-
+            local left_label_w = sc(100)
             local txt = TextBoxWidget:new{
                 text = left_text,
                 face = Font:getFace("cfont", ui_font_size),
                 fgcolor = Blitbuffer.COLOR_BLACK,
-                width = max_left_w,
+                width = left_label_w,
                 alignment = "left",
             }
 
-            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
-            local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
+            local right_element
+            if right_widget then
+                right_element = right_widget
+            else
+                right_element = HorizontalSpan:new{ width = 0 }
+            end
 
-            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
-            if right_widget then table.insert(row_elements, right_widget) end
+            local row_elements = {
+                txt,
+                HorizontalSpan:new{ width = sc(8) },
+                right_element
+            }
 
             local frame = FrameContainer:new{
                 bordersize = 0,
                 padding = frame_padding,
-                width = dialog_w - sc(4),
+                width = inner_w,
                 HorizontalGroup:new(row_elements),
             }
 
             if not callback then return frame end
 
             local item = InputContainer:new{ frame }
-            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = dialog_w - sc(4), h = sc(30) }
+            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = inner_w, h = sc(30) }
             item.ges_events = {
                 Tap = {
                     GestureRange:new{
@@ -2317,7 +2418,7 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
                             return Geom:new{
                                 x = dim.x or 0,
                                 y = dim.y or 0,
-                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or (dialog_w - sc(4)),
+                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or inner_w,
                                 h = (dim.h and dim.h > 0 and dim.h) or row_size.h or 0,
                             }
                         end
@@ -2331,31 +2432,107 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
             return item
         end
 
-        table.insert(content_vg, create_section_header("Activation Status"))
+        local function create_action_row(text, callback)
+            local frame_padding = sc(6)
+            local avail_w = inner_w - (frame_padding * 2)
 
-        local drm_status_text = "Anonymous (Device only)"
-        if drm_info.activated then
-            if drm_info.mode == "bytebooks" and drm_info.email ~= "" then
-                drm_status_text = drm_info.email
-            else
-                drm_status_text = "✓ Anonymous Active"
+            local txt = TextBoxWidget:new{
+                text = text,
+                face = Font:getFace("cfont", ui_font_size),
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                width = avail_w,
+                alignment = "left",
+            }
+
+            local frame = FrameContainer:new{
+                bordersize = 0,
+                padding = frame_padding,
+                width = inner_w,
+                txt,
+            }
+
+            if not callback then return frame end
+
+            local item = InputContainer:new{ frame }
+            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = inner_w, h = sc(30) }
+            item.ges_events = {
+                Tap = {
+                    GestureRange:new{
+                        ges = "tap",
+                        range = function()
+                            local dim = item.dimen
+                            if not dim then return Geom:new{ x = -1, y = -1, w = 1, h = 1 } end
+                            return Geom:new{
+                                x = dim.x or 0,
+                                y = dim.y or 0,
+                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or inner_w,
+                                h = (dim.h and dim.h > 0 and dim.h) or row_size.h or 0,
+                            }
+                        end
+                    }
+                }
+            }
+            item.onTap = function()
+                callback()
+                return true
             end
-        else
-            drm_status_text = "Auto-activates on download"
+            return item
         end
 
-        local drm_status_w = TextWidget:new{
-            text = drm_status_text,
-            face = Font:getFace("cfont", theme.subtext_font_size or 14),
-            fgcolor = theme.color_label_dim,
-            max_width = math.floor(dialog_w * 0.5),
-        }
-        table.insert(content_vg, create_setting_row("Current Mode", drm_status_w, nil))
+        local function create_multiline_info_row(label_text, value_text)
+            local frame_padding = sc(6)
+            local avail_w = inner_w - (frame_padding * 2)
 
-        table.insert(content_vg, create_section_header("Account & Keys"))
+            local label_box = TextBoxWidget:new{
+                text = label_text,
+                face = Font:getFace("cfont", theme.subtext_font_size or 13),
+                bold = true,
+                fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
+                width = avail_w,
+                alignment = "left",
+            }
+
+            local val_box = TextBoxWidget:new{
+                text = value_text,
+                face = Font:getFace("cfont", ui_font_size),
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                width = avail_w,
+                alignment = "left",
+            }
+
+            local vg = VerticalGroup:new{
+                align = "left",
+                label_box,
+                VerticalSpan:new{ width = sc(2) },
+                val_box,
+            }
+
+            return FrameContainer:new{
+                bordersize = 0,
+                padding = frame_padding,
+                width = inner_w,
+                vg,
+            }
+        end
+
+        table.insert(content_vg, create_section_header(_("Activation Status")))
+
+        if drm_info.activated and drm_info.mode == "bytebooks" and drm_info.email ~= "" then
+            table.insert(content_vg, create_multiline_info_row(_("Current Mode"), drm_info.email))
+        else
+            local drm_status_text = drm_info.activated and _("✓ Anonymous Active") or _("Auto-activates on download")
+            local drm_status_w = TextWidget:new{
+                text = drm_status_text,
+                face = Font:getFace("cfont", theme.subtext_font_size or 14),
+                fgcolor = theme.color_label_dim,
+            }
+            table.insert(content_vg, create_setting_row(_("Current Mode"), drm_status_w, nil))
+        end
+
+        table.insert(content_vg, create_section_header(_("Account & Keys")))
 
         if drm_info.mode ~= "bytebooks" or not drm_info.activated then
-            table.insert(content_vg, create_setting_row("Sign in with ByteBooks ID", nil, function()
+            table.insert(content_vg, create_action_row(_("Sign in with ByteBooks ID"), function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2365,58 +2542,58 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
                 end)
             end))
         else
-            table.insert(content_vg, create_setting_row("Switch to Anonymous DRM", nil, function()
+            table.insert(content_vg, create_action_row(_("Switch to Anonymous DRM"), function()
                 M.showCardDialog{
-                    title = "Switch DRM Mode",
-                    body_text = "Switch back to anonymous device DRM?\n\nThis will sign out your ByteBooks ID. Subsequent downloads will be single-device only.",
+                    title = _("Switch DRM Mode"),
+                    body_text = _("Switch back to anonymous device DRM?\n\nThis will sign out your ByteBooks ID. Subsequent downloads will be single-device only."),
                     buttons = {
                         {
-                            text = "Switch",
+                            text = _("Switch"),
                             is_primary = true,
                             callback = function()
                                 LibbeeDRM.deauthorize()
                                 refresh()
                                 UIManager:nextTick(function()
-                                    _toast("Switched to anonymous DRM", 3)
+                                    _toast(_("Switched to anonymous DRM"), 3)
                                 end)
                             end,
                         },
-                        { text = "Cancel" }
+                        { text = _("Cancel") }
                     }
                 }
             end))
         end
 
         if drm_info.activated then
-            table.insert(content_vg, create_setting_row("Reset DRM Activation Keys", nil, function()
+            table.insert(content_vg, create_action_row(_("Reset DRM Activation Keys"), function()
                 M.showCardDialog{
-                    title = "Reset DRM Keys",
-                    body_text = "Reset saved Adobe / ByteBooks device activation keys?\n\nA fresh activation will be generated automatically on your next download.",
+                    title = _("Reset DRM Keys"),
+                    body_text = _("Reset saved Adobe / ByteBooks device activation keys?\n\nA fresh activation will be generated automatically on your next download."),
                     buttons = {
                         {
-                            text = "Reset Keys",
+                            text = _("Reset Keys"),
                             is_primary = true,
                             callback = function()
                                 LibbeeDRM.deauthorize()
                                 refresh()
                                 UIManager:nextTick(function()
-                                    _toast("DRM activation keys reset", 3)
+                                    _toast(_("DRM activation keys reset"), 3)
                                 end)
                             end,
                         },
-                        { text = "Cancel" }
+                        { text = _("Cancel") }
                     }
                 }
             end))
         end
 
         local back_btn = createButton{
-            text = "‹ Back to Settings",
+            text = _("‹ Back to Settings"),
             text_font_size = ui_font_size,
             bold = true,
             bordersize = theme.border_btn or sc(1),
             radius = theme.radius_btn or sc(4),
-            width = dialog_w - sc(20),
+            width = inner_w,
             height = sc(36),
             callback = function()
                 if overlay then
@@ -2427,31 +2604,23 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
             end,
         }
 
-        local back_frame = FrameContainer:new{
-            padding = sc(8),
-            bordersize = 0,
-            width = dialog_w - sc(4),
-            CenterContainer:new{
-                dimen = Geom:new{ w = dialog_w - sc(20), h = sc(36) },
-                back_btn,
-            }
-        }
-
         local card = FrameContainer:new{
-            padding = 0,
-            radius = theme.radius_window or 0,
-            bordersize = sc(2),
+            padding = card_padding,
+            radius = theme.radius_window or sc(4),
+            bordersize = card_border,
             color = Blitbuffer.COLOR_BLACK,
             background = theme.color_bg or Blitbuffer.COLOR_WHITE,
             width = dialog_w,
             VerticalGroup:new{
                 align = "left",
                 content_vg,
+                VerticalSpan:new{ width = sc(8) },
                 LineWidget:new{
-                    dimen = Geom:new{ w = dialog_w - sc(4), h = sc(1) },
-                    background = Blitbuffer.COLOR_DARK_GRAY,
+                    dimen = Geom:new{ w = inner_w, h = sc(1) },
+                    background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
                 },
-                back_frame,
+                VerticalSpan:new{ width = sc(8) },
+                back_btn,
             }
         }
 
@@ -2491,6 +2660,9 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
     local sw = Screen:getWidth()
     local sh = Screen:getHeight()
     local dialog_w = math.min(sw - sc(20), sc(380))
+    local card_padding = sc(12)
+    local card_border = theme.border_window or sc(2)
+    local inner_w = dialog_w - (card_padding * 2) - (card_border * 2)
     local ui_font_size = theme.face_label_size or 16
     local title_font_size = theme.title_font_size or 20
 
@@ -2504,25 +2676,21 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
         end
 
         local title_label = TextWidget:new{
-            text = "Maintenance & Logs",
+            text = _("Maintenance & Logs"),
             face = Font:getFace("NotoSerif-Regular.ttf", title_font_size),
             bold = true,
             fgcolor = Blitbuffer.COLOR_BLACK,
         }
 
-        local title_container = FrameContainer:new{
-            padding = sc(10),
-            bordersize = 0,
-            title_label,
-        }
-
         local content_vg = VerticalGroup:new{
             align = "left",
-            title_container,
+            title_label,
+            VerticalSpan:new{ width = sc(6) },
             LineWidget:new{
-                dimen = Geom:new{ w = dialog_w - sc(4), h = sc(1) },
-                background = Blitbuffer.COLOR_BLACK,
-            }
+                dimen = Geom:new{ w = inner_w, h = sc(1) },
+                background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
+            },
+            VerticalSpan:new{ width = sc(4) },
         }
 
         local function create_section_header(title)
@@ -2535,46 +2703,37 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             return FrameContainer:new{
                 padding = sc(4),
                 padding_left = sc(8),
+                radius = theme.radius_btn or sc(4),
                 bordersize = 0,
-                width = dialog_w - sc(4),
+                width = inner_w,
                 background = Blitbuffer.COLOR_LIGHT_GRAY,
                 label,
             }
         end
 
-        local function create_setting_row(left_text, right_widget, callback)
-            local frame_padding = sc(8)
-            local avail_w = dialog_w - (frame_padding * 2) - sc(4)
-            local right_w = right_widget and ((right_widget.getSize and right_widget:getSize().w) or (right_widget.dimen and right_widget.dimen.w) or sc(60)) or 0
-
-            local max_left_w = avail_w - right_w - sc(8)
-            if max_left_w < sc(60) then max_left_w = sc(60) end
+        local function create_action_row(text, callback)
+            local frame_padding = sc(6)
+            local avail_w = inner_w - (frame_padding * 2)
 
             local txt = TextBoxWidget:new{
-                text = left_text,
+                text = text,
                 face = Font:getFace("cfont", ui_font_size),
                 fgcolor = Blitbuffer.COLOR_BLACK,
-                width = max_left_w,
+                width = avail_w,
                 alignment = "left",
             }
-
-            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
-            local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
-
-            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
-            if right_widget then table.insert(row_elements, right_widget) end
 
             local frame = FrameContainer:new{
                 bordersize = 0,
                 padding = frame_padding,
-                width = dialog_w - sc(4),
-                HorizontalGroup:new(row_elements),
+                width = inner_w,
+                txt,
             }
 
             if not callback then return frame end
 
             local item = InputContainer:new{ frame }
-            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = dialog_w - sc(4), h = sc(30) }
+            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = inner_w, h = sc(30) }
             item.ges_events = {
                 Tap = {
                     GestureRange:new{
@@ -2585,7 +2744,7 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
                             return Geom:new{
                                 x = dim.x or 0,
                                 y = dim.y or 0,
-                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or (dialog_w - sc(4)),
+                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or inner_w,
                                 h = (dim.h and dim.h > 0 and dim.h) or row_size.h or 0,
                             }
                         end
@@ -2599,19 +2758,15 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             return item
         end
 
-        table.insert(content_vg, create_section_header("Updates"))
+        table.insert(content_vg, create_section_header(_("Updates")))
 
-        table.insert(content_vg, create_setting_row("Check for updates", nil, function()
-            if overlay then
-                UIManager:close(overlay, "ui")
-                overlay = nil
-            end
+        table.insert(content_vg, create_action_row(_("Check for updates"), function()
             Updater.checkForUpdates(false)
         end))
 
-        table.insert(content_vg, create_section_header("Diagnostics & Cache"))
+        table.insert(content_vg, create_section_header(_("Diagnostics & Cache")))
 
-        table.insert(content_vg, create_setting_row("View debug logs", nil, function()
+        table.insert(content_vg, create_action_row(_("View debug logs"), function()
             if overlay then
                 UIManager:close(overlay, "ui")
                 overlay = nil
@@ -2619,18 +2774,18 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             M._showDebugLog()
         end))
 
-        table.insert(content_vg, create_setting_row("Clear local shelf cache", nil, function()
+        table.insert(content_vg, create_action_row(_("Clear local shelf cache"), function()
             State.clearShelfCache()
-            _toast("Local shelf cache cleared", 3)
+            _toast(_("Local shelf cache cleared"), 3)
         end))
 
         local back_btn = createButton{
-            text = "‹ Back to Settings",
+            text = _("‹ Back to Settings"),
             text_font_size = ui_font_size,
             bold = true,
             bordersize = theme.border_btn or sc(1),
             radius = theme.radius_btn or sc(4),
-            width = dialog_w - sc(20),
+            width = inner_w,
             height = sc(36),
             callback = function()
                 if overlay then
@@ -2641,31 +2796,23 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             end,
         }
 
-        local back_frame = FrameContainer:new{
-            padding = sc(8),
-            bordersize = 0,
-            width = dialog_w - sc(4),
-            CenterContainer:new{
-                dimen = Geom:new{ w = dialog_w - sc(20), h = sc(36) },
-                back_btn,
-            }
-        }
-
         local card = FrameContainer:new{
-            padding = 0,
-            radius = theme.radius_window or 0,
-            bordersize = sc(2),
+            padding = card_padding,
+            radius = theme.radius_window or sc(4),
+            bordersize = card_border,
             color = Blitbuffer.COLOR_BLACK,
             background = theme.color_bg or Blitbuffer.COLOR_WHITE,
             width = dialog_w,
             VerticalGroup:new{
                 align = "left",
                 content_vg,
+                VerticalSpan:new{ width = sc(8) },
                 LineWidget:new{
-                    dimen = Geom:new{ w = dialog_w - sc(4), h = sc(1) },
-                    background = Blitbuffer.COLOR_DARK_GRAY,
+                    dimen = Geom:new{ w = inner_w, h = sc(1) },
+                    background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
                 },
-                back_frame,
+                VerticalSpan:new{ width = sc(8) },
+                back_btn,
             }
         }
 
@@ -2711,6 +2858,9 @@ function M.showAbout(plugin_dir, on_close_cb)
     local sw = Screen:getWidth()
     local sh = Screen:getHeight()
     local dialog_w = math.min(sw - sc(20), sc(380))
+    local card_padding = sc(12)
+    local card_border = theme.border_window or sc(2)
+    local inner_w = dialog_w - (card_padding * 2) - (card_border * 2)
 
     local ui_font_size = theme.face_label_size or 16
     local title_font_size = theme.title_font_size or 20
@@ -2726,25 +2876,21 @@ function M.showAbout(plugin_dir, on_close_cb)
 
         -- Title Header
         local title_label = TextWidget:new{
-            text = "Libbee Settings",
+            text = _("Libbee Settings"),
             face = Font:getFace("NotoSerif-Regular.ttf", title_font_size),
             bold = true,
             fgcolor = Blitbuffer.COLOR_BLACK,
         }
 
-        local title_container = FrameContainer:new{
-            padding = sc(10),
-            bordersize = 0,
-            title_label,
-        }
-
         local content_vg = VerticalGroup:new{
             align = "left",
-            title_container,
+            title_label,
+            VerticalSpan:new{ width = sc(6) },
             LineWidget:new{
-                dimen = Geom:new{ w = dialog_w - sc(4), h = sc(1) },
-                background = Blitbuffer.COLOR_BLACK,
-            }
+                dimen = Geom:new{ w = inner_w, h = sc(1) },
+                background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
+            },
+            VerticalSpan:new{ width = sc(4) },
         }
 
         local function create_section_header(title)
@@ -2757,16 +2903,17 @@ function M.showAbout(plugin_dir, on_close_cb)
             return FrameContainer:new{
                 padding = sc(4),
                 padding_left = sc(8),
+                radius = theme.radius_btn or sc(4),
                 bordersize = 0,
-                width = dialog_w - sc(4),
+                width = inner_w,
                 background = Blitbuffer.COLOR_LIGHT_GRAY,
                 label,
             }
         end
 
         local function create_setting_row(left_text, right_widget, callback)
-            local frame_padding = sc(8)
-            local avail_w = dialog_w - (frame_padding * 2) - sc(4)
+            local frame_padding = sc(6)
+            local avail_w = inner_w - (frame_padding * 2)
             local right_w = right_widget and ((right_widget.getSize and right_widget:getSize().w) or (right_widget.dimen and right_widget.dimen.w) or sc(60)) or 0
 
             local max_left_w = avail_w - right_w - sc(8)
@@ -2789,14 +2936,14 @@ function M.showAbout(plugin_dir, on_close_cb)
             local frame = FrameContainer:new{
                 bordersize = 0,
                 padding = frame_padding,
-                width = dialog_w - sc(4),
+                width = inner_w,
                 HorizontalGroup:new(row_elements),
             }
 
             if not callback then return frame end
 
             local item = InputContainer:new{ frame }
-            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = dialog_w - sc(4), h = sc(30) }
+            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = inner_w, h = sc(30) }
             item.ges_events = {
                 Tap = {
                     GestureRange:new{
@@ -2807,7 +2954,7 @@ function M.showAbout(plugin_dir, on_close_cb)
                             return Geom:new{
                                 x = dim.x or 0,
                                 y = dim.y or 0,
-                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or (dialog_w - sc(4)),
+                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or inner_w,
                                 h = (dim.h and dim.h > 0 and dim.h) or row_size.h or 0,
                             }
                         end
@@ -2822,34 +2969,34 @@ function M.showAbout(plugin_dir, on_close_cb)
         end
 
         -- SECTION 1: ABOUT
-        table.insert(content_vg, create_section_header("About"))
+        table.insert(content_vg, create_section_header(_("About")))
 
         local ver_widget = TextWidget:new{
             text = string.format("v%s", meta.version or "26.6.16"),
             face = Font:getFace("cfont", theme.subtext_font_size or 14),
             fgcolor = theme.color_label_dim,
         }
-        table.insert(content_vg, create_setting_row("Version", ver_widget, nil))
+        table.insert(content_vg, create_setting_row(_("Version"), ver_widget, nil))
 
         local author_widget = TextWidget:new{
             text = meta.author or "ultimatejimmy",
             face = Font:getFace("cfont", theme.subtext_font_size or 14),
             fgcolor = theme.color_label_dim,
         }
-        table.insert(content_vg, create_setting_row("Author", author_widget, nil))
+        table.insert(content_vg, create_setting_row(_("Author"), author_widget, nil))
 
         -- SECTION 2: ACCOUNTS & DRM
-        table.insert(content_vg, create_section_header("Accounts & DRM"))
+        table.insert(content_vg, create_section_header(_("Accounts & DRM")))
 
         local is_auth = State.isAuthenticated()
-        local libby_status_str = is_auth and "Connected ›" or "Not Connected ›"
+        local libby_status_str = is_auth and _("Connected ›") or _("Not Connected ›")
         local libby_right = TextWidget:new{
             text = libby_status_str,
             face = Font:getFace("cfont", theme.subtext_font_size or 14),
             bold = is_auth,
             fgcolor = is_auth and Blitbuffer.COLOR_BLACK or theme.color_label_dim,
         }
-        table.insert(content_vg, create_setting_row("Libby Account", libby_right, function()
+        table.insert(content_vg, create_setting_row(_("Libby Account"), libby_right, function()
             if overlay then
                 UIManager:close(overlay, "ui")
                 overlay = nil
@@ -2860,16 +3007,16 @@ function M.showAbout(plugin_dir, on_close_cb)
         end))
 
         local drm_info = LibbeeDRM.getAccountInfo()
-        local drm_status_str = "Anonymous ›"
+        local drm_status_str = _("Anonymous ›")
         if drm_info.activated and drm_info.mode == "bytebooks" and drm_info.email ~= "" then
-            drm_status_str = "ByteBooks ID ›"
+            drm_status_str = _("ByteBooks ID ›")
         end
         local drm_right = TextWidget:new{
             text = drm_status_str,
             face = Font:getFace("cfont", theme.subtext_font_size or 14),
             fgcolor = theme.color_label_dim,
         }
-        table.insert(content_vg, create_setting_row("ByteBooks DRM", drm_right, function()
+        table.insert(content_vg, create_setting_row(_("ByteBooks DRM"), drm_right, function()
             if overlay then
                 UIManager:close(overlay, "ui")
                 overlay = nil
@@ -2879,15 +3026,79 @@ function M.showAbout(plugin_dir, on_close_cb)
             end)
         end))
 
-        -- SECTION 3: SYSTEM
-        table.insert(content_vg, create_section_header("System"))
+        -- SECTION 3: DOWNLOADS
+        table.insert(content_vg, create_section_header(_("Downloads")))
 
-        local maint_right = TextWidget:new{
-            text = "Updates & Logs ›",
+        local current_download_folder = State.getDownloadDir(plugin_dir)
+        local is_custom_folder = State.isCustomDownloadDir(plugin_dir)
+        local folder_status_label = is_custom_folder and _("Custom folder ›") or _("Default folder ›")
+
+        local function openFolderPicker()
+            UIManager:nextTick(function()
+                local ok, err = pcall(function()
+                    if overlay then
+                        local ov = overlay
+                        overlay = nil
+                        ov.onClose = nil
+                        UIManager:close(ov, "ui")
+                    end
+                    local LibbeeFolderPicker = require(plugin_path .. "libbee_folder_picker")
+                    LibbeeFolderPicker.show{
+                        title = _("Select Download Folder"),
+                        initial_path = State.getDownloadDir(plugin_dir),
+                        on_confirm = function(chosen_path)
+                            if chosen_path and chosen_path ~= "" then
+                                State.setCustomDownloadDir(chosen_path)
+                                _toast(string.format(_("Download folder set to '%s'"), chosen_path), 2)
+                            end
+                            UIManager:nextTick(function()
+                                M.showAbout(plugin_dir, on_close_cb)
+                            end)
+                        end,
+                        on_cancel = function()
+                            UIManager:nextTick(function()
+                                M.showAbout(plugin_dir, on_close_cb)
+                            end)
+                        end,
+                    }
+                end)
+                if not ok then
+                    log.err("openFolderPicker error: " .. tostring(err))
+                    M.showAbout(plugin_dir, on_close_cb)
+                end
+            end)
+        end
+
+        local folder_right = TextWidget:new{
+            text = folder_status_label,
             face = Font:getFace("cfont", theme.subtext_font_size or 14),
             fgcolor = theme.color_label_dim,
         }
-        table.insert(content_vg, create_setting_row("Maintenance", maint_right, function()
+        table.insert(content_vg, create_setting_row(_("Download Folder"), folder_right, openFolderPicker))
+
+        if is_custom_folder then
+            local reset_right = TextWidget:new{
+                text = _("Reset ›"),
+                face = Font:getFace("cfont", theme.subtext_font_size or 14),
+                bold = true,
+                fgcolor = Blitbuffer.COLOR_BLACK,
+            }
+            table.insert(content_vg, create_setting_row(_("Reset to Default"), reset_right, function()
+                State.resetCustomDownloadDir()
+                _toast(_("Reset to default download folder"), 2)
+                refresh()
+            end))
+        end
+
+        -- SECTION 4: SYSTEM
+        table.insert(content_vg, create_section_header(_("System")))
+
+        local maint_right = TextWidget:new{
+            text = _("Updates & Logs ›"),
+            face = Font:getFace("cfont", theme.subtext_font_size or 14),
+            fgcolor = theme.color_label_dim,
+        }
+        table.insert(content_vg, create_setting_row(_("Maintenance"), maint_right, function()
             if overlay then
                 UIManager:close(overlay, "ui")
                 overlay = nil
@@ -2899,12 +3110,12 @@ function M.showAbout(plugin_dir, on_close_cb)
 
         -- Bottom Section: Close Button
         local close_btn = createButton{
-            text = "Close",
+            text = _("Close"),
             text_font_size = ui_font_size,
             bold = true,
             bordersize = theme.border_btn or sc(1),
             radius = theme.radius_btn or sc(4),
-            width = dialog_w - sc(20),
+            width = inner_w,
             height = sc(38),
             callback = function()
                 if overlay then
@@ -2915,32 +3126,24 @@ function M.showAbout(plugin_dir, on_close_cb)
             end,
         }
 
-        local close_frame = FrameContainer:new{
-            padding = sc(8),
-            bordersize = 0,
-            width = dialog_w - sc(4),
-            CenterContainer:new{
-                dimen = Geom:new{ w = dialog_w - sc(20), h = sc(38) },
-                close_btn,
-            }
-        }
-
         -- Build bounded modal card
         local card = FrameContainer:new{
-            padding = 0,
-            radius = theme.radius_window or 0,
-            bordersize = sc(2),
+            padding = card_padding,
+            radius = theme.radius_window or sc(4),
+            bordersize = card_border,
             color = Blitbuffer.COLOR_BLACK,
             background = theme.color_bg or Blitbuffer.COLOR_WHITE,
             width = dialog_w,
             VerticalGroup:new{
                 align = "left",
                 content_vg,
+                VerticalSpan:new{ width = sc(8) },
                 LineWidget:new{
-                    dimen = Geom:new{ w = dialog_w - sc(4), h = sc(1) },
-                    background = Blitbuffer.COLOR_DARK_GRAY,
+                    dimen = Geom:new{ w = inner_w, h = sc(1) },
+                    background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
                 },
-                close_frame,
+                VerticalSpan:new{ width = sc(8) },
+                close_btn,
             }
         }
 

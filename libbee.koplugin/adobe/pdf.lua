@@ -453,29 +453,23 @@ function pdf.decryptAdobePdf(inputPath, outputPath, bookKey, licenseKey, fulfill
 
     for _, objid in ipairs(ids) do
         -- Skip the Encrypt dict itself (ineptpdf.py removes it from trailer)
-        if objid == doc.encrypt_objid then
-            goto continue
+        if objid ~= doc.encrypt_objid then
+            local obj = doc:getobj(objid)
+            if obj then
+                -- Write immediately — after this call, `obj` can be GC'd
+                w:writeObject(objid, obj)
+                decryptCount = decryptCount + 1
+
+                -- Count streams for diagnostics
+                if type(obj) == "table" and obj.dic ~= nil then
+                    streamCount = streamCount + 1
+                end
+
+                -- Release from document cache so Lua can reclaim the memory.
+                -- The writer has already serialized everything to disk.
+                doc.objs[objid] = nil
+            end
         end
-
-        local obj = doc:getobj(objid)
-        if not obj then
-            goto continue
-        end
-
-        -- Write immediately — after this call, `obj` can be GC'd
-        w:writeObject(objid, obj)
-        decryptCount = decryptCount + 1
-
-        -- Count streams for diagnostics
-        if type(obj) == "table" and obj.dic ~= nil then
-            streamCount = streamCount + 1
-        end
-
-        -- Release from document cache so Lua can reclaim the memory.
-        -- The writer has already serialized everything to disk.
-        doc.objs[objid] = nil
-
-        ::continue::
     end
 
     logger.info("[ACSM] pdf: decrypted", decryptCount, "objects,", streamCount, "streams")

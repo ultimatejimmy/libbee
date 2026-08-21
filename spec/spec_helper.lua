@@ -60,6 +60,44 @@ package.loaded["util"] = {
     tableShallowCopy = function(t) local c = {} for k,v in pairs(t) do c[k]=v end return c end,
 }
 
+local mock_crypto = {
+    isAvailable = function() return true end,
+    sha1 = function(s) return s end,
+    sha256 = function(s) return s end,
+    md5 = function(s) return s end,
+    hmacSha256 = function(k, d) return d end,
+    aesCbcDecrypt = function(k, iv, d) return d end,
+    aesCbcEncrypt = function(k, iv, d) return d end,
+    randomBytes = function(n) return string.rep("x", n) end,
+}
+package.loaded["adobe/util/nativecrypto"] = mock_crypto
+package.loaded["adobe.util.nativecrypto"] = mock_crypto
+package.preload["adobe/util/nativecrypto"] = function() return mock_crypto end
+package.preload["adobe.util.nativecrypto"] = function() return mock_crypto end
+
+package.loaded["ffi/archiver"] = {
+    extract = function() return true end,
+    compress = function() return true end,
+}
+package.loaded["ffi.archiver"] = package.loaded["ffi/archiver"]
+package.loaded["ffi/posix_h"] = {}
+package.loaded["ffi.posix_h"] = {}
+
+package.loaded["ffi"] = _G.ffi or {
+    cdef = function() end,
+    load = function() return {} end,
+    new = function() return {} end,
+    string = function(s) return s end,
+}
+
+package.loaded["bit"] = _G.bit or {
+    band = function(a, b) return 0 end,
+    bor = function(a, b) return 0 end,
+    bxor = function(a, b) return 0 end,
+    rshift = function(a, b) return 0 end,
+    lshift = function(a, b) return 0 end,
+}
+
 package.loaded["datastorage"] = {
     getSettingsDir = function() return "/tmp" end,
     getDataDir = function() return "/tmp" end,
@@ -147,6 +185,7 @@ end
 
 package.loaded["ui/widget/widget"] = _mockWidgetClass("Widget")
 package.loaded["ui/widget/widgetcontainer"] = _mockWidgetClass("WidgetContainer")
+package.loaded["ui/widget/container/widgetcontainer"] = package.loaded["ui/widget/widgetcontainer"]
 package.loaded["ui/widget/container/framecontainer"] = _mockWidgetClass("FrameContainer")
 package.loaded["ui/widget/container/inputcontainer"] = _mockWidgetClass("InputContainer")
 package.loaded["ui/widget/container/scrollablecontainer"] = _mockWidgetClass("ScrollableContainer")
@@ -261,7 +300,25 @@ package.loaded["ui/trapper"] = {
     end,
 }
 
+_G.dispatcher_tracker = {
+    actions = {},
+}
+
+package.loaded["dispatcher"] = {
+    registerAction = function(self, name, value)
+        local n = type(self) == "string" and self or name
+        local v = type(self) == "table" and value or name
+        if type(self) == "table" and type(name) == "string" then
+            n = name
+            v = value
+        end
+        _G.dispatcher_tracker.actions[n] = v
+        return true
+    end,
+}
+
 package.loaded["libbee_logger"] = {
+    init  = function(path) end,
     info  = function(m) end,
     warn  = function(m) end,
     err   = function(m) end,

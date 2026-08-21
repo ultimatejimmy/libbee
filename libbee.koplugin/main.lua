@@ -11,6 +11,17 @@ local logger = require("logger")
 -- e.g., require(plugin_path .. "libbee_ui") not require("libbee_ui")
 local plugin_path = ((...) or ""):match("(.-)[^%.]+$") or ""
 
+local ok_loc, Localization = pcall(require, plugin_path .. "localization_libbee")
+if not ok_loc or not Localization then
+    ok_loc, Localization = pcall(require, "localization_libbee")
+end
+local _ = function(key, ...)
+    if ok_loc and Localization then
+        return Localization:t(key, ...)
+    end
+    return key
+end
+
 local ok_wc, WidgetContainer = pcall(require, "ui/widget/container/widgetcontainer")
 local ok_ui, UIManager       = pcall(require, "ui/uimanager")
 
@@ -64,6 +75,9 @@ function LibbeePlugin:init()
     -- Initialize our logger with the plugin directory
     local log = require(plugin_path .. "libbee_logger")
     log.init(self.path)
+
+    -- Register Dispatcher actions (for gestures, keyboard shortcuts, quickmenu)
+    self:onDispatcherRegisterActions()
 
     -- Register our menu items
     if self.ui and self.ui.menu then
@@ -128,10 +142,8 @@ function LibbeePlugin:openFile(file)
     if not file or not file:find("%.[Aa][Cc][Ss][Mm]$") then return false end
     local LibbeeDRM = require(plugin_path .. "libbee_drm")
     local Trapper = require("ui/trapper")
-    local InfoMessage = require("ui/widget/infomessage")
-
-    local info_toast = InfoMessage:new{ text = "Fulfilling ACSM loan with Libbee…", timeout = 120 }
-    UIManager:show(info_toast)
+    local ui = _ui()
+    local info_toast = ui and ui.showToast and ui.showToast(_("Fulfilling ACSM loan with Libbee…"), 120)
 
     Trapper:wrap(function()
         local meta = LibbeeDRM.parseAcsmMetadata(file)
@@ -144,20 +156,26 @@ function LibbeePlugin:openFile(file)
             end,
             info_toast
         )
-        UIManager:close(info_toast, "ui")
+        if info_toast then
+            if info_toast.close then
+                info_toast:close()
+            else
+                UIManager:close(info_toast, "ui")
+            end
+        end
 
         if completed and ok and ful_ok then
             pcall(os.remove, file)
             local ui = _ui()
             if ui then ui._openBook(final_path) end
         else
-            local err_msg = tostring(err or ful_ok or "ACSM fulfillment failed")
+            local err_msg = tostring(err or ful_ok or _("ACSM fulfillment failed"))
             local ui = _ui()
             if ui then
                 ui.showCardDialog{
-                    title = "ACSM Fulfillment Failed",
-                    body_text = "Could not fulfill loan file:\n\n" .. err_msg,
-                    buttons = { { text = "OK", is_primary = true } }
+                    title = _("ACSM Fulfillment Failed"),
+                    body_text = _("Could not fulfill loan file:\n\n%s", err_msg),
+                    buttons = { { text = _("OK"), is_primary = true } }
                 }
             end
         end
@@ -241,7 +259,7 @@ function LibbeePlugin:addToMainMenu(menu_items)
     injectLibbeeIntoToolsMenu()
     local path = self.path
     menu_items.libbee = {
-        text         = "Libbee",
+        text         = _("Libbee"),
         sorting_hint = "tools",
         callback     = function()
             local ui = _ui()
@@ -251,26 +269,36 @@ function LibbeePlugin:addToMainMenu(menu_items)
 end
 
 -- ---------------------------------------------------------------------------
--- Dispatcher registration (optional keyboard shortcut)
+-- Dispatcher registration (gestures, keyboard shortcuts, quickmenu)
 -- ---------------------------------------------------------------------------
 
 function LibbeePlugin:onDispatcherRegisterActions()
     local ok, Dispatcher = pcall(require, "dispatcher")
     if not ok or not Dispatcher then return end
     pcall(function()
+        Dispatcher:registerAction("libbee_open", {
+            category = "none",
+            event    = "LibbeeOpen",
+            title    = _("Libbee: Open"),
+            general  = true,
+        })
         Dispatcher:registerAction("libbee_browse_shelf", {
             category = "none",
             event    = "LibbeeBrowseShelf",
-            title    = "Libbee: Browse Shelf",
+            title    = _("Libbee: Browse Shelf"),
             general  = true,
         })
     end)
 end
 
-function LibbeePlugin:onLibbeeBrowseShelf()
+function LibbeePlugin:onLibbeeOpen()
     local ui = _ui()
     if ui then ui.showShelfBrowser(self.path) end
     return true
+end
+
+function LibbeePlugin:onLibbeeBrowseShelf()
+    return self:onLibbeeOpen()
 end
 
 function LibbeePlugin:onNetworkConnected()
