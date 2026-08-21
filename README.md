@@ -3,7 +3,8 @@
 ![License](https://img.shields.io/badge/license-MIT-yellow.svg)
 ![Status](https://img.shields.io/badge/status-active-brightgreen.svg)
 ![liberapay](https://img.shields.io/liberapay/patrons/ultimatejimmy.svg?logo=liberapay) 
-![buymeacoffee](https://img.shields.io/buymeacoffee/patrons/ultimatejimmy.svg?logo=buymeacoffee) 
+[![Buy Me a Coffee](https://shields.io)](https://buymeacoffee.com/ultimatejimmy)
+
 
 Libbee is a plugin for KOReader that connects to your Libby / OverDrive account, allowing you to browse your library shelf and download borrowed ebooks directly to your device.
 
