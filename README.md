@@ -1,4 +1,8 @@
 # Libbee
+![Platform](https://img.shields.io/badge/platform-KOReader-green.svg)
+![License](https://img.shields.io/badge/license-MIT-yellow.svg)
+![Status](https://img.shields.io/badge/status-active-brightgreen.svg)
+![liberapay](https://img.shields.io/liberapay/patrons/ultimatejimmy.svg?logo=liberapay) 
 
 Libbee is a plugin for KOReader that connects to your Libby / OverDrive account, allowing you to browse your library shelf and download borrowed ebooks directly to your device.
 
@@ -10,7 +14,7 @@ Libbee brings your public library loans directly into KOReader. With integrated 
 
 | Grid View | List View |
 | --- | --- |
-| ![Shelf in Grid View](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/img/cover_view.png) | ![Shelf in List View](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/img/list_view.png) |
+| ![Shelf in Grid View](https://github.com/ultimatejimmy/libbee/wiki/img/cover_view.png) | ![Shelf in List View](https://github.com/ultimatejimmy/libbee/wiki/img/list_view.png) |
 
 ---
 
@@ -29,14 +33,14 @@ Libbee brings your public library loans directly into KOReader. With integrated 
 
 ## Documentation
 
-Comprehensive guides, setup instructions, and feature details are available on the [Libbee Wiki](https://github.com/PLACEHOLDER_OWNER/libbee/wiki):
+Comprehensive guides, setup instructions, and feature details are available on the [Libbee Wiki](https://github.com/ultimatejimmy/libbee/wiki):
 
-- [Installation Guide](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/Installation-Guide): Step-by-step setup for e-readers and devices, plus update instructions.
-- [Authentication and Setup](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/Authentication-and-Setup): How to link your Libby account using the 8-digit setup code displayed in KOReader.
-- [DRM and Fulfillment](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/DRM-and-Fulfillment): Detailed explanation of on-device ACSM fulfillment and ByteBooks multi-device sync.
-- [User Interface and Features](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/User-Interface-and-Features): Guide to shelf navigation, view modes, cover caching, and offline reading.
-- [Configuration Reference](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/Configuration-Reference): Reference for all configuration options and default download paths.
-- [Troubleshooting and FAQ](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/Troubleshooting-and-FAQ): Solutions for common errors, network issues, and general questions.
+- [Installation Guide](https://github.com/ultimatejimmy/libbee/wiki/Installation-Guide): Step-by-step setup for e-readers and devices, plus update instructions.
+- [Authentication and Setup](https://github.com/ultimatejimmy/libbee/wiki/Authentication-and-Setup): How to link your Libby account using the 8-digit setup code displayed in KOReader.
+- [DRM and Fulfillment](https://github.com/ultimatejimmy/libbee/wiki/DRM-and-Fulfillment): Detailed explanation of on-device ACSM fulfillment and ByteBooks multi-device sync.
+- [User Interface and Features](https://github.com/ultimatejimmy/libbee/wiki/User-Interface-and-Features): Guide to shelf navigation, view modes, cover caching, and offline reading.
+- [Configuration Reference](https://github.com/ultimatejimmy/libbee/wiki/Configuration-Reference): Reference for all configuration options and default download paths.
+- [Troubleshooting and FAQ](https://github.com/ultimatejimmy/libbee/wiki/Troubleshooting-and-FAQ): Solutions for common errors, network issues, and general questions.
 
 ---
 
