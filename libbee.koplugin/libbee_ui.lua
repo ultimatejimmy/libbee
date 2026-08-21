@@ -948,8 +948,8 @@ function M.showShelfBrowser(plugin_dir)
         end
 
         -- Header Action Buttons using Feather SVGs (Storefront style, stroke-width 1.5)
-        local btn_size = sc(22)
-        local btn_pad = sc(6)
+        local btn_size = sc(30)
+        local btn_pad = sc(4)
 
         local view_toggle_icon = (view_mode == "cover") and "list.svg" or "grid.svg"
         local view_toggle_btn = createIconButton{
@@ -1118,12 +1118,34 @@ function M.showShelfBrowser(plugin_dir)
         local content_w = row_total_w
         local content_inner = content_w - sc(16)
 
-        local cover_inner_w = cell_w - (border_w * 2)
-        local cover_inner_h = math.floor(cover_inner_w * 1.38)
+        local tile_extra_h = (border_w * 2) + sc(4) + sc(46) + sc(4) + sc(24)
+        local grid_gap_v = sc(10)
+
+        local cover_inner_w
+        local cover_inner_h
+        local num_rows
 
         if view_mode == "cover" then
-            local row_h = cover_inner_h + (border_w * 2) + sc(60) + sc(12)
-            local num_rows = math.max(1, math.floor((avail_h + sc(12)) / row_h))
+            local max_row_h_2 = math.floor((avail_h - grid_gap_v) / 2)
+            local max_cover_h_2 = max_row_h_2 - tile_extra_h
+
+            if max_cover_h_2 >= sc(110) then
+                num_rows = 2
+                local max_row_h_3 = math.floor((avail_h - (grid_gap_v * 2)) / 3)
+                if (max_row_h_3 - tile_extra_h) >= sc(140) then
+                    num_rows = 3
+                end
+            else
+                num_rows = 1
+            end
+
+            local max_row_h = math.floor((avail_h - (grid_gap_v * (num_rows - 1))) / num_rows)
+            local max_cover_h = math.max(sc(60), max_row_h - tile_extra_h)
+            local max_cover_w_by_h = math.floor(max_cover_h / 1.38)
+            local max_cover_w_by_cell = cell_w - (border_w * 2)
+
+            cover_inner_w = math.max(sc(40), math.min(max_cover_w_by_cell, max_cover_w_by_h))
+            cover_inner_h = math.floor(cover_inner_w * 1.38)
             items_per_page = num_rows * COLS
         else
             local list_row_h = sc(94)
@@ -1295,7 +1317,8 @@ function M.showShelfBrowser(plugin_dir)
 
             for i, item in ipairs(page_items) do
                 local loan = item.loan
-                local global_idx = global_start_idx + i
+                local global_idx = (global_start_idx or 0) + i
+
                 local cached_cover = Covers.getCachedCoverPath(loan)
                 local cover_img = nil
 
@@ -1336,7 +1359,7 @@ function M.showShelfBrowser(plugin_dir)
 
                 local title_box = TextBoxWidget:new{
                     text = loan.title or _("Unknown Title"),
-                    face = Font:getFace("NotoSerif-Regular.ttf", 16),
+                    face = Font:getFace("NotoSerif-Regular.ttf", 15),
                     bold = true,
                     width = cell_w,
                     alignment = "center",
@@ -1352,7 +1375,7 @@ function M.showShelfBrowser(plugin_dir)
                     cover_frame,
                     VerticalSpan:new{ width = sc(3) },
                     title_box,
-                    VerticalSpan:new{ width = sc(2) },
+                    VerticalSpan:new{ width = sc(3) },
                     badge_widget or VerticalSpan:new{ width = 0 },
                 }
 
@@ -1373,8 +1396,10 @@ function M.showShelfBrowser(plugin_dir)
                         table.insert(row_group_items, cell)
                     end
                     table.insert(row_group_items, HorizontalSpan:new{ width = margin_h })
-                    table.insert(page_content_vg, HorizontalGroup:new(row_group_items))
-                    table.insert(page_content_vg, VerticalSpan:new{ width = sc(12) })
+                    local row_group = HorizontalGroup:new(row_group_items)
+                    row_group.align = "top"
+                    table.insert(page_content_vg, row_group)
+                    table.insert(page_content_vg, VerticalSpan:new{ width = grid_gap_v })
                     current_row_widgets = {}
                 end
             end
@@ -1607,54 +1632,49 @@ function M.showShelfBrowser(plugin_dir)
         UIManager:show(active_shelf_overlay, "ui")
     end
 
-    if cached_shelf then
-        pcall(Covers.cleanupExpiredCovers, cached_shelf)
-        renderShelf(cached_shelf, true)
-        -- Silently sync shelf in background
-        UIManager:scheduleIn(1, function()
-            _runAsyncSilent(
-                function() return API.fetchShelf(cfg) end,
-                function(result, err)
-                    if type(result) == "table" then
-                        State.saveShelfCache(result)
-                        pcall(Covers.cleanupExpiredCovers, result)
-                        if active_shelf_overlay then
-                            renderShelf(result, false)
-                        end
-                    elseif err == "AUTH_EXPIRED" or result == "AUTH_EXPIRED" then
-                        M._handleAuthExpired(plugin_dir)
-                    end
-                end
-            )
-        end)
-    else
-        _runAsync(
-            function() return API.fetchShelf(cfg) end,
-            _("Loading your Libby shelf…"),
+    -- Always render cached shelf (or empty list) immediately with zero blocking dialogs
+    pcall(Covers.cleanupExpiredCovers, cached_shelf or {})
+    renderShelf(cached_shelf or {}, true)
+
+    local function doBackgroundSync()
+        _runAsyncSilent(
+            function() return API.fetchShelf() end,
             function(result, err)
                 if type(result) == "table" then
                     State.saveShelfCache(result)
                     pcall(Covers.cleanupExpiredCovers, result)
-                    renderShelf(result, false)
+                    if active_shelf_overlay then
+                        renderShelf(result, false)
+                    end
                 elseif err == "AUTH_EXPIRED" or result == "AUTH_EXPIRED" then
                     M._handleAuthExpired(plugin_dir)
-                else
-                    local err_str = err or tostring(result or _("Unknown error"))
-                    M.showCardDialog{
-                        title = _("Could Not Load Shelf"),
-                        body_text = _("Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection.", err_str),
-                        buttons = {
-                            {
-                                text = _("Retry"),
-                                is_primary = true,
-                                callback = function() M.showShelfBrowser(plugin_dir) end,
-                            },
-                            { text = _("Cancel") }
-                        }
-                    }
                 end
             end
         )
+    end
+
+    local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
+    local is_online = false
+    if ok_nm and NetworkMgr then
+        if type(NetworkMgr.isOnline) == "function" then
+            is_online = NetworkMgr:isOnline()
+        elseif type(NetworkMgr.isWifiOn) == "function" then
+            is_online = NetworkMgr:isWifiOn()
+        elseif type(NetworkMgr.isConnected) == "function" then
+            is_online = NetworkMgr:isConnected()
+        end
+    else
+        is_online = true
+    end
+
+    if is_online then
+        UIManager:scheduleIn(0.5, doBackgroundSync)
+    elseif ok_nm and NetworkMgr and type(NetworkMgr.runWhenOnline) == "function" then
+        NetworkMgr:runWhenOnline(function()
+            if active_shelf_overlay then
+                doBackgroundSync()
+            end
+        end)
     end
 end
 
