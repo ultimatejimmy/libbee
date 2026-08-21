@@ -8,6 +8,12 @@ Libbee is a plugin for KOReader that connects to your Libby / OverDrive account,
 
 Libbee brings your public library loans directly into KOReader. With integrated native Adobe ADEPT fulfillment and DRM support, Libbee downloads and decrypts `.acsm` loan tokens on-device into readable EPUB and PDF files without requiring separate companion plugins or a computer.
 
+| Grid View | List View |
+| --- | --- |
+| ![Shelf in Grid View](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/img/cover_view.png) | ![Shelf in List View](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/img/list_view.png) |
+
+---
+
 ## Key Features
 
 - **Direct Shelf Access**: Browse all active ebook loans from your connected Libby shelf directly within KOReader.
@@ -26,7 +32,7 @@ Libbee brings your public library loans directly into KOReader. With integrated 
 Comprehensive guides, setup instructions, and feature details are available on the [Libbee Wiki](https://github.com/PLACEHOLDER_OWNER/libbee/wiki):
 
 - [Installation Guide](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/Installation-Guide): Step-by-step setup for e-readers and devices, plus update instructions.
-- [Authentication and Setup](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/Authentication-and-Setup): How to link your Libby account using the 8-digit Libby setup code.
+- [Authentication and Setup](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/Authentication-and-Setup): How to link your Libby account using the 8-digit setup code displayed in KOReader.
 - [DRM and Fulfillment](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/DRM-and-Fulfillment): Detailed explanation of on-device ACSM fulfillment and ByteBooks multi-device sync.
 - [User Interface and Features](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/User-Interface-and-Features): Guide to shelf navigation, view modes, cover caching, and offline reading.
 - [Configuration Reference](https://github.com/PLACEHOLDER_OWNER/libbee/wiki/Configuration-Reference): Reference for all configuration options and default download paths.

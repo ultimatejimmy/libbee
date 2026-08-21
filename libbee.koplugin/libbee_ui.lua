@@ -1998,39 +1998,37 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
         end
 
         local function create_setting_row(left_text, right_widget, callback)
-            local frame_padding = sc(6)
+            local frame_padding = sc(8)
             local avail_w = inner_w - (frame_padding * 2)
+            local right_w = right_widget and ((right_widget.getSize and right_widget:getSize().w) or (right_widget.dimen and right_widget.dimen.w) or sc(40)) or 0
 
-            -- Fixed left label allocation (e.g. 35-40% or min width) so labels don't get squished and wrap strangely
-            local left_label_w = sc(90)
-            local right_avail_w = avail_w - left_label_w - sc(8)
+            local max_left_w = avail_w - right_w - sc(8)
+            if max_left_w < sc(60) then max_left_w = sc(60) end
 
             local txt = TextBoxWidget:new{
                 text = left_text,
                 face = Font:getFace("cfont", ui_font_size),
                 fgcolor = Blitbuffer.COLOR_BLACK,
-                width = left_label_w,
+                width = max_left_w,
                 alignment = "left",
             }
 
-            local right_element
+            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
+            local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
+
+            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
             if right_widget then
-                right_element = right_widget
-            else
-                right_element = HorizontalSpan:new{ width = 0 }
+                table.insert(row_elements, right_widget)
             end
-
-            local row_elements = {
-                txt,
-                HorizontalSpan:new{ width = sc(8) },
-                right_element
-            }
 
             local frame = FrameContainer:new{
                 bordersize = 0,
                 padding = frame_padding,
                 width = inner_w,
-                HorizontalGroup:new(row_elements),
+                HorizontalGroup:new{
+                    align = "center",
+                    unpack(row_elements),
+                },
             }
 
             if not callback then return frame end
@@ -2061,100 +2059,16 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             return item
         end
 
-        local function create_action_row(text, callback)
-            local frame_padding = sc(6)
-            local avail_w = inner_w - (frame_padding * 2)
-
-            local txt = TextBoxWidget:new{
-                text = text,
+        local arrow = function()
+            return TextWidget:new{
+                text = "›",
                 face = Font:getFace("cfont", ui_font_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                width = avail_w,
-                alignment = "left",
-            }
-
-            local frame = FrameContainer:new{
-                bordersize = 0,
-                padding = frame_padding,
-                width = inner_w,
-                txt,
-            }
-
-            if not callback then return frame end
-
-            local item = InputContainer:new{ frame }
-            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = inner_w, h = sc(30) }
-            item.ges_events = {
-                Tap = {
-                    GestureRange:new{
-                        ges = "tap",
-                        range = function()
-                            local dim = item.dimen
-                            if not dim then return Geom:new{ x = -1, y = -1, w = 1, h = 1 } end
-                            return Geom:new{
-                                x = dim.x or 0,
-                                y = dim.y or 0,
-                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or inner_w,
-                                h = (dim.h and dim.h > 0 and dim.h) or row_size.h or 0,
-                            }
-                        end
-                    }
-                }
-            }
-            item.onTap = function()
-                callback()
-                return true
-            end
-            return item
-        end
-
-        local function create_multiline_info_row(label_text, value_text)
-            local frame_padding = sc(6)
-            local avail_w = inner_w - (frame_padding * 2)
-
-            local label_box = TextBoxWidget:new{
-                text = label_text,
-                face = Font:getFace("cfont", theme.subtext_font_size or 13),
-                bold = true,
                 fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
-                width = avail_w,
-                alignment = "left",
-            }
-
-            local val_box = TextBoxWidget:new{
-                text = value_text,
-                face = Font:getFace("cfont", ui_font_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                width = avail_w,
-                alignment = "left",
-            }
-
-            local vg = VerticalGroup:new{
-                align = "left",
-                label_box,
-                VerticalSpan:new{ width = sc(2) },
-                val_box,
-            }
-
-            return FrameContainer:new{
-                bordersize = 0,
-                padding = frame_padding,
-                width = inner_w,
-                vg,
             }
         end
 
         local is_auth = State.isAuthenticated()
-        table.insert(content_vg, create_section_header(_("Connection Status")))
-
-        local status_val = is_auth and _("Connected") or _("Not connected")
-        local status_widget = TextWidget:new{
-            text = status_val,
-            face = Font:getFace("cfont", ui_font_size),
-            bold = is_auth,
-            fgcolor = is_auth and Blitbuffer.COLOR_BLACK or theme.color_label_dim,
-        }
-        table.insert(content_vg, create_setting_row(_("Status"), status_widget, nil))
+        table.insert(content_vg, create_section_header(_("Connected Libraries")))
 
         if is_auth then
             local lib_name = State.getLibraryName()
@@ -2165,18 +2079,30 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 local c_name = card_item.library_name or card_item.name or (card_item.advantage_key and card_item.advantage_key:upper())
                 if c_name and c_name ~= "" and not seen_libs[c_name] then
                     seen_libs[c_name] = true
-                    table.insert(content_vg, create_multiline_info_row(_("Active Library"), c_name))
+                    local status_badge = TextWidget:new{
+                        text = _("✓ Connected"),
+                        face = Font:getFace("cfont", theme.subtext_font_size or 14),
+                        bold = true,
+                        fgcolor = Blitbuffer.COLOR_BLACK,
+                    }
+                    table.insert(content_vg, create_setting_row(c_name, status_badge, nil))
                 end
             end
 
             if lib_name and lib_name ~= "" and not seen_libs[lib_name] then
                 seen_libs[lib_name] = true
-                table.insert(content_vg, create_multiline_info_row(_("Active Library"), lib_name))
+                local status_badge = TextWidget:new{
+                    text = _("✓ Connected"),
+                    face = Font:getFace("cfont", theme.subtext_font_size or 14),
+                    bold = true,
+                    fgcolor = Blitbuffer.COLOR_BLACK,
+                }
+                table.insert(content_vg, create_setting_row(lib_name, status_badge, nil))
             end
 
             table.insert(content_vg, create_section_header(_("Actions")))
 
-            table.insert(content_vg, create_action_row(_("Link another Libby device"), function()
+            table.insert(content_vg, create_setting_row(_("Link another Libby device"), arrow(), function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2186,7 +2112,7 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 end)
             end))
 
-            table.insert(content_vg, create_action_row(_("Re-authenticate account"), function()
+            table.insert(content_vg, create_setting_row(_("Re-authenticate account"), arrow(), function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2206,7 +2132,7 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 end)
             end))
 
-            table.insert(content_vg, create_action_row(_("Disconnect Libby account"), function()
+            table.insert(content_vg, create_setting_row(_("Disconnect Libby account"), arrow(), function()
                 M.showCardDialog{
                     title = _("Disconnect Account"),
                     body_text = _("Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."),
@@ -2234,8 +2160,16 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 }
             end))
         else
+            local status_badge = TextWidget:new{
+                text = _("Not connected"),
+                face = Font:getFace("cfont", theme.subtext_font_size or 14),
+                fgcolor = theme.color_label_dim,
+            }
+            table.insert(content_vg, create_setting_row(_("Status"), status_badge, nil))
+
             table.insert(content_vg, create_section_header(_("Actions")))
-            table.insert(content_vg, create_setting_row(_("Connect with Libby code"), nil, function()
+
+            table.insert(content_vg, create_setting_row(_("Connect with Libby code"), arrow(), function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2263,9 +2197,19 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             end,
         }
 
+        local back_frame = FrameContainer:new{
+            padding = 0,
+            bordersize = 0,
+            width = inner_w,
+            CenterContainer:new{
+                dimen = Geom:new{ w = inner_w, h = sc(36) },
+                back_btn,
+            }
+        }
+
         local card = FrameContainer:new{
             padding = card_padding,
-            radius = theme.radius_window or sc(4),
+            radius = theme.radius_window or 0,
             bordersize = card_border,
             color = Blitbuffer.COLOR_BLACK,
             background = theme.color_bg or Blitbuffer.COLOR_WHITE,
@@ -2273,13 +2217,13 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             VerticalGroup:new{
                 align = "left",
                 content_vg,
-                VerticalSpan:new{ width = sc(8) },
+                VerticalSpan:new{ width = sc(10) },
                 LineWidget:new{
                     dimen = Geom:new{ w = inner_w, h = sc(1) },
                     background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
                 },
                 VerticalSpan:new{ width = sc(8) },
-                back_btn,
+                back_frame,
             }
         }
 
@@ -2372,36 +2316,37 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
         end
 
         local function create_setting_row(left_text, right_widget, callback)
-            local frame_padding = sc(6)
+            local frame_padding = sc(8)
             local avail_w = inner_w - (frame_padding * 2)
+            local right_w = right_widget and ((right_widget.getSize and right_widget:getSize().w) or (right_widget.dimen and right_widget.dimen.w) or sc(40)) or 0
 
-            local left_label_w = sc(100)
+            local max_left_w = avail_w - right_w - sc(8)
+            if max_left_w < sc(60) then max_left_w = sc(60) end
+
             local txt = TextBoxWidget:new{
                 text = left_text,
                 face = Font:getFace("cfont", ui_font_size),
                 fgcolor = Blitbuffer.COLOR_BLACK,
-                width = left_label_w,
+                width = max_left_w,
                 alignment = "left",
             }
 
-            local right_element
+            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
+            local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
+
+            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
             if right_widget then
-                right_element = right_widget
-            else
-                right_element = HorizontalSpan:new{ width = 0 }
+                table.insert(row_elements, right_widget)
             end
-
-            local row_elements = {
-                txt,
-                HorizontalSpan:new{ width = sc(8) },
-                right_element
-            }
 
             local frame = FrameContainer:new{
                 bordersize = 0,
                 padding = frame_padding,
                 width = inner_w,
-                HorizontalGroup:new(row_elements),
+                HorizontalGroup:new{
+                    align = "center",
+                    unpack(row_elements),
+                },
             }
 
             if not callback then return frame end
@@ -2432,107 +2377,39 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
             return item
         end
 
-        local function create_action_row(text, callback)
-            local frame_padding = sc(6)
-            local avail_w = inner_w - (frame_padding * 2)
-
-            local txt = TextBoxWidget:new{
-                text = text,
+        local arrow = function()
+            return TextWidget:new{
+                text = "›",
                 face = Font:getFace("cfont", ui_font_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                width = avail_w,
-                alignment = "left",
-            }
-
-            local frame = FrameContainer:new{
-                bordersize = 0,
-                padding = frame_padding,
-                width = inner_w,
-                txt,
-            }
-
-            if not callback then return frame end
-
-            local item = InputContainer:new{ frame }
-            local row_size = (frame.getSize and frame:getSize()) or frame.dimen or { w = inner_w, h = sc(30) }
-            item.ges_events = {
-                Tap = {
-                    GestureRange:new{
-                        ges = "tap",
-                        range = function()
-                            local dim = item.dimen
-                            if not dim then return Geom:new{ x = -1, y = -1, w = 1, h = 1 } end
-                            return Geom:new{
-                                x = dim.x or 0,
-                                y = dim.y or 0,
-                                w = (dim.w and dim.w > 0 and dim.w) or row_size.w or inner_w,
-                                h = (dim.h and dim.h > 0 and dim.h) or row_size.h or 0,
-                            }
-                        end
-                    }
-                }
-            }
-            item.onTap = function()
-                callback()
-                return true
-            end
-            return item
-        end
-
-        local function create_multiline_info_row(label_text, value_text)
-            local frame_padding = sc(6)
-            local avail_w = inner_w - (frame_padding * 2)
-
-            local label_box = TextBoxWidget:new{
-                text = label_text,
-                face = Font:getFace("cfont", theme.subtext_font_size or 13),
-                bold = true,
                 fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
-                width = avail_w,
-                alignment = "left",
-            }
-
-            local val_box = TextBoxWidget:new{
-                text = value_text,
-                face = Font:getFace("cfont", ui_font_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                width = avail_w,
-                alignment = "left",
-            }
-
-            local vg = VerticalGroup:new{
-                align = "left",
-                label_box,
-                VerticalSpan:new{ width = sc(2) },
-                val_box,
-            }
-
-            return FrameContainer:new{
-                bordersize = 0,
-                padding = frame_padding,
-                width = inner_w,
-                vg,
             }
         end
 
         table.insert(content_vg, create_section_header(_("Activation Status")))
 
         if drm_info.activated and drm_info.mode == "bytebooks" and drm_info.email ~= "" then
-            table.insert(content_vg, create_multiline_info_row(_("Current Mode"), drm_info.email))
+            local status_badge = TextWidget:new{
+                text = _("✓ Active"),
+                face = Font:getFace("cfont", theme.subtext_font_size or 14),
+                bold = true,
+                fgcolor = Blitbuffer.COLOR_BLACK,
+            }
+            table.insert(content_vg, create_setting_row(drm_info.email, status_badge, nil))
         else
-            local drm_status_text = drm_info.activated and _("✓ Anonymous Active") or _("Auto-activates on download")
+            local drm_status_text = drm_info.activated and _("✓ Anonymous Active") or _("Auto on download")
             local drm_status_w = TextWidget:new{
                 text = drm_status_text,
                 face = Font:getFace("cfont", theme.subtext_font_size or 14),
-                fgcolor = theme.color_label_dim,
+                bold = drm_info.activated,
+                fgcolor = drm_info.activated and Blitbuffer.COLOR_BLACK or theme.color_label_dim,
             }
-            table.insert(content_vg, create_setting_row(_("Current Mode"), drm_status_w, nil))
+            table.insert(content_vg, create_setting_row(_("Device DRM"), drm_status_w, nil))
         end
 
-        table.insert(content_vg, create_section_header(_("Account & Keys")))
+        table.insert(content_vg, create_section_header(_("Actions")))
 
         if drm_info.mode ~= "bytebooks" or not drm_info.activated then
-            table.insert(content_vg, create_action_row(_("Sign in with ByteBooks ID"), function()
+            table.insert(content_vg, create_setting_row(_("Sign in with ByteBooks ID"), arrow(), function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2542,7 +2419,7 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
                 end)
             end))
         else
-            table.insert(content_vg, create_action_row(_("Switch to Anonymous DRM"), function()
+            table.insert(content_vg, create_setting_row(_("Switch to Anonymous DRM"), arrow(), function()
                 M.showCardDialog{
                     title = _("Switch DRM Mode"),
                     body_text = _("Switch back to anonymous device DRM?\n\nThis will sign out your ByteBooks ID. Subsequent downloads will be single-device only."),
@@ -2565,7 +2442,7 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
         end
 
         if drm_info.activated then
-            table.insert(content_vg, create_action_row(_("Reset DRM Activation Keys"), function()
+            table.insert(content_vg, create_setting_row(_("Reset DRM activation keys"), arrow(), function()
                 M.showCardDialog{
                     title = _("Reset DRM Keys"),
                     body_text = _("Reset saved Adobe / ByteBooks device activation keys?\n\nA fresh activation will be generated automatically on your next download."),
@@ -2604,9 +2481,19 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
             end,
         }
 
+        local back_frame = FrameContainer:new{
+            padding = 0,
+            bordersize = 0,
+            width = inner_w,
+            CenterContainer:new{
+                dimen = Geom:new{ w = inner_w, h = sc(36) },
+                back_btn,
+            }
+        }
+
         local card = FrameContainer:new{
             padding = card_padding,
-            radius = theme.radius_window or sc(4),
+            radius = theme.radius_window or 0,
             bordersize = card_border,
             color = Blitbuffer.COLOR_BLACK,
             background = theme.color_bg or Blitbuffer.COLOR_WHITE,
@@ -2614,13 +2501,13 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
             VerticalGroup:new{
                 align = "left",
                 content_vg,
-                VerticalSpan:new{ width = sc(8) },
+                VerticalSpan:new{ width = sc(10) },
                 LineWidget:new{
                     dimen = Geom:new{ w = inner_w, h = sc(1) },
                     background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
                 },
                 VerticalSpan:new{ width = sc(8) },
-                back_btn,
+                back_frame,
             }
         }
 
@@ -2711,23 +2598,38 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             }
         end
 
-        local function create_action_row(text, callback)
-            local frame_padding = sc(6)
+        local function create_setting_row(left_text, right_widget, callback)
+            local frame_padding = sc(8)
             local avail_w = inner_w - (frame_padding * 2)
+            local right_w = right_widget and ((right_widget.getSize and right_widget:getSize().w) or (right_widget.dimen and right_widget.dimen.w) or sc(40)) or 0
+
+            local max_left_w = avail_w - right_w - sc(8)
+            if max_left_w < sc(60) then max_left_w = sc(60) end
 
             local txt = TextBoxWidget:new{
-                text = text,
+                text = left_text,
                 face = Font:getFace("cfont", ui_font_size),
                 fgcolor = Blitbuffer.COLOR_BLACK,
-                width = avail_w,
+                width = max_left_w,
                 alignment = "left",
             }
+
+            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
+            local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
+
+            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
+            if right_widget then
+                table.insert(row_elements, right_widget)
+            end
 
             local frame = FrameContainer:new{
                 bordersize = 0,
                 padding = frame_padding,
                 width = inner_w,
-                txt,
+                HorizontalGroup:new{
+                    align = "center",
+                    unpack(row_elements),
+                },
             }
 
             if not callback then return frame end
@@ -2758,15 +2660,23 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             return item
         end
 
+        local arrow = function()
+            return TextWidget:new{
+                text = "›",
+                face = Font:getFace("cfont", ui_font_size),
+                fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
+            }
+        end
+
         table.insert(content_vg, create_section_header(_("Updates")))
 
-        table.insert(content_vg, create_action_row(_("Check for updates"), function()
+        table.insert(content_vg, create_setting_row(_("Check for updates"), arrow(), function()
             Updater.checkForUpdates(false)
         end))
 
         table.insert(content_vg, create_section_header(_("Diagnostics & Cache")))
 
-        table.insert(content_vg, create_action_row(_("View debug logs"), function()
+        table.insert(content_vg, create_setting_row(_("View debug logs"), arrow(), function()
             if overlay then
                 UIManager:close(overlay, "ui")
                 overlay = nil
@@ -2774,7 +2684,7 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             M._showDebugLog()
         end))
 
-        table.insert(content_vg, create_action_row(_("Clear local shelf cache"), function()
+        table.insert(content_vg, create_setting_row(_("Clear local shelf cache"), arrow(), function()
             State.clearShelfCache()
             _toast(_("Local shelf cache cleared"), 3)
         end))
@@ -2796,9 +2706,19 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             end,
         }
 
+        local back_frame = FrameContainer:new{
+            padding = 0,
+            bordersize = 0,
+            width = inner_w,
+            CenterContainer:new{
+                dimen = Geom:new{ w = inner_w, h = sc(36) },
+                back_btn,
+            }
+        }
+
         local card = FrameContainer:new{
             padding = card_padding,
-            radius = theme.radius_window or sc(4),
+            radius = theme.radius_window or 0,
             bordersize = card_border,
             color = Blitbuffer.COLOR_BLACK,
             background = theme.color_bg or Blitbuffer.COLOR_WHITE,
@@ -2806,13 +2726,13 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             VerticalGroup:new{
                 align = "left",
                 content_vg,
-                VerticalSpan:new{ width = sc(8) },
+                VerticalSpan:new{ width = sc(10) },
                 LineWidget:new{
                     dimen = Geom:new{ w = inner_w, h = sc(1) },
                     background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
                 },
                 VerticalSpan:new{ width = sc(8) },
-                back_btn,
+                back_frame,
             }
         }
 
