@@ -505,6 +505,69 @@ function M.showCardDialog(opts)
     return overlay
 end
 
+function M.showByteBookDialog()
+    local sw = Screen:getWidth()
+    local ok_qr, QRWidget = pcall(require, "ui/widget/qrwidget")
+    local qr_size = sc(180)
+    local qr_widget = nil
+    if ok_qr and QRWidget then
+        qr_widget = QRWidget:new{
+            text = "https://dtsbytebooks.com/",
+            width = qr_size,
+            height = qr_size,
+        }
+    end
+
+    local body_items = VerticalGroup:new{
+        align = "center",
+    }
+
+    if qr_widget then
+        table.insert(body_items, FrameContainer:new{
+            background = Blitbuffer.COLOR_WHITE,
+            padding = sc(8),
+            bordersize = sc(1),
+            color = Blitbuffer.COLOR_BLACK,
+            qr_widget,
+        })
+        table.insert(body_items, VerticalSpan:new{ width = sc(12) })
+    end
+
+    table.insert(body_items, TextWidget:new{
+        text = "https://dtsbytebooks.com/",
+        face = Font:getFace("cfont", 17),
+        bold = true,
+        fgcolor = Blitbuffer.COLOR_BLACK,
+    })
+
+    table.insert(body_items, VerticalSpan:new{ width = sc(6) })
+
+    table.insert(body_items, TextWidget:new{
+        text = _("Scan with your phone to learn more."),
+        face = Font:getFace("cfont", 14),
+        fgcolor = theme.color_label_dim,
+    })
+
+    local dialog_w = math.min(sw - sc(20), sc(380))
+    local body_container = CenterContainer:new{
+        dimen = Geom:new{ w = dialog_w - sc(36), h = (qr_widget and sc(260) or sc(80)) },
+        body_items,
+    }
+
+    M.showCardDialog{
+        title = _("ByteBooks"),
+        title_align = "center",
+        width = dialog_w,
+        body_widget = body_container,
+        buttons = {
+            {
+                text = _("Done"),
+                is_primary = true,
+            }
+        }
+    }
+end
+
 -- ---------------------------------------------------------------------------
 -- Setup Dialog
 -- ---------------------------------------------------------------------------
@@ -765,19 +828,19 @@ local function _createBadge(text, is_urgent)
     local fg = is_urgent and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK
     local label = TextWidget:new{
         text = text,
-        face = Font:getFace("smallinfofont", 12),
+        face = Font:getFace("cfont", 15),
         bold = is_urgent,
         fgcolor = fg,
     }
     return FrameContainer:new{
         padding_top = sc(3),
         padding_bottom = sc(3),
-        padding_left = sc(6),
-        padding_right = sc(6),
+        padding_left = sc(8),
+        padding_right = sc(8),
         bordersize = is_urgent and 0 or sc(1),
         color = Blitbuffer.COLOR_BLACK,
         background = bg,
-        radius = theme.radius_badge or sc(8),
+        radius = theme.radius_badge or sc(10),
         label,
     }
 end
@@ -829,11 +892,24 @@ function M.showShelfBrowser(plugin_dir)
         local sh = Screen:getHeight()
         local view_mode = State.getViewMode() -- "list" or "cover"
 
-        -- Sort by days remaining (soonest first)
+        -- Sort loans deterministically:
+        -- 1. Days remaining (soonest first)
+        -- 2. Title (alphabetical case-insensitive)
+        -- 3. Unique ID / reserveId as tiebreaker
         table.sort(loans or {}, function(a, b)
             local da = a.days_remaining or 999
             local db = b.days_remaining or 999
-            return da < db
+            if da ~= db then
+                return da < db
+            end
+            local ta = tostring(a.title or ""):lower()
+            local tb = tostring(b.title or ""):lower()
+            if ta ~= tb then
+                return ta < tb
+            end
+            local ia = tostring(a.id or a.reserveId or "")
+            local ib = tostring(b.id or b.reserveId or "")
+            return ia < ib
         end)
 
         local lib_name = State.getLibraryName() or "Libby"
@@ -853,6 +929,9 @@ function M.showShelfBrowser(plugin_dir)
             end
             table.insert(libs_map[l_name], loan)
         end
+        table.sort(lib_order, function(a, b)
+            return tostring(a):lower() < tostring(b):lower()
+        end)
 
         -- Flatten loans for pagination (keeps library grouping info)
         local flat_items = {}
@@ -868,13 +947,16 @@ function M.showShelfBrowser(plugin_dir)
             end
         end
 
-        -- Header Action Buttons using Feather SVGs (Storefront style)
+        -- Header Action Buttons using Feather SVGs (Storefront style, stroke-width 1.5)
+        local btn_size = sc(22)
+        local btn_pad = sc(6)
+
         local view_toggle_icon = (view_mode == "cover") and "list.svg" or "grid.svg"
         local view_toggle_btn = createIconButton{
             icon = view_toggle_icon,
-            size = sc(22),
-            padding = sc(6),
-            padding_h = sc(6),
+            size = btn_size,
+            padding = btn_pad,
+            padding_h = btn_pad,
             callback = function()
                 local next_mode = (view_mode == "cover") and "list" or "cover"
                 State.saveViewMode(next_mode)
@@ -885,9 +967,9 @@ function M.showShelfBrowser(plugin_dir)
 
         local refresh_btn = createIconButton{
             icon = "refresh-cw.svg",
-            size = sc(20),
-            padding = sc(6),
-            padding_h = sc(6),
+            size = btn_size,
+            padding = btn_pad,
+            padding_h = btn_pad,
             callback = function()
                 State.clearShelfCache()
                 _runAsync(
@@ -910,9 +992,9 @@ function M.showShelfBrowser(plugin_dir)
 
         local menu_btn = createIconButton{
             icon = "settings.svg",
-            size = sc(22),
-            padding = sc(6),
-            padding_h = sc(6),
+            size = btn_size,
+            padding = btn_pad,
+            padding_h = btn_pad,
             callback = function()
                 M.showAbout(plugin_dir)
             end,
@@ -920,9 +1002,9 @@ function M.showShelfBrowser(plugin_dir)
 
         local close_btn = createIconButton{
             icon = "x.svg",
-            size = sc(22),
-            padding = sc(6),
-            padding_h = sc(6),
+            size = btn_size,
+            padding = btn_pad,
+            padding_h = btn_pad,
             callback = function()
                 if active_shelf_overlay then
                     local ov = active_shelf_overlay
@@ -935,11 +1017,11 @@ function M.showShelfBrowser(plugin_dir)
 
         local header_actions = HorizontalGroup:new{
             view_toggle_btn,
-            HorizontalSpan:new{ width = sc(8) },
+            HorizontalSpan:new{ width = sc(6) },
             refresh_btn,
-            HorizontalSpan:new{ width = sc(8) },
+            HorizontalSpan:new{ width = sc(6) },
             menu_btn,
-            HorizontalSpan:new{ width = sc(8) },
+            HorizontalSpan:new{ width = sc(6) },
             close_btn,
         }
 
@@ -980,29 +1062,25 @@ function M.showShelfBrowser(plugin_dir)
 
         local actions_w = header_actions:getSize().w
         local header_avail_w = sw - sc(24)
-        local max_left_w = math.max(sc(100), header_avail_w - actions_w - sc(12))
+
+        local header_top_row = HorizontalGroup:new{
+            header_title,
+            HorizontalSpan:new{ width = math.max(sc(8), header_avail_w - header_title:getSize().w - actions_w) },
+            header_actions,
+        }
 
         local header_sub = TextWidget:new{
             text = sub_text,
-            face = Font:getFace("cfont", 13),
+            face = Font:getFace("cfont", theme.subtext_font_size or 15),
             fgcolor = theme.color_label_dim,
-            max_width = max_left_w,
+            max_width = header_avail_w,
         }
 
-        local header_left = VerticalGroup:new{
+        local header_content = VerticalGroup:new{
             align = "left",
-            header_title,
+            header_top_row,
             VerticalSpan:new{ width = sc(2) },
             header_sub,
-        }
-
-        local header_left_w = header_left:getSize().w
-        local spacer_w = math.max(sc(8), header_avail_w - header_left_w - actions_w)
-
-        local header_row = HorizontalGroup:new{
-            header_left,
-            HorizontalSpan:new{ width = spacer_w },
-            header_actions,
         }
 
         local header_frame = FrameContainer:new{
@@ -1012,7 +1090,7 @@ function M.showShelfBrowser(plugin_dir)
             bordersize = 0,
             background = theme.color_bg or Blitbuffer.COLOR_WHITE,
             width = sw,
-            header_row,
+            header_content,
         }
 
         local header_divider = LineWidget:new{
@@ -1022,7 +1100,7 @@ function M.showShelfBrowser(plugin_dir)
 
         -- Dynamic pagination metrics based on available height
         local header_h = header_frame:getSize().h + sc(2)
-        local footer_h = sc(48)
+        local footer_h = sc(58)
         local top_margin = sc(12)
         local avail_h = sh - header_h - footer_h - top_margin - sc(10)
 
@@ -1044,11 +1122,11 @@ function M.showShelfBrowser(plugin_dir)
         local cover_inner_h = math.floor(cover_inner_w * 1.38)
 
         if view_mode == "cover" then
-            local row_h = cover_inner_h + (border_w * 2) + sc(54) + sc(12)
+            local row_h = cover_inner_h + (border_w * 2) + sc(60) + sc(12)
             local num_rows = math.max(1, math.floor((avail_h + sc(12)) / row_h))
             items_per_page = num_rows * COLS
         else
-            local list_row_h = sc(68)
+            local list_row_h = sc(94)
             items_per_page = math.max(3, math.floor(avail_h / list_row_h))
         end
 
@@ -1065,7 +1143,7 @@ function M.showShelfBrowser(plugin_dir)
         local function create_shelf_section_header(title)
             local label = TextWidget:new{
                 text = title:upper(),
-                face = Font:getFace("cfont", theme.section_header_font_size or 13),
+                face = Font:getFace("cfont", theme.section_header_font_size or 15),
                 bold = true,
                 fgcolor = Blitbuffer.COLOR_BLACK,
             }
@@ -1090,8 +1168,8 @@ function M.showShelfBrowser(plugin_dir)
             local badge_w = _createBadge(days_str, is_urgent)
 
             local badge_reserve = badge_w and (badge_w:getSize().w + sc(8)) or 0
-            local thumb_w_size = sc(38)
-            local thumb_h_size = sc(50)
+            local thumb_w_size = sc(54)
+            local thumb_h_size = sc(76)
             local thumb_reserve = thumb_w_size + sc(10)
             local text_w = content_inner - badge_reserve - thumb_reserve
 
@@ -1102,14 +1180,37 @@ function M.showShelfBrowser(plugin_dir)
             end
             if not thumb_widget then
                 thumb_widget = Covers.createPlaceholderWidget(thumb_w_size, thumb_h_size, nil)
-                UIManager:scheduleIn(loan_idx * 0.2, function()
-                    Covers.fetchCover(loan, nil)
+            end
+
+            local thumb_frame = FrameContainer:new{
+                bordersize = 0,
+                padding = 0,
+                width = thumb_w_size,
+                height = thumb_h_size,
+                thumb_widget,
+            }
+
+            if not cached_cover then
+                UIManager:scheduleIn(loan_idx * 0.1, function()
+                    Covers.fetchCover(loan, function(loaded_path)
+                        if loaded_path and active_shelf_overlay and thumb_frame then
+                            UIManager:nextTick(function()
+                                if active_shelf_overlay and thumb_frame then
+                                    local new_img = Covers.createCoverImageWidget(loaded_path, thumb_w_size, thumb_h_size)
+                                    if new_img then
+                                        thumb_frame[1] = new_img
+                                        UIManager:setDirty(active_shelf_overlay, "ui")
+                                    end
+                                end
+                            end)
+                        end
+                    end)
                 end)
             end
 
             local title_w = TextWidget:new{
                 text = loan.title or _("Unknown Title"),
-                face = Font:getFace("NotoSerif-Regular.ttf", 18),
+                face = Font:getFace("NotoSerif-Regular.ttf", theme.title_font_size or 20),
                 bold = true,
                 fgcolor = Blitbuffer.COLOR_BLACK,
                 max_width = text_w,
@@ -1124,7 +1225,7 @@ function M.showShelfBrowser(plugin_dir)
 
             local meta_w = TextWidget:new{
                 text = meta_str,
-                face = Font:getFace("cfont", 14),
+                face = Font:getFace("cfont", theme.subtext_font_size or 16),
                 fgcolor = theme.color_label_dim,
                 max_width = text_w,
             }
@@ -1137,7 +1238,7 @@ function M.showShelfBrowser(plugin_dir)
             }
 
             local row_left = HorizontalGroup:new{
-                thumb_widget,
+                thumb_frame,
                 HorizontalSpan:new{ width = sc(10) },
                 text_vg,
             }
@@ -1204,17 +1305,6 @@ function M.showShelfBrowser(plugin_dir)
 
                 if not cover_img then
                     cover_img = Covers.createPlaceholderWidget(cover_inner_w, cover_inner_h, loan.title)
-                    UIManager:scheduleIn(global_idx * 0.3, function()
-                        Covers.fetchCover(loan, function(loaded_path)
-                            if loaded_path and active_shelf_overlay then
-                                UIManager:nextTick(function()
-                                    if active_shelf_overlay then
-                                        renderShelf(loans, from_cache)
-                                    end
-                                end)
-                            end
-                        end)
-                    end)
                 end
 
                 local cover_frame = FrameContainer:new{
@@ -1226,9 +1316,27 @@ function M.showShelfBrowser(plugin_dir)
                     cover_img,
                 }
 
+                if not cached_cover then
+                    UIManager:scheduleIn(global_idx * 0.1, function()
+                        Covers.fetchCover(loan, function(loaded_path)
+                            if loaded_path and active_shelf_overlay and cover_frame then
+                                UIManager:nextTick(function()
+                                    if active_shelf_overlay and cover_frame then
+                                        local new_img = Covers.createCoverImageWidget(loaded_path, cover_inner_w, cover_inner_h)
+                                        if new_img then
+                                            cover_frame[1] = new_img
+                                            UIManager:setDirty(active_shelf_overlay, "ui")
+                                        end
+                                    end
+                                end)
+                            end
+                        end)
+                    end)
+                end
+
                 local title_box = TextBoxWidget:new{
                     text = loan.title or _("Unknown Title"),
-                    face = Font:getFace("NotoSerif-Regular.ttf", 12),
+                    face = Font:getFace("NotoSerif-Regular.ttf", 16),
                     bold = true,
                     width = cell_w,
                     alignment = "center",
@@ -1346,7 +1454,7 @@ function M.showShelfBrowser(plugin_dir)
 
         local prev_btn = createButton{
             text = _("‹ Prev"),
-            text_font_size = 14,
+            text_font_size = 16,
             bold = true,
             bordersize = sc(1),
             radius = theme.radius_btn or sc(4),
@@ -1362,7 +1470,7 @@ function M.showShelfBrowser(plugin_dir)
 
         local next_btn = createButton{
             text = _("Next ›"),
-            text_font_size = 14,
+            text_font_size = 16,
             bold = true,
             bordersize = sc(1),
             radius = theme.radius_btn or sc(4),
@@ -1378,7 +1486,7 @@ function M.showShelfBrowser(plugin_dir)
 
         local page_label = TextWidget:new{
             text = string.format("%d / %d", current_page, total_pages),
-            face = Font:getFace("cfont", 14),
+            face = Font:getFace("cfont", 16),
             fgcolor = theme.color_label_dim,
         }
 
@@ -1397,13 +1505,16 @@ function M.showShelfBrowser(plugin_dir)
         }
 
         local footer_frame = FrameContainer:new{
-            padding = sc(6),
+            padding_top = sc(4),
+            padding_bottom = sc(14),
+            padding_left = sc(10),
+            padding_right = sc(10),
             bordersize = 0,
             background = theme.color_bg or Blitbuffer.COLOR_WHITE,
             width = sw,
             height = footer_h,
             CenterContainer:new{
-                dimen = Geom:new{ w = sw - sc(20), h = footer_h - sc(12) },
+                dimen = Geom:new{ w = sw - sc(20), h = footer_h - sc(18) },
                 footer_widgets,
             }
         }
@@ -1697,6 +1808,25 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
                             callback = function()
                                 -- Shelf remains open
                             end,
+                        }
+                    }
+                }
+            elseif err == "ALREADY_FULFILLED" or (type(final_book_path) == "string" and final_book_path == "ALREADY_FULFILLED") then
+                local sw = Screen:getWidth()
+                M.showCardDialog{
+                    title = _("Already Fulfilled on Another Device"),
+                    width = math.min(sw - sc(20), sc(460)),
+                    body_text = _("This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."),
+                    buttons = {
+                        {
+                            text = _("About ByteBooks"),
+                            is_primary = true,
+                            callback = function()
+                                M.showByteBookDialog()
+                            end,
+                        },
+                        {
+                            text = _("Done"),
                         }
                     }
                 }
@@ -2966,6 +3096,7 @@ function M.showAbout(plugin_dir, on_close_cb)
                     LibbeeFolderPicker.show{
                         title = _("Select Download Folder"),
                         initial_path = State.getDownloadDir(plugin_dir),
+                        fallback_path = G_reader_settings and G_reader_settings:readSetting("home_dir"),
                         on_confirm = function(chosen_path)
                             if chosen_path and chosen_path ~= "" then
                                 State.setCustomDownloadDir(chosen_path)

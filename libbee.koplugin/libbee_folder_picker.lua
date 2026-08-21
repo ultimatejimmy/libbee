@@ -237,8 +237,21 @@ function LibbeeFolderPicker.show(options)
     if lfs and lfs.attributes then
         local ok_attr, attr = pcall(lfs.attributes, current_path)
         if not ok_attr or not attr or attr.mode ~= "directory" then
-            local ok_ds, DataStorage = pcall(require, "datastorage")
-            current_path = (ok_ds and DataStorage and DataStorage.getDataDir and DataStorage:getDataDir()) or "/"
+            -- Try fallback_path (e.g. the user's configured home folder) before datastore
+            local fallback = options.fallback_path
+            if fallback and fallback ~= "" then
+                fallback = tostring(fallback):match("^%s*(.-)%s*$"):gsub("[/\\]+$", "")
+                local ok_fb, fb_attr = pcall(lfs.attributes, fallback)
+                if ok_fb and fb_attr and fb_attr.mode == "directory" then
+                    current_path = fallback
+                else
+                    local ok_ds, DataStorage = pcall(require, "datastorage")
+                    current_path = (ok_ds and DataStorage and DataStorage.getDataDir and DataStorage:getDataDir()) or "/"
+                end
+            else
+                local ok_ds, DataStorage = pcall(require, "datastorage")
+                current_path = (ok_ds and DataStorage and DataStorage.getDataDir and DataStorage:getDataDir()) or "/"
+            end
         end
     end
 

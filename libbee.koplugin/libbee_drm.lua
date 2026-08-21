@@ -286,6 +286,9 @@ function M.fulfillAcsm(acsm_path, output_path)
     end
 
     if not result then
+        if err and err:find("E_LIC_ALREADY_FULFILLED_BY_ANOTHER_USER") then
+            return nil, "ALREADY_FULFILLED"
+        end
         log.err("libbee_drm: fulfillment failed: " .. tostring(err))
         return nil, err or "Fulfillment failed"
     end

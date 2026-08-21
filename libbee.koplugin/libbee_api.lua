@@ -667,7 +667,7 @@ function M.getDefaultDownloadDir()
             local lfs_ok, lfs = pcall(require, "libs/libkoreader-lfs")
             if not lfs_ok then lfs_ok, lfs = pcall(require, "lfs") end
             if lfs_ok and lfs and lfs.attributes(home_dir, "mode") == "directory" then
-                return home_dir .. "/Libby"
+                return home_dir .. "/ Libby"
             end
         end
     end
@@ -683,7 +683,7 @@ function M.getDefaultDownloadDir()
                 local lfs_ok, lfs = pcall(require, "libs/libkoreader-lfs")
                 if not lfs_ok then lfs_ok, lfs = pcall(require, "lfs") end
                 if lfs_ok and lfs and lfs.attributes(path, "mode") == "directory" then
-                    return path .. "/Libby"
+                    return path .. "/ Libby"
                 end
             end
         end
@@ -700,11 +700,11 @@ function M.getDefaultDownloadDir()
     if not lfs_ok then lfs_ok, lfs = pcall(require, "lfs") end
     for _, path in ipairs(candidates) do
         if lfs_ok and lfs and lfs.attributes(path, "mode") == "directory" then
-            return path .. "/Libby"
+            return path .. "/ Libby"
         end
     end
 
-    return "/tmp/Libby"
+    return "/tmp/ Libby"
 end
 
 function M.ensureDownloadDir(dir)

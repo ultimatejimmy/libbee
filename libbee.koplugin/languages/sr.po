@@ -957,3 +957,30 @@ msgstr "✗ Није повезано"
 # en-hash: c54dcc922cf18f2a1a36311c1ea2da35
 msgid "Libbee: Open"
 msgstr "Libbee: Отвори"
+
+msgid "Already Fulfilled on Another Device"
+msgstr ""
+
+msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
+msgstr ""
+
+msgid "Learn about ByteBook"
+msgstr ""
+
+msgid "About ByteBook"
+msgstr ""
+
+msgid "ByteBook"
+msgstr ""
+
+msgid "Scan with your phone to learn more."
+msgstr ""
+
+msgid "ByteBooks"
+msgstr ""
+
+msgid "About ByteBooks"
+msgstr ""
+
+msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
+msgstr ""

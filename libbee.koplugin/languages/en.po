@@ -731,3 +731,30 @@ msgstr "✓ Libbee Connected!"
 msgid "✗ Not Connected"
 msgstr "✗ Not Connected"
 
+
+msgid "Already Fulfilled on Another Device"
+msgstr "Already Fulfilled on Another Device"
+
+msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
+msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
+
+msgid "Learn about ByteBook"
+msgstr "Learn about ByteBook"
+
+msgid "About ByteBook"
+msgstr "About ByteBook"
+
+msgid "ByteBook"
+msgstr "ByteBook"
+
+msgid "Scan with your phone to learn more."
+msgstr "Scan with your phone to learn more."
+
+msgid "ByteBooks"
+msgstr "ByteBooks"
+
+msgid "About ByteBooks"
+msgstr "About ByteBooks"
+
+msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
+msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
