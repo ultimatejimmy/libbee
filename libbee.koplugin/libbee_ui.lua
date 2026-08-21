@@ -1636,40 +1636,35 @@ function M.showShelfBrowser(plugin_dir)
     pcall(Covers.cleanupExpiredCovers, cached_shelf or {})
     renderShelf(cached_shelf or {}, true)
 
+    local is_syncing = false
     local function doBackgroundSync()
-        _runAsyncSilent(
-            function() return API.fetchShelf() end,
-            function(result, err)
-                if type(result) == "table" then
-                    State.saveShelfCache(result)
-                    pcall(Covers.cleanupExpiredCovers, result)
-                    if active_shelf_overlay then
-                        renderShelf(result, false)
-                    end
-                elseif err == "AUTH_EXPIRED" or result == "AUTH_EXPIRED" then
+        if is_syncing then return end
+        is_syncing = true
+        UIManager:scheduleIn(0.5, function()
+            local ok, result, err = pcall(function()
+                return API.fetchShelf()
+            end)
+            is_syncing = false
+            if ok and type(result) == "table" then
+                State.saveShelfCache(result)
+                pcall(Covers.cleanupExpiredCovers, result)
+                if active_shelf_overlay then
+                    renderShelf(result, false)
+                end
+            elseif ok and (result == "AUTH_EXPIRED" or err == "AUTH_EXPIRED") then
+                if active_shelf_overlay then
                     M._handleAuthExpired(plugin_dir)
                 end
             end
-        )
+        end)
     end
 
+    -- Trigger automatic background refresh
+    doBackgroundSync()
+
+    -- Also listen for online status if network connects while shelf is open
     local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
-    local is_online = false
-    if ok_nm and NetworkMgr then
-        if type(NetworkMgr.isOnline) == "function" then
-            is_online = NetworkMgr:isOnline()
-        elseif type(NetworkMgr.isWifiOn) == "function" then
-            is_online = NetworkMgr:isWifiOn()
-        elseif type(NetworkMgr.isConnected) == "function" then
-            is_online = NetworkMgr:isConnected()
-        end
-    else
-        is_online = true
-    end
-
-    if is_online then
-        UIManager:scheduleIn(0.5, doBackgroundSync)
-    elseif ok_nm and NetworkMgr and type(NetworkMgr.runWhenOnline) == "function" then
+    if ok_nm and NetworkMgr and type(NetworkMgr.runWhenOnline) == "function" then
         NetworkMgr:runWhenOnline(function()
             if active_shelf_overlay then
                 doBackgroundSync()
@@ -1682,57 +1677,82 @@ end
 -- Download Flow (Keeps plugin open)
 -- ---------------------------------------------------------------------------
 
+function M.findExistingBook(loan, base_dir)
+    if not loan then return nil end
+    local title = loan.title or ""
+    if title == "" then return nil end
+
+    local naming = require("adobe.util.naming")
+    local safe_title = naming.sanitizeTitle(title) or title:gsub('[/\\:*?"<>|]', " "):gsub("%s+", " "):match("^%s*(.-)%s*$")
+    local underscore_title = title:gsub('[/\\:*?"<>|]', "_"):gsub("%s+", "_")
+
+    local candidates = {
+        base_dir .. "/" .. safe_title .. ".epub",
+        base_dir .. "/" .. safe_title .. ".pdf",
+        base_dir .. "/" .. underscore_title .. ".epub",
+        base_dir .. "/" .. underscore_title .. ".pdf",
+    }
+    for i = 1, 10 do
+        table.insert(candidates, base_dir .. "/" .. safe_title .. " (" .. i .. ").epub")
+        table.insert(candidates, base_dir .. "/" .. safe_title .. " (" .. i .. ").pdf")
+        table.insert(candidates, base_dir .. "/" .. underscore_title .. " (" .. i .. ").epub")
+        table.insert(candidates, base_dir .. "/" .. underscore_title .. " (" .. i .. ").pdf")
+    end
+
+    for _, p in ipairs(candidates) do
+        local f = io.open(p, "rb")
+        if f then
+            local size = f:seek("end") or 0
+            f:close()
+            if size > 0 then
+                return p
+            end
+        end
+    end
+
+    -- Also check directory listing for fuzzy match in base_dir
+    local ok_lfs, lfs = pcall(require, "libs/libkoreader-lfs")
+    if not ok_lfs then ok_lfs, lfs = pcall(require, "lfs") end
+    if ok_lfs and lfs and lfs.dir then
+        local safe_lower = safe_title:lower()
+        local ok_iter, iter = pcall(lfs.dir, base_dir)
+        if ok_iter and iter then
+            for entry in iter do
+                if entry ~= "." and entry ~= ".." then
+                    local lower = entry:lower()
+                    if (lower:sub(-5) == ".epub" or lower:sub(-4) == ".pdf") then
+                        local entry_name = lower:gsub("%.epub$", ""):gsub("%.pdf$", ""):gsub("%s*%(%d+%)%s*$", "")
+                        if entry_name == safe_lower or entry_name:gsub("_", " ") == safe_lower or safe_lower:find(entry_name, 1, true) then
+                            local full_path = base_dir .. "/" .. entry
+                            local f = io.open(full_path, "rb")
+                            if f then
+                                local size = f:seek("end") or 0
+                                f:close()
+                                if size > 0 then
+                                    return full_path
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return nil
+end
+
 function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
     local API = require(plugin_path .. "libbee_api")
     local State = require(plugin_path .. "libbee_state")
 
     local base_dir = State.getDownloadDir(plugin_dir)
     local dest_path = API.getAcsmPath(base_dir, loan)
-    local epub_path = dest_path:gsub("%.[Aa][Cc][Ss][Mm]$", ".epub")
-    local pdf_path  = dest_path:gsub("%.[Aa][Cc][Ss][Mm]$", ".pdf")
 
-    local existing_book = nil
-    local f = io.open(epub_path, "r")
-    if f then f:close() existing_book = epub_path end
-    if not existing_book then
-        f = io.open(pdf_path, "r")
-        if f then f:close() existing_book = pdf_path end
-    end
-    if not existing_book then
-        f = io.open(dest_path, "r")
-        if f then f:close() existing_book = dest_path end
-    end
-
+    local existing_book = M.findExistingBook(loan, base_dir)
     if existing_book then
-        -- If an .epub/.pdf exists, clean up any leftover .acsm
-        if existing_book ~= dest_path and existing_book:find("%.acsm$", 1, true) == nil then
-            pcall(os.remove, dest_path)
-        end
-        M.showCardDialog{
-            title = _("Book Already Downloaded"),
-            body_text = _('"%s" is already downloaded:\n\n%s\n\nOpen it now?', loan.title or _("Book"), existing_book),
-            buttons = {
-                {
-                    text = _("Open Book"),
-                    is_primary = true,
-                    callback = function()
-                        local ok_u, UIManager = pcall(require, "ui/uimanager")
-                        local ok_r, ReaderUI = pcall(require, "apps/reader/readerui")
-                        if ok_u and ok_r and ReaderUI and ReaderUI.showReader then
-                            ReaderUI:showReader(existing_book)
-                        end
-                    end,
-                },
-                {
-                    text = _("Redownload"),
-                    callback = function()
-                        pcall(os.remove, existing_book)
-                        M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
-                    end,
-                },
-                { text = _("Cancel") }
-            }
-        }
+        _toast(string.format(_("Opening \"%s\"…"), loan.title or _("book")), 2)
+        M._openBook(existing_book)
         return
     end
 
@@ -1876,6 +1896,13 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
 end
 
 function M._openBook(path)
+    if active_shelf_overlay then
+        local ov = active_shelf_overlay
+        active_shelf_overlay = nil
+        ov.onClose = nil
+        UIManager:close(ov, "ui")
+    end
+
     local ok_fm, FileManager = pcall(require, "apps/filemanager/filemanager")
     local ok_r, ReaderUI = pcall(require, "apps/reader/readerui")
     local ui = (ok_fm and FileManager and FileManager.instance) or

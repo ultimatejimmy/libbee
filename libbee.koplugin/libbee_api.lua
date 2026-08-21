@@ -652,11 +652,13 @@ end
 -- ---------------------------------------------------------------------------
 
 function M.getAcsmPath(base_dir, loan)
-    local title = (loan.title or "download"):gsub('[/\\:*?"<>|]', "_"):gsub("%s+", "_")
-    if #title > 60 then title = title:sub(1, 60) end
+    local naming = require("adobe.util.naming")
+    local title = (loan and loan.title) or "download"
+    local safe_title = naming.sanitizeTitle(title) or title:gsub('[/\\:*?"<>|]', "_"):gsub("%s+", "_")
+    if #safe_title > 60 then safe_title = safe_title:sub(1, 60) end
     local ext = ".acsm"
-    if loan.format == "ebook-epub-open" then ext = ".epub" end
-    return base_dir .. "/" .. title .. ext
+    if loan and loan.format == "ebook-epub-open" then ext = ".epub" end
+    return base_dir .. "/" .. safe_title .. ext
 end
 
 function M.getDefaultDownloadDir()
