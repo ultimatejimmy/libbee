@@ -105,6 +105,8 @@ end
 -- Custom Libbee Toast / Progress Widget (Storefront Card Theme)
 -- ---------------------------------------------------------------------------
 
+local _active_toast = nil
+
 local LibbeeToastWidget = InputContainer:extend{
     text = "",
     timeout = 3,
@@ -142,9 +144,9 @@ function LibbeeToastWidget:init()
     }
 
     local card = FrameContainer:new{
-        padding = sc(14),
-        padding_left = sc(18),
-        padding_right = sc(18),
+        padding = sc(12),
+        padding_left = sc(16),
+        padding_right = sc(16),
         radius = theme.radius_toast or theme.radius_window or sc(4),
         bordersize = theme.border_window or sc(2),
         color = Blitbuffer.COLOR_BLACK,
@@ -154,9 +156,15 @@ function LibbeeToastWidget:init()
 
     self.dimen = Geom:new{ w = sw, h = sh }
 
-    self[1] = CenterContainer:new{
-        dimen = Geom:new{ w = sw, h = sh },
+    local toast_vg = VerticalGroup:new{
+        align = "center",
         card,
+        VerticalSpan:new{ width = sc(30) },
+    }
+
+    self[1] = BottomContainer:new{
+        dimen = Geom:new{ w = sw, h = sh },
+        toast_vg,
     }
 
     if self.dismissable ~= false then
@@ -208,7 +216,18 @@ function LibbeeToastWidget:close()
         UIManager:unschedule(self._timer)
         self._timer = nil
     end
+    if _active_toast == self then
+        _active_toast = nil
+    end
     UIManager:close(self, "ui")
+end
+
+local function _dismissActiveToast()
+    if _active_toast then
+        local t = _active_toast
+        _active_toast = nil
+        t:close()
+    end
 end
 
 function LibbeeToastWidget:setText(text)
@@ -220,6 +239,7 @@ function LibbeeToastWidget:setText(text)
 end
 
 local function _toast(msg, timeout, opts)
+    _dismissActiveToast()
     opts = opts or {}
     local dismissable = true
     if opts.dismissable == false then
@@ -230,6 +250,7 @@ local function _toast(msg, timeout, opts)
         timeout = timeout or 3,
         dismissable = dismissable,
     }
+    _active_toast = toast
     UIManager:show(toast, "ui")
     return toast
 end
@@ -382,6 +403,7 @@ end
 -- ---------------------------------------------------------------------------
 
 function M.showCardDialog(opts)
+    _dismissActiveToast()
     opts = opts or {}
     local sw = Screen:getWidth()
     local sh = Screen:getHeight()
@@ -1702,6 +1724,19 @@ function M.showShelfBrowser(plugin_dir)
                 if #result > 0 then
                     pcall(Covers.cleanupExpiredCovers, result)
                 end
+                if State.getAutoDeleteExpired and State.getAutoDeleteExpired() then
+                    local ok_ac, AutoClean = pcall(require, plugin_path .. "libbee_autoclean")
+                    if ok_ac and AutoClean and AutoClean.checkAndCleanup then
+                        local clean_res = AutoClean.checkAndCleanup(result, { is_live_sync = true })
+                        if clean_res and clean_res.deleted_count and clean_res.deleted_count > 0 then
+                            if clean_res.deleted_count == 1 and clean_res.deleted_titles and clean_res.deleted_titles[1] then
+                                _toast(string.format(_("Auto-deleted \"%s\" (loan ended)."), clean_res.deleted_titles[1]), 4)
+                            else
+                                _toast(string.format(_("Auto-deleted %d expired/returned loan(s)."), clean_res.deleted_count), 4)
+                            end
+                        end
+                    end
+                end
                 if active_shelf_overlay then
                     if not loansEqual(current_rendered_loans, result) or #current_rendered_loans == 0 then
                         current_rendered_loans = result
@@ -1986,6 +2021,9 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
             if type(final_book_path) == "string" and final_book_path ~= "" then
                 local State = require(plugin_path .. "libbee_state")
                 State.clearShelfCache()
+                if State.registerDownload then
+                    State.registerDownload(loan, final_book_path)
+                end
 
                 if after_download_fn then after_download_fn() end
 
@@ -3130,6 +3168,7 @@ end
 -- ---------------------------------------------------------------------------
 
 function M.showAbout(plugin_dir, on_close_cb)
+    _dismissActiveToast()
     plugin_dir = plugin_dir or ""
     local State     = require(plugin_path .. "libbee_state")
     local LibbeeDRM = require(plugin_path .. "libbee_drm")
@@ -3371,10 +3410,25 @@ function M.showAbout(plugin_dir, on_close_cb)
             }
             table.insert(content_vg, create_setting_row(_("Reset to Default"), reset_right, function()
                 State.resetCustomDownloadDir()
-                _toast(_("Reset to default download folder"), 2)
                 refresh()
             end))
         end
+
+        local auto_del_enabled = State.getAutoDeleteExpired and State.getAutoDeleteExpired()
+        local auto_del_status = auto_del_enabled and _("Enabled ›") or _("Disabled ›")
+        local auto_del_right = TextWidget:new{
+            text = auto_del_status,
+            face = Font:getFace("cfont", theme.subtext_font_size or 14),
+            bold = auto_del_enabled,
+            fgcolor = auto_del_enabled and Blitbuffer.COLOR_BLACK or theme.color_label_dim,
+        }
+        table.insert(content_vg, create_setting_row(_("Auto-delete Expired"), auto_del_right, function()
+            local new_val = not auto_del_enabled
+            if State.setAutoDeleteExpired then
+                State.setAutoDeleteExpired(new_val)
+            end
+            refresh()
+        end))
 
         -- SECTION 4: SYSTEM
         table.insert(content_vg, create_section_header(_("System")))

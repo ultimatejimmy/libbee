@@ -98,6 +98,16 @@ function LibbeePlugin:init()
         end
     end
 
+    -- Silent startup cleanup for expired loans (15 seconds after reader ready)
+    if not LibbeePlugin._startup_clean_done then
+        LibbeePlugin._startup_clean_done = true
+        if ok_ui then
+            UIManager:scheduleIn(15, function()
+                self:_startupExpiredCleanup()
+            end)
+        end
+    end
+
     logger.info("libbee: initialized")
 end
 
@@ -216,6 +226,21 @@ function LibbeePlugin:_weeklyUpdateCheck()
             Updater.checkSilentForUpdates(false)
         end
     end
+end
+
+function LibbeePlugin:_startupExpiredCleanup()
+    local ok_state, State = pcall(require, plugin_path .. "libbee_state")
+    if not ok_state or not State or not State.getAutoDeleteExpired or not State.getAutoDeleteExpired() then
+        return
+    end
+
+    local ok_ac, AutoClean = pcall(require, plugin_path .. "libbee_autoclean")
+    if not ok_ac or not AutoClean or not AutoClean.checkAndCleanup then
+        return
+    end
+
+    local cached_shelf = State.getShelfCache and State.getShelfCache(true)
+    AutoClean.checkAndCleanup(cached_shelf, { is_live_sync = false })
 end
 
 -- ---------------------------------------------------------------------------

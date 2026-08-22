@@ -347,6 +347,10 @@ local FALLBACKS = {
     msg_restart_prompt = "Update installed. Restart KOReader now?",
     msg_no_loans = "No loans currently on your shelf.",
     msg_no_holds = "No holds currently placed.",
+    msg_auto_delete_single = "Auto-deleted \"%s\" (loan ended).",
+    msg_auto_delete_multiple = "Auto-deleted %d expired/returned loan(s).",
+    setting_auto_delete = "Auto-delete Expired",
+    setting_auto_delete_desc = "Auto-delete enabled (removes loans 1 day after due date)",
     progress_please_wait = "Please wait...",
 
     -- Format Restrictions & Badges

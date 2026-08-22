@@ -229,6 +229,83 @@ function M.saveViewMode(view_mode)
 end
 
 -- ---------------------------------------------------------------------------
+-- Auto-Delete Expired Loans Settings & Download Tracking Registry
+-- ---------------------------------------------------------------------------
+
+function M.getAutoDeleteExpired()
+    local data = _readJson(_statePath())
+    if data and data.auto_delete_expired ~= nil then
+        return data.auto_delete_expired == true
+    end
+    return true -- default enabled
+end
+
+function M.setAutoDeleteExpired(enabled)
+    local data = _readJson(_statePath()) or {}
+    data.auto_delete_expired = (enabled == true)
+    local ok = _writeJson(_statePath(), data)
+    if ok then
+        logger.info("libbee state: auto_delete_expired set to " .. tostring(data.auto_delete_expired))
+    end
+    return ok
+end
+
+function M.getDownloadRegistry()
+    local data = _readJson(_statePath())
+    if data and type(data.downloaded_books) == "table" then
+        return data.downloaded_books
+    end
+    return {}
+end
+
+function M.getTrackedDownload(loan_id)
+    if not loan_id then return nil end
+    local registry = M.getDownloadRegistry()
+    return registry[tostring(loan_id)]
+end
+
+function M.registerDownload(loan, file_path)
+    if type(loan) ~= "table" or not file_path or file_path == "" then
+        return false
+    end
+    local loan_id = tostring(loan.id or loan.loanId or loan.reserveId or "")
+    if loan_id == "" then
+        return false
+    end
+    local data = _readJson(_statePath()) or {}
+    data.downloaded_books = data.downloaded_books or {}
+    data.downloaded_books[loan_id] = {
+        loan_id       = loan_id,
+        reserve_id    = loan.reserveId and tostring(loan.reserveId) or nil,
+        title         = loan.title or "",
+        author        = loan.author or "",
+        path          = file_path,
+        expires       = loan.expires or loan.expireDate or loan.expireTimestamp,
+        downloaded_at = os.time(),
+    }
+    local ok = _writeJson(_statePath(), data)
+    if ok then
+        logger.info("libbee state: registered download tracking for loan " .. loan_id .. " (" .. tostring(loan.title) .. ")")
+    end
+    return ok
+end
+
+function M.unregisterDownload(loan_id)
+    if not loan_id then return false end
+    local id_str = tostring(loan_id)
+    local data = _readJson(_statePath()) or {}
+    if data.downloaded_books and data.downloaded_books[id_str] then
+        data.downloaded_books[id_str] = nil
+        local ok = _writeJson(_statePath(), data)
+        if ok then
+            logger.info("libbee state: unregistered download tracking for loan " .. id_str)
+        end
+        return ok
+    end
+    return false
+end
+
+-- ---------------------------------------------------------------------------
 -- Download Directory Settings
 -- ---------------------------------------------------------------------------
 

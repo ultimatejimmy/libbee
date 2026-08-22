@@ -150,3 +150,45 @@ describe("libbee_state shelf cache and 7-day TTL", function()
     end)
 end)
 
+describe("libbee_state auto-delete and download registry", function()
+    it("defaults auto-delete to enabled", function()
+        -- Reset setting
+        State.setAutoDeleteExpired(true)
+        assert.is_true(State.getAutoDeleteExpired())
+    end)
+
+    it("toggles auto-delete setting", function()
+        State.setAutoDeleteExpired(false)
+        assert.is_false(State.getAutoDeleteExpired())
+        State.setAutoDeleteExpired(true)
+        assert.is_true(State.getAutoDeleteExpired())
+    end)
+
+    it("registers, retrieves, and unregisters downloaded books", function()
+        local loan = {
+            id = "loan-101",
+            reserveId = "reserve-abc",
+            title = "Pride and Prejudice",
+            author = "Jane Austen",
+            expires = "2026-09-01",
+        }
+        local file_path = "/tmp/Libby/Pride and Prejudice.epub"
+
+        assert.is_true(State.registerDownload(loan, file_path))
+
+        local reg = State.getDownloadRegistry()
+        assert.is_table(reg)
+        assert.is_not_nil(reg["loan-101"])
+        assert.are_equal("Pride and Prejudice", reg["loan-101"].title)
+        assert.are_equal(file_path, reg["loan-101"].path)
+        assert.are_equal("2026-09-01", reg["loan-101"].expires)
+
+        local tracked = State.getTrackedDownload("loan-101")
+        assert.is_not_nil(tracked)
+        assert.are_equal(file_path, tracked.path)
+
+        assert.is_true(State.unregisterDownload("loan-101"))
+        assert.is_nil(State.getTrackedDownload("loan-101"))
+    end)
+end)
+
