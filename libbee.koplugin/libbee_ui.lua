@@ -2184,35 +2184,51 @@ end
 -- About & Debug Log
 -- ---------------------------------------------------------------------------
 
-function M._showDebugLog()
+function M._showDebugLog(max_lines)
+    max_lines = max_lines or 100
     local path = log.path()
     local fh = io.open(path, "r")
     local content = nil
     if fh then
-        fh:seek("end")
-        local size = fh:seek()
-        local offset = math.max(0, size - 3072)
+        local size = fh:seek("end") or 0
+        local read_bytes = math.min(size, 16384)
+        local offset = math.max(0, size - read_bytes)
         fh:seek("set", offset)
         local raw_content = fh:read("*a")
         fh:close()
         if raw_content and raw_content ~= "" then
-            if offset > 0 then
-                content = "... (truncated)\n" .. raw_content
+            local lines = {}
+            for line in raw_content:gmatch("([^\r\n]*)\r?\n?") do
+                if line ~= "" then
+                    table.insert(lines, line)
+                end
+            end
+            if #lines > max_lines then
+                local tail_lines = {}
+                for i = #lines - max_lines + 1, #lines do
+                    table.insert(tail_lines, lines[i])
+                end
+                content = _("... [showing last %d log entries] ...\n", max_lines) .. table.concat(tail_lines, "\n")
+            elseif offset > 0 then
+                content = _("... [showing last %d log entries] ...\n", #lines) .. table.concat(lines, "\n")
             else
-                content = raw_content
+                content = table.concat(lines, "\n")
             end
         end
     end
 
-    if not content then
+    if not content or content == "" then
         content = _("No log file found yet at:\n%s", path)
     end
 
-    M.showCardDialog{
+    local TextViewer = require("ui/widget/textviewer")
+    local viewer = TextViewer:new{
         title = _("Libbee Debug Log"),
-        body_text = content,
-        buttons = { { text = _("Close"), is_primary = true } }
+        text = content,
+        text_type = "code",
     }
+    UIManager:show(viewer)
+    return viewer
 end
 
 -- ---------------------------------------------------------------------------
