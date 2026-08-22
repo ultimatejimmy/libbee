@@ -74,8 +74,11 @@ describe("libbee_ui", function()
         assert.is_table(viewer)
         assert.are_equal("TextViewer", viewer.type)
         assert.are_equal("code", viewer.args.text_type)
-        assert.is_true(viewer.args.text:find("Log line number 150") ~= nil)
-        assert.is_true(viewer.args.text:find("Log line number 101") ~= nil)
+        local pos_150 = viewer.args.text:find("Log line number 150")
+        local pos_101 = viewer.args.text:find("Log line number 101")
+        assert.is_not_nil(pos_150)
+        assert.is_not_nil(pos_101)
+        assert.is_true(pos_150 < pos_101) -- newest entry appears before older entry
         assert.is_nil(viewer.args.text:find("Log line number 10\n"))
     end)
 

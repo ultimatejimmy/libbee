@@ -149,7 +149,19 @@ package.loaded["ui/widget/confirmbox"] = {
     new = function(a, b) return { type = "ConfirmBox", args = b or a } end
 }
 package.loaded["ui/widget/textviewer"] = {
-    new = function(a, b) return { type = "TextViewer", args = b or a } end
+    new = function(a, b)
+        local args = b or a or {}
+        return {
+            type = "TextViewer",
+            args = args,
+            scroll_text_w = {
+                scrolled_to_bottom = false,
+                scrollToBottom = function(self)
+                    self.scrolled_to_bottom = true
+                end,
+            },
+        }
+    end
 }
 package.loaded["ui/widget/menu"] = {
     new = function(a, b) return { type = "Menu", args = b or a } end

@@ -2198,21 +2198,17 @@ function M._showDebugLog(max_lines)
         fh:close()
         if raw_content and raw_content ~= "" then
             local lines = {}
-            for line in raw_content:gmatch("([^\r\n]*)\r?\n?") do
-                if line ~= "" then
-                    table.insert(lines, line)
-                end
+            for line in raw_content:gmatch("([^\r\n]+)") do
+                table.insert(lines, line)
             end
-            if #lines > max_lines then
-                local tail_lines = {}
-                for i = #lines - max_lines + 1, #lines do
-                    table.insert(tail_lines, lines[i])
+            if #lines > 0 then
+                local start_idx = math.max(1, #lines - max_lines + 1)
+                local reversed_lines = {}
+                for i = #lines, start_idx, -1 do
+                    table.insert(reversed_lines, lines[i])
                 end
-                content = _("... [showing last %d log entries] ...\n", max_lines) .. table.concat(tail_lines, "\n")
-            elseif offset > 0 then
-                content = _("... [showing last %d log entries] ...\n", #lines) .. table.concat(lines, "\n")
-            else
-                content = table.concat(lines, "\n")
+                local header = _("-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n", #reversed_lines)
+                content = header .. table.concat(reversed_lines, "\n")
             end
         end
     end
