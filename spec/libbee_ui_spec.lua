@@ -58,6 +58,28 @@ describe("libbee_ui", function()
         assert.is_true(#_G.ui_tracker.shown > 0)
     end)
 
+    it("opens debug log viewer in TextViewer with line tailing", function()
+        _G.ui_tracker.shown = {}
+        local log = require("libbee_logger")
+        local log_path = log.path()
+        local fh = io.open(log_path, "w")
+        if fh then
+            for i = 1, 150 do
+                fh:write("2026-08-21 12:00:00 [INFO] Log line number " .. i .. "\n")
+            end
+            fh:close()
+        end
+
+        local viewer = UI._showDebugLog(50)
+        assert.is_table(viewer)
+        assert.are_equal("TextViewer", viewer.type)
+        assert.are_equal("code", viewer.args.text_type)
+        assert.is_true(viewer.args.text:find("Log line number 150") ~= nil)
+        assert.is_true(viewer.args.text:find("Log line number 101") ~= nil)
+        assert.is_nil(viewer.args.text:find("Log line number 10\n"))
+    end)
+
+
     it("registers dispatcher actions for gestures and keyboard shortcuts", function()
         local LibbeePlugin = require("main")
         _G.dispatcher_tracker.actions = {}
