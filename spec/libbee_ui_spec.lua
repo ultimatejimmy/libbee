@@ -388,5 +388,53 @@ describe("libbee_ui", function()
             UI.showShelfBrowser("/tmp/test_plugin")
             assert.is_true(#_G.ui_tracker.shown > 0)
         end)
+
+        it("correctly paginates single-library shelf in cover view with 2 rows of 3 (6 items max)", function()
+            local State = require("libbee_state")
+            _G.ui_tracker.shown = {}
+            State.clearChipIdentity()
+            State.saveViewMode("cover")
+            State.addOrUpdateAccount({
+                id = "acc_single_1",
+                chip_identity = "single.jwt.1",
+                library_name = "Single Library",
+                cards = { { id = "card_1", library = { name = "Single Library" } } }
+            })
+            local loans = {}
+            for i = 1, 8 do
+                table.insert(loans, { id = "loan-" .. i, card_id = "card_1", library = "Single Library", title = "Book " .. i })
+            end
+            UI.showShelfBrowser("/tmp/test_plugin")
+            assert.is_true(#_G.ui_tracker.shown > 0)
+        end)
+
+        it("correctly paginates tall screen (e.g. Android phone) in cover view with 3 rows of 3", function()
+            local State = require("libbee_state")
+            local Device = require("device")
+            local orig_getWidth = Device.screen.getWidth
+            local orig_getHeight = Device.screen.getHeight
+            Device.screen.getWidth = function() return 1080 end
+            Device.screen.getHeight = function() return 2400 end
+
+            _G.ui_tracker.shown = {}
+            State.clearChipIdentity()
+            State.saveViewMode("cover")
+            State.addOrUpdateAccount({
+                id = "acc_tall_1",
+                chip_identity = "tall.jwt.1",
+                library_name = "Tall Library",
+                cards = { { id = "card_tall", library = { name = "Tall Library" } } }
+            })
+            local loans = {}
+            for i = 1, 12 do
+                table.insert(loans, { id = "loan-" .. i, card_id = "card_tall", library = "Tall Library", title = "Book " .. i })
+            end
+            State.saveShelfCache(loans)
+            UI.showShelfBrowser("/tmp/test_plugin")
+            assert.is_true(#_G.ui_tracker.shown > 0)
+
+            Device.screen.getWidth = orig_getWidth
+            Device.screen.getHeight = orig_getHeight
+        end)
     end)
 end)

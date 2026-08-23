@@ -1213,15 +1213,19 @@ function M.showShelfBrowser(plugin_dir)
         local num_rows
 
         if view_mode == "cover" then
+            local max_cover_w_by_cell = cell_w - (border_w * 2)
+            local ideal_cover_h = math.floor(max_cover_w_by_cell * 1.38)
+
+            local max_row_h_3 = math.floor((avail_grid_h - (grid_gap_v * 2)) / 3)
+            local max_cover_h_3 = max_row_h_3 - tile_extra_h
+
             local max_row_h_2 = math.floor((avail_grid_h - grid_gap_v) / 2)
             local max_cover_h_2 = max_row_h_2 - tile_extra_h
 
-            if max_cover_h_2 >= sc(90) then
+            if max_cover_h_3 >= math.floor(ideal_cover_h * 0.90) then
+                num_rows = 3
+            elseif max_cover_h_2 >= sc(90) then
                 num_rows = 2
-                local max_row_h_3 = math.floor((avail_grid_h - (grid_gap_v * 2)) / 3)
-                if (max_row_h_3 - tile_extra_h) >= sc(120) then
-                    num_rows = 3
-                end
             else
                 num_rows = 1
             end
@@ -1229,7 +1233,6 @@ function M.showShelfBrowser(plugin_dir)
             local max_row_h = math.floor((avail_grid_h - (grid_gap_v * (num_rows - 1))) / num_rows)
             local max_cover_h = math.max(sc(50), max_row_h - tile_extra_h)
             local max_cover_w_by_h = math.floor(max_cover_h / 1.38)
-            local max_cover_w_by_cell = cell_w - (border_w * 2)
 
             cover_inner_w = math.max(sc(40), math.min(max_cover_w_by_cell, max_cover_w_by_h))
             cover_inner_h = math.floor(cover_inner_w * 1.38)
