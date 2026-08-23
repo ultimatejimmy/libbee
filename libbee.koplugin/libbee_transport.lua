@@ -169,7 +169,11 @@ function LibbeeTransport:request(request)
     for key, value in pairs(self.tls_options) do spec[key] = value end
 
     if self.socketutil and type(self.socketutil.set_timeout) == "function" then
-        self.socketutil:set_timeout(self.socketutil.LARGE_BLOCK_TIMEOUT, self.socketutil.LARGE_TOTAL_TIMEOUT)
+        if request.is_download or request.large_timeout then
+            self.socketutil:set_timeout(self.socketutil.LARGE_BLOCK_TIMEOUT or 30, self.socketutil.LARGE_TOTAL_TIMEOUT or 120)
+        else
+            self.socketutil:set_timeout(self.socketutil.BLOCK_TIMEOUT or 5, self.socketutil.TOTAL_TIMEOUT or 15)
+        end
     end
 
     local is_https = url:match("^https://") ~= nil

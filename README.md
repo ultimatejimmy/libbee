@@ -23,11 +23,15 @@ Libbee brings your public library loans directly into KOReader. With integrated 
 
 - **Direct Shelf Access**: Browse all active ebook loans from your connected Libby shelf directly within KOReader.
 - **On-Device ACSM Fulfillment**: Automatically fulfills and decrypts Adobe DRM `.acsm` loans to standard `.epub` and `.pdf` files on the device.
+- **In-App Early Returns**: Return loans early directly to your library within KOReader to immediately free up loan slots and clean up local files.
+- **Automatic Loan Expiration**: Automatically removes downloaded book files 1 day after the loan expiration date while preserving reading progress, bookmarks, and highlights.
+- **Multi-Library & Multi-Card Support**: Seamlessly browse and manage loans across multiple cards and library systems linked to your Libby account.
 - **Anonymous Device Activation**: Ready to use out of the box with automatic one-time anonymous device activation.
 - **Optional ByteBooks Multi-Device Sync**: Sign in with a ByteBooks ID to synchronize and read the same loan across multiple authorized devices.
-- **Cover and Metadata Display**: View book titles, authors, cover art, and remaining loan duration.
+- **Cover and Metadata Display**: View book titles, authors, cover art, format badges, and remaining loan duration.
 - **Grid and List Views**: Flexible shelf presentation tailored for e-ink and high-resolution screens.
 - **Offline Shelf Cache**: Cached shelf metadata allows offline browsing of currently borrowed titles.
+- **In-App Diagnostic Log Viewer**: View sync, download, and error logs directly on device without connecting to a computer.
 - **Over-The-Air (OTA) Updates**: Automatic and manual update checks via GitHub Releases with preservation of user settings.
 
 ---

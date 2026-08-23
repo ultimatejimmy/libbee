@@ -264,9 +264,20 @@ local function _close(w)
 end
 
 local function _runNetwork(work_fn, on_done)
-    local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
-    if ok_nm and NetworkMgr and type(NetworkMgr.runWhenOnline) == "function" then
-        NetworkMgr:runWhenOnline(function()
+    local execute = function()
+        local ok_trapper, Trapper = pcall(require, "ui/trapper")
+        if ok_trapper and Trapper and type(Trapper.wrap) == "function" and type(Trapper.dismissableRunInSubprocess) == "function" then
+            Trapper:wrap(function()
+                local completed, r1, r2 = Trapper:dismissableRunInSubprocess(function()
+                    return work_fn()
+                end, false)
+                if completed then
+                    on_done(r1, r2)
+                else
+                    on_done(nil, _("Operation cancelled"))
+                end
+            end)
+        else
             UIManager:scheduleIn(0.05, function()
                 local ok, r1, r2 = pcall(work_fn)
                 if ok then
@@ -275,16 +286,14 @@ local function _runNetwork(work_fn, on_done)
                     on_done(nil, tostring(r1 or _("Unknown error")))
                 end
             end)
-        end)
+        end
+    end
+
+    local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
+    if ok_nm and NetworkMgr and type(NetworkMgr.runWhenOnline) == "function" then
+        NetworkMgr:runWhenOnline(execute)
     else
-        UIManager:scheduleIn(0.05, function()
-            local ok, r1, r2 = pcall(work_fn)
-            if ok then
-                on_done(r1, r2)
-            else
-                on_done(nil, tostring(r1 or _("Unknown error")))
-            end
-        end)
+        execute()
     end
 end
 
@@ -1207,18 +1216,77 @@ function M.showShelfBrowser(plugin_dir)
 
             cover_inner_w = math.max(sc(40), math.min(max_cover_w_by_cell, max_cover_w_by_h))
             cover_inner_h = math.floor(cover_inner_w * 1.38)
-            items_per_page = num_rows * COLS
-        else
-            local list_row_h = sc(94)
-            items_per_page = math.max(3, math.floor((avail_h - section_header_reserve) / list_row_h))
         end
 
-        local total_pages = math.max(1, math.ceil(#flat_items / items_per_page))
+        -- Build capacity-aware pages ensuring no page exceeds available row capacity
+        local pages = {}
+        local cur_page = {}
+        local cur_page_rows = 0
+
+        if view_mode == "cover" then
+            local max_rows = num_rows
+            for _, g_name in ipairs(group_order) do
+                local loans_in_group = card_groups[g_name] or {}
+                local loan_idx = 1
+                while loan_idx <= #loans_in_group do
+                    local rows_avail = max_rows - cur_page_rows
+                    if rows_avail <= 0 then
+                        table.insert(pages, cur_page)
+                        cur_page = {}
+                        cur_page_rows = 0
+                        rows_avail = max_rows
+                    end
+
+                    local max_items_can_fit = rows_avail * COLS
+                    local items_to_take = math.min(#loans_in_group - loan_idx + 1, max_items_can_fit)
+                    local rows_taken = math.ceil(items_to_take / COLS)
+
+                    local chunk = {}
+                    for k = 0, items_to_take - 1 do
+                        table.insert(chunk, { loan = loans_in_group[loan_idx + k], lib = (#group_order > 1 and g_name or nil) })
+                    end
+
+                    table.insert(cur_page, { lib = (#group_order > 1 and g_name or nil), items = chunk })
+                    cur_page_rows = cur_page_rows + rows_taken
+                    loan_idx = loan_idx + items_to_take
+                end
+            end
+            if #cur_page > 0 then
+                table.insert(pages, cur_page)
+            end
+        else -- list mode
+            local max_items = math.max(3, math.floor((avail_h - section_header_reserve) / sc(94)))
+            for _, g_name in ipairs(group_order) do
+                local loans_in_group = card_groups[g_name] or {}
+                local loan_idx = 1
+                while loan_idx <= #loans_in_group do
+                    local items_avail = max_items - cur_page_rows
+                    if items_avail <= 0 then
+                        table.insert(pages, cur_page)
+                        cur_page = {}
+                        cur_page_rows = 0
+                        items_avail = max_items
+                    end
+
+                    local items_to_take = math.min(#loans_in_group - loan_idx + 1, items_avail)
+                    local chunk = {}
+                    for k = 0, items_to_take - 1 do
+                        table.insert(chunk, { loan = loans_in_group[loan_idx + k], lib = (#group_order > 1 and g_name or nil) })
+                    end
+
+                    table.insert(cur_page, { lib = (#group_order > 1 and g_name or nil), items = chunk })
+                    cur_page_rows = cur_page_rows + items_to_take
+                    loan_idx = loan_idx + items_to_take
+                end
+            end
+            if #cur_page > 0 then
+                table.insert(pages, cur_page)
+            end
+        end
+
+        local total_pages = math.max(1, #pages)
         if current_page > total_pages then current_page = total_pages end
         if current_page < 1 then current_page = 1 end
-
-        local page_start = (current_page - 1) * items_per_page + 1
-        local page_end   = math.min(page_start + items_per_page - 1, #flat_items)
 
         -- 2. Page Content
         local page_content_vg = VerticalGroup:new{ align = "left" }
@@ -1499,47 +1567,32 @@ function M.showShelfBrowser(plugin_dir)
                 }
             })
         else
-            local page_items = {}
-            for idx = page_start, page_end do
-                table.insert(page_items, flat_items[idx])
+            local cur_page_sections = pages[current_page] or {}
+            local global_item_offset = 0
+            for p = 1, current_page - 1 do
+                for _, s in ipairs(pages[p] or {}) do
+                    global_item_offset = global_item_offset + #s.items
+                end
             end
 
             if view_mode == "list" then
-                local last_lib = nil
-                for i, item in ipairs(page_items) do
-                    if #lib_order > 1 and item.lib ~= last_lib then
-                        table.insert(page_content_vg, create_shelf_section_header(item.lib))
-                        last_lib = item.lib
+                for _, section in ipairs(cur_page_sections) do
+                    if section.lib then
+                        table.insert(page_content_vg, create_shelf_section_header(section.lib))
                     end
-                    render_list_loan(item.loan, page_start + i - 1)
+                    for _, item in ipairs(section.items) do
+                        global_item_offset = global_item_offset + 1
+                        render_list_loan(item.loan, global_item_offset)
+                    end
                 end
             else
-                if #lib_order > 1 then
-                    local lib_pages = {}
-                    local last_lib = nil
-                    local cur_group = nil
-                    for _, item in ipairs(page_items) do
-                        if item.lib ~= last_lib then
-                            if cur_group then
-                                table.insert(lib_pages, { lib = last_lib, items = cur_group })
-                            end
-                            cur_group = {}
-                            last_lib = item.lib
-                        end
-                        table.insert(cur_group, item)
-                    end
-                    if cur_group and #cur_group > 0 then
-                        table.insert(lib_pages, { lib = last_lib, items = cur_group })
-                    end
-                    local offset = 0
-                    for _, group in ipairs(lib_pages) do
-                        table.insert(page_content_vg, create_shelf_section_header(group.lib))
+                for _, section in ipairs(cur_page_sections) do
+                    if section.lib then
+                        table.insert(page_content_vg, create_shelf_section_header(section.lib))
                         table.insert(page_content_vg, VerticalSpan:new{ width = sc(8) })
-                        render_cover_grid(group.items, page_start + offset - 1)
-                        offset = offset + #group.items
                     end
-                else
-                    render_cover_grid(page_items, page_start - 1)
+                    render_cover_grid(section.items, global_item_offset)
+                    global_item_offset = global_item_offset + #section.items
                 end
             end
         end
@@ -1769,8 +1822,13 @@ function M.showShelfBrowser(plugin_dir)
             State.saveShelfCache(updated)
             renderShelf(updated, false)
         end
+        -- Do not immediately block main thread with a second sync; schedule debounced background sync after 4s
         if doBackgroundSync then
-            doBackgroundSync(true)
+            UIManager:scheduleIn(4.0, function()
+                if active_shelf_overlay then
+                    doBackgroundSync()
+                end
+            end)
         end
     end
 
@@ -1794,6 +1852,31 @@ end
 
 function M.findExistingBook(loan, base_dir)
     if not loan or not base_dir then return nil end
+
+    local function isValidBookFile(p)
+        if not p or p == "" then return false end
+        local f = io.open(p, "rb")
+        if f then
+            local size = f:seek("end") or 0
+            f:close()
+            if size > 0 then
+                return true
+            end
+        end
+        return false
+    end
+
+    -- 1. Fast O(1) check via State registry if tracked
+    local ok_st, State = pcall(require, plugin_path .. "libbee_state")
+    if not ok_st or not State then ok_st, State = pcall(require, "libbee_state") end
+    if ok_st and State and State.getTrackedDownload then
+        local loan_id = loan.id or loan.loanId or loan.reserveId or (loan.raw and (loan.raw.id or loan.raw.loanId or loan.raw.reserveId))
+        local tracked = loan_id and State.getTrackedDownload(loan_id)
+        if tracked and tracked.path and isValidBookFile(tracked.path) then
+            return tracked.path
+        end
+    end
+
     local title = loan.title or ""
     if title == "" then return nil end
 
@@ -1815,42 +1898,30 @@ function M.findExistingBook(loan, base_dir)
     if #underscore_title_60 > 60 then underscore_title_60 = underscore_title_60:sub(1, 60) end
 
     local extensions = { ".epub", ".pdf" }
-    local title_variants = {
-        safe_title,
-        safe_title_60,
-        underscore_title,
-        underscore_title_60,
-    }
+    local primary_titles = { safe_title, underscore_title, safe_title_60, underscore_title_60 }
 
-    local function isValidBookFile(p)
-        if not p or p == "" then return false end
-        local f = io.open(p, "rb")
-        if f then
-            local size = f:seek("end") or 0
-            f:close()
-            if size > 0 then
-                return true
-            end
-        end
-        return false
-    end
-
-    -- 1. Check exact candidate paths
-    for _, t in ipairs(title_variants) do
+    -- 2. Fast direct candidate path checks
+    for _, t in ipairs(primary_titles) do
         for _, ext in ipairs(extensions) do
             local p = base_dir .. "/" .. t .. ext
             if isValidBookFile(p) then return p end
-            for i = 1, 10 do
+        end
+    end
+
+    -- 3. Numbered duplicates (e.g. "Title (1).epub")
+    for _, t in ipairs(primary_titles) do
+        for _, ext in ipairs(extensions) do
+            for i = 1, 5 do
                 local pi = base_dir .. "/" .. t .. " (" .. i .. ")" .. ext
                 if isValidBookFile(pi) then return pi end
             end
         end
     end
 
-    -- 2. Check directory listing with strict normalization match in base_dir
+    -- 4. Check directory listing only if base_dir exists and direct checks missed
     local ok_lfs, lfs = pcall(require, "libs/libkoreader-lfs")
     if not ok_lfs then ok_lfs, lfs = pcall(require, "lfs") end
-    if ok_lfs and lfs and lfs.dir then
+    if ok_lfs and lfs and lfs.dir and lfs.attributes and lfs.attributes(base_dir, "mode") == "directory" then
         local safe_lower = safe_title:lower()
         local safe_lower_60 = safe_title_60:lower()
         local und_lower = underscore_title:lower()

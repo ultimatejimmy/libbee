@@ -361,5 +361,32 @@ describe("libbee_ui", function()
             local last_dialog = _G.ui_tracker.shown[#_G.ui_tracker.shown]
             assert.is_table(last_dialog)
         end)
+
+        it("correctly paginates multi-library shelf in cover view without overflow", function()
+            local State = require("libbee_state")
+            _G.ui_tracker.shown = {}
+            State.saveViewMode("cover")
+            State.addOrUpdateAccount({
+                id = "acc_multi_1",
+                chip_identity = "multi.jwt.1",
+                library_name = "Library A",
+                cards = { { id = "card_a", library = { name = "Library A" } } }
+            })
+            State.addOrUpdateAccount({
+                id = "acc_multi_2",
+                chip_identity = "multi.jwt.2",
+                library_name = "Library B",
+                cards = { { id = "card_b", library = { name = "Library B" } } }
+            })
+            State.saveShelfCache({
+                { id = "loan-a1", card_id = "card_a", library = "Library A", title = "Book A1" },
+                { id = "loan-b1", card_id = "card_b", library = "Library B", title = "Book B1" },
+                { id = "loan-b2", card_id = "card_b", library = "Library B", title = "Book B2" },
+                { id = "loan-b3", card_id = "card_b", library = "Library B", title = "Book B3" },
+                { id = "loan-b4", card_id = "card_b", library = "Library B", title = "Book B4" },
+            })
+            UI.showShelfBrowser("/tmp/test_plugin")
+            assert.is_true(#_G.ui_tracker.shown > 0)
+        end)
     end)
 end)

@@ -315,8 +315,10 @@ package.loaded["gettext"] = {
 package.loaded["ui/trapper"] = {
     wrap = function(self, fn) fn() end,
     dismissableRunInSubprocess = function(self, task, widget)
-        local results = table.pack(task())
-        return true, table.unpack(results, 1, results.n)
+        local pack = table.pack or function(...) return { n = select("#", ...), ... } end
+        local unpack_fn = table.unpack or unpack
+        local results = pack(task())
+        return true, unpack_fn(results, 1, results.n)
     end,
 }
 

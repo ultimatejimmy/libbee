@@ -100,8 +100,39 @@ end
 function M.removeFileAndSidecar(file_path)
     if not file_path or file_path == "" then return end
 
-    -- Remove book file only; preserve .sdr sidecar directory
+    -- 1. Close document if currently opened in ReaderUI to avoid engine lockup
+    pcall(function()
+        local ok_rui, ReaderUI = pcall(require, "apps/reader/readerui")
+        if ok_rui and ReaderUI and ReaderUI.instance and ReaderUI.instance.document then
+            if ReaderUI.instance.document.file == file_path then
+                ReaderUI.instance:onClose()
+            end
+        end
+    end)
+
+    -- 2. Remove book file only; preserve .sdr sidecar directory
     pcall(os.remove, file_path)
+
+    -- 3. Invalidate KOReader caches and history safely
+    pcall(function()
+        local ok_ev, Event = pcall(require, "ui/event")
+        local ok_uim, UIManager = pcall(require, "ui/uimanager")
+        if ok_ev and Event and ok_uim and UIManager and UIManager.broadcastEvent then
+            UIManager:broadcastEvent(Event:new("InvalidateMetadataCache", file_path))
+        end
+    end)
+    pcall(function()
+        local ok_rh, ReadHistory = pcall(require, "readhistory")
+        if ok_rh and ReadHistory and type(ReadHistory.fileDeleted) == "function" then
+            ReadHistory:fileDeleted(file_path)
+        end
+    end)
+    pcall(function()
+        local ok_rc, ReadCollection = pcall(require, "readcollection")
+        if ok_rc and ReadCollection and type(ReadCollection.removeItem) == "function" then
+            ReadCollection:removeItem(file_path)
+        end
+    end)
 end
 
 M.removeBookFile = M.removeFileAndSidecar

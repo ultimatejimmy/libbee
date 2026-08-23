@@ -1001,10 +1001,11 @@ function M.downloadACSM(loan, dest_path)
 
     local transport = _getTransport()
     local dl_resp, dl_err = transport:request({
-        method   = "GET",
-        base_url = fulfill_url,
-        path     = "",
-        headers  = {
+        method      = "GET",
+        base_url    = fulfill_url,
+        path        = "",
+        is_download = true,
+        headers     = {
             ["User-Agent"] = M.USER_AGENT,
             ["Accept"]     = "*/*",
         },
