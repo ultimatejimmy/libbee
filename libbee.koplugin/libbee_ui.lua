@@ -156,15 +156,9 @@ function LibbeeToastWidget:init()
 
     self.dimen = Geom:new{ w = sw, h = sh }
 
-    local toast_vg = VerticalGroup:new{
-        align = "center",
-        card,
-        VerticalSpan:new{ width = sc(30) },
-    }
-
-    self[1] = BottomContainer:new{
+    self[1] = CenterContainer:new{
         dimen = Geom:new{ w = sw, h = sh },
-        toast_vg,
+        card,
     }
 
     if self.dismissable ~= false then
@@ -1182,29 +1176,32 @@ function M.showShelfBrowser(plugin_dir)
         local content_w = row_total_w
         local content_inner = content_w - sc(16)
 
-        local tile_extra_h = (border_w * 2) + sc(4) + sc(46) + sc(4) + sc(24)
-        local grid_gap_v = sc(10)
+        local section_header_reserve = (#lib_order > 1) and (math.min(#lib_order, 2) * sc(36)) or 0
+        local avail_grid_h = avail_h - section_header_reserve
+
+        local tile_extra_h = (border_w * 2) + sc(3) + sc(38) + sc(3) + sc(24)
+        local grid_gap_v = sc(8)
 
         local cover_inner_w
         local cover_inner_h
         local num_rows
 
         if view_mode == "cover" then
-            local max_row_h_2 = math.floor((avail_h - grid_gap_v) / 2)
+            local max_row_h_2 = math.floor((avail_grid_h - grid_gap_v) / 2)
             local max_cover_h_2 = max_row_h_2 - tile_extra_h
 
-            if max_cover_h_2 >= sc(110) then
+            if max_cover_h_2 >= sc(90) then
                 num_rows = 2
-                local max_row_h_3 = math.floor((avail_h - (grid_gap_v * 2)) / 3)
-                if (max_row_h_3 - tile_extra_h) >= sc(140) then
+                local max_row_h_3 = math.floor((avail_grid_h - (grid_gap_v * 2)) / 3)
+                if (max_row_h_3 - tile_extra_h) >= sc(120) then
                     num_rows = 3
                 end
             else
                 num_rows = 1
             end
 
-            local max_row_h = math.floor((avail_h - (grid_gap_v * (num_rows - 1))) / num_rows)
-            local max_cover_h = math.max(sc(60), max_row_h - tile_extra_h)
+            local max_row_h = math.floor((avail_grid_h - (grid_gap_v * (num_rows - 1))) / num_rows)
+            local max_cover_h = math.max(sc(50), max_row_h - tile_extra_h)
             local max_cover_w_by_h = math.floor(max_cover_h / 1.38)
             local max_cover_w_by_cell = cell_w - (border_w * 2)
 
@@ -1213,7 +1210,7 @@ function M.showShelfBrowser(plugin_dir)
             items_per_page = num_rows * COLS
         else
             local list_row_h = sc(94)
-            items_per_page = math.max(3, math.floor(avail_h / list_row_h))
+            items_per_page = math.max(3, math.floor((avail_h - section_header_reserve) / list_row_h))
         end
 
         local total_pages = math.max(1, math.ceil(#flat_items / items_per_page))
@@ -1294,8 +1291,11 @@ function M.showShelfBrowser(plugin_dir)
                 end)
             end
 
+            local display_title = (loan.title or _("Unknown Title")):gsub("[\r\n]+", " "):match("^%s*(.-)%s*$")
+            if not display_title or display_title == "" then display_title = _("Unknown Title") end
+
             local title_w = TextWidget:new{
-                text = loan.title or _("Unknown Title"),
+                text = display_title,
                 face = Font:getFace("NotoSerif-Regular.ttf", theme.title_font_size or 20),
                 bold = true,
                 fgcolor = Blitbuffer.COLOR_BLACK,
@@ -1425,8 +1425,11 @@ function M.showShelfBrowser(plugin_dir)
                     end)
                 end
 
+                local display_title = (loan.title or _("Unknown Title")):gsub("[\r\n]+", " "):match("^%s*(.-)%s*$")
+                if not display_title or display_title == "" then display_title = _("Unknown Title") end
+
                 local title_box = TextBoxWidget:new{
-                    text = loan.title or _("Unknown Title"),
+                    text = display_title,
                     face = Font:getFace("NotoSerif-Regular.ttf", 15),
                     bold = true,
                     width = cell_w,

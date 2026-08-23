@@ -77,7 +77,7 @@ else
     libcrypto = ffi.load("crypto")
 end
 
-ffi.cdef([[
+pcall(ffi.cdef, [[
 typedef struct evp_pkey_st EVP_PKEY;
 typedef struct rsa_st RSA;
 typedef struct x509_st X509;

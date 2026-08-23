@@ -823,8 +823,14 @@ function M.fetchShelf()
                     local restriction_type = format_info.restriction_type
 
                     local days_remaining = State.loanDaysRemaining(raw)
-                    local title = _firstNonempty(raw.title, raw.parentTitle, raw.sortTitle) or "Unknown Title"
-                    local author = _loanAuthor(raw)
+                    local raw_title = _firstNonempty(raw.title, raw.parentTitle, raw.sortTitle) or "Unknown Title"
+                    local title = tostring(raw_title):gsub("[\r\n]+", " "):match("^%s*(.-)%s*$")
+                    if not title or title == "" then title = "Unknown Title" end
+
+                    local raw_author = _loanAuthor(raw)
+                    local author = tostring(raw_author):gsub("[\r\n]+", " "):match("^%s*(.-)%s*$")
+                    if not author or author == "" then author = "Unknown Author" end
+
                     local library = _loanLibraryName(raw, cards) or acc_lib_name or ""
 
                     table.insert(all_loans, {

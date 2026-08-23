@@ -233,33 +233,19 @@ function M.createPlaceholderWidget(target_w, target_h, title)
     local VerticalGroup = require("ui/widget/verticalgroup")
     local VerticalSpan = require("ui/widget/verticalspan")
     local TextWidget = require("ui/widget/textwidget")
-    local TextBoxWidget = require("ui/widget/textboxwidget")
     local Font = require("ui/font")
     local Geom = require("ui/geometry")
     local Blitbuffer = require("ffi/blitbuffer")
 
-    local sc = theme.sc
     local icon_w = TextWidget:new{
         text = "📖",
         face = Font:getFace("cfont", 24),
     }
 
-    local inner_widgets = { icon_w }
-    if title and title ~= "" then
-        local label = TextBoxWidget:new{
-            text = title,
-            face = Font:getFace("smallinfofont", 12),
-            width = target_w - sc(12),
-            alignment = "center",
-            fgcolor = Blitbuffer.COLOR_BLACK,
-        }
-        table.insert(inner_widgets, VerticalSpan:new{ width = sc(4) })
-        table.insert(inner_widgets, label)
-    end
-
     return FrameContainer:new{
-        bordersize = theme.border_btn or sc(1),
-        color = Blitbuffer.COLOR_DARK_GRAY,
+        bordersize = 0,
+        padding = 0,
+        margin = 0,
         background = Blitbuffer.COLOR_LIGHT_GRAY,
         width = target_w,
         height = target_h,
@@ -267,7 +253,7 @@ function M.createPlaceholderWidget(target_w, target_h, title)
             dimen = Geom:new{ w = target_w, h = target_h },
             VerticalGroup:new{
                 align = "center",
-                unpack(inner_widgets)
+                icon_w,
             }
         }
     }

@@ -13,11 +13,12 @@ describe("libbee_ui", function()
         assert.is_true(type(UI.showToast) == "function")
     end)
 
-    it("shows styled toast", function()
+    it("shows styled centered toast", function()
         _G.ui_tracker.shown = {}
         local toast = UI.showToast("Test Toast", 3)
         assert.is_table(toast)
         assert.is_true(#_G.ui_tracker.shown > 0)
+        assert.are_equal("CenterContainer", toast[1].type)
     end)
 
     it("shows styled card dialog", function()

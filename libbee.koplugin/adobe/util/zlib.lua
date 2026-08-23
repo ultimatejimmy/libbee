@@ -4,7 +4,7 @@ local ffi = require("ffi")
 
 local isAndroid = pcall(require, "android")
 
-ffi.cdef([[
+pcall(ffi.cdef, [[
 typedef void *voidpf;
 typedef unsigned char Bytef;
 typedef unsigned int uInt;
@@ -33,7 +33,13 @@ typedef struct z_stream_s {
   uLong    adler;
   uLong    reserved;
 } z_stream;
+]])
 
+pcall(ffi.cdef, [[
+typedef struct z_stream_s z_stream;
+]])
+
+pcall(ffi.cdef, [[
 const char *zlibVersion(void);
 int inflateInit2_(z_stream *strm, int windowBits, const char *version, int stream_size);
 int inflate(z_stream *strm, int flush);
@@ -113,7 +119,7 @@ local buildInflater
 
 function zlib.inflateRaw(data)
     local stream = ffi.new("z_stream[1]")
-    stream[0].next_in = ffi.cast("Bytef *", data)
+    stream[0].next_in = ffi.cast("unsigned char *", data)
     stream[0].avail_in = #data
 
     local rc = libz.inflateInit2_(stream, -15, libz.zlibVersion(), ffi.sizeof(stream[0]))
@@ -185,7 +191,7 @@ function buildInflater(stream)
         if finished then
             return nil, "inflater already finalized"
         end
-        stream[0].next_in = ffi.cast("Bytef *", chunk)
+        stream[0].next_in = ffi.cast("unsigned char *", chunk)
         stream[0].avail_in = chunk_len
 
         while stream[0].avail_in > 0 do
