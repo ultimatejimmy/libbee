@@ -40,12 +40,12 @@ Libbee brings your public library loans directly into KOReader. With integrated 
 
 Comprehensive guides, setup instructions, and feature details are available on the [Libbee Wiki](https://github.com/ultimatejimmy/libbee/wiki):
 
-- [Installation Guide](https://github.com/ultimatejimmy/libbee/wiki/Installation-Guide): Step-by-step setup for e-readers and devices, plus update instructions.
-- [Authentication and Setup](https://github.com/ultimatejimmy/libbee/wiki/Authentication-and-Setup): How to link your Libby account using the 8-digit setup code displayed in KOReader.
-- [DRM and Fulfillment](https://github.com/ultimatejimmy/libbee/wiki/DRM-and-Fulfillment): Detailed explanation of on-device ACSM fulfillment and ByteBooks multi-device sync.
-- [User Interface and Features](https://github.com/ultimatejimmy/libbee/wiki/User-Interface-and-Features): Guide to shelf navigation, view modes, cover caching, and offline reading.
-- [Configuration Reference](https://github.com/ultimatejimmy/libbee/wiki/Configuration-Reference): Reference for all configuration options and default download paths.
-- [Troubleshooting and FAQ](https://github.com/ultimatejimmy/libbee/wiki/Troubleshooting-and-FAQ): Solutions for common errors, network issues, and general questions.
+- [Installation Guide](https://github.com/ultimatejimmy/libbee/wiki/1.-Installation-Guide): Step-by-step setup for e-readers and devices, plus update instructions.
+- [Authentication and Setup](https://github.com/ultimatejimmy/libbee/wiki/2.-Authentication-and-Setup): How to link your Libby account using the 8-digit setup code displayed in KOReader.
+- [DRM and Fulfillment](https://github.com/ultimatejimmy/libbee/wiki/3.-DRM-and-Fulfillment): Detailed explanation of on-device ACSM fulfillment and ByteBooks multi-device sync.
+- [User Interface and Features](https://github.com/ultimatejimmy/libbee/wiki/4.-User-Interface-and-Features): Guide to shelf navigation, view modes, cover caching, and offline reading.
+- [Configuration Reference](https://github.com/ultimatejimmy/libbee/wiki/5.-Configuration-Reference): Reference for all configuration options and default download paths.
+- [Troubleshooting and FAQ](https://github.com/ultimatejimmy/libbee/wiki/6.-Troubleshooting-and-FAQ): Solutions for common errors, network issues, and general questions.
 
 ---
 
