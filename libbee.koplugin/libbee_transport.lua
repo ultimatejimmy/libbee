@@ -169,10 +169,13 @@ function LibbeeTransport:request(request)
     for key, value in pairs(self.tls_options) do spec[key] = value end
 
     if self.socketutil and type(self.socketutil.set_timeout) == "function" then
-        if request.is_download or request.large_timeout then
+        if request.is_download then
             self.socketutil:set_timeout(self.socketutil.LARGE_BLOCK_TIMEOUT or 30, self.socketutil.LARGE_TOTAL_TIMEOUT or 120)
         else
-            self.socketutil:set_timeout(self.socketutil.BLOCK_TIMEOUT or 5, self.socketutil.TOTAL_TIMEOUT or 15)
+            -- Give SSL handshakes & mobile/Android networks sufficient time
+            local block_t = (self.socketutil.LARGE_BLOCK_TIMEOUT and self.socketutil.LARGE_BLOCK_TIMEOUT >= 20) and self.socketutil.LARGE_BLOCK_TIMEOUT or 30
+            local total_t = (self.socketutil.LARGE_TOTAL_TIMEOUT and self.socketutil.LARGE_TOTAL_TIMEOUT >= 30) and self.socketutil.LARGE_TOTAL_TIMEOUT or 60
+            self.socketutil:set_timeout(block_t, total_t)
         end
     end
 
@@ -257,7 +260,21 @@ function LibbeeTransport:request_sequence(requests)
     local opened, open_err = pcall(function()
         connection = self.http.open(host, port, self.https.tcp(params))
     end)
-    if not opened or not connection then return nil, tostring(open_err or "Could not open persistent HTTPS connection") end
+    if not opened or not connection then
+        logger.warn("libbee transport: could not open persistent HTTPS connection (" .. tostring(open_err) .. "), falling back to sequential requests")
+        local responses = {}
+        for index, request_spec in ipairs(requests) do
+            local req = request_spec
+            if type(request_spec) == "function" then
+                req = request_spec(responses)
+            end
+            if not req then break end
+            local resp, err = self:request(req)
+            if not resp then return nil, err end
+            responses[index] = resp
+        end
+        return responses
+    end
 
     local responses = {}
 
@@ -274,6 +291,15 @@ function LibbeeTransport:request_sequence(requests)
         for key, value in pairs(request.headers or {}) do headers[key] = value end
         headers["Accept-Encoding"] = "identity"
         headers["Connection"] = index == #requests and "close" or "keep-alive"
+        if headers["Authorization"] and not headers["Accept-Language"] then
+            local token = headers["Authorization"]:match("^Bearer%s+(.+)$")
+            if token and token ~= "" then
+                local ok_api, API = pcall(require, "libbee_api")
+                if ok_api and API and API.chip_accept_language then
+                    headers["Accept-Language"] = API.chip_accept_language(token)
+                end
+            end
+        end
         local body
         if request.json ~= nil then
             local ok, encoded = pcall(self.json_encode, request.json)

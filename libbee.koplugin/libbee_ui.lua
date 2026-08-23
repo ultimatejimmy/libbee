@@ -265,14 +265,31 @@ end
 
 local function _runNetwork(work_fn, on_done)
     local execute = function()
+        local is_android = pcall(require, "android")
+        local ok_dev, Device = pcall(require, "device")
+        if ok_dev and Device and Device.isAndroid and Device:isAndroid() then
+            is_android = true
+        end
+
         local ok_trapper, Trapper = pcall(require, "ui/trapper")
-        if ok_trapper and Trapper and type(Trapper.wrap) == "function" and type(Trapper.dismissableRunInSubprocess) == "function" then
+        if not is_android and ok_trapper and Trapper and type(Trapper.wrap) == "function" and type(Trapper.dismissableRunInSubprocess) == "function" then
             Trapper:wrap(function()
-                local completed, r1, r2 = Trapper:dismissableRunInSubprocess(function()
-                    return work_fn()
+                local completed, wrapped_res = Trapper:dismissableRunInSubprocess(function()
+                    local ok, r1, r2 = pcall(work_fn)
+                    if ok then
+                        return { success = true, r1 = r1, r2 = r2 }
+                    else
+                        return { success = false, err = tostring(r1 or _("Unknown error")) }
+                    end
                 end, false)
-                if completed then
-                    on_done(r1, r2)
+                if completed and type(wrapped_res) == "table" then
+                    if wrapped_res.success then
+                        on_done(wrapped_res.r1, wrapped_res.r2)
+                    else
+                        on_done(nil, wrapped_res.err)
+                    end
+                elseif completed then
+                    on_done(nil, _("Operation cancelled"))
                 else
                     on_done(nil, _("Operation cancelled"))
                 end

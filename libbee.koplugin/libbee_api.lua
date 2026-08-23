@@ -263,7 +263,9 @@ function M.requestSetupCode()
     -- Step 1: Obtain an initial unauthenticated chip identity
     local chip_body, chip_err = M.getChip(nil, false)
     if not chip_body or not chip_body.identity then
-        return nil, "Could not initialize Libby chip: " .. tostring(chip_err)
+        local err_msg = "Could not initialize Libby chip: " .. tostring(chip_err)
+        log.err("libbee api: " .. err_msg)
+        return nil, err_msg
     end
 
     local pending_identity = chip_body.identity
@@ -274,18 +276,27 @@ function M.requestSetupCode()
         identity = pending_identity,
     })
 
-    if not response then return nil, err end
+    if not response then
+        local err_msg = "Libby setup code request failed: " .. tostring(err)
+        log.err("libbee api: " .. err_msg)
+        return nil, err_msg
+    end
     if response.status ~= 200 or type(response.body) ~= "table" then
-        return nil, "Could not generate Libby setup code (HTTP " .. tostring(response.status) .. ")"
+        local err_msg = "Could not generate Libby setup code (HTTP " .. tostring(response.status) .. ")"
+        log.err("libbee api: " .. err_msg)
+        return nil, err_msg
     end
 
     local code = response.body.code
     if type(code) ~= "string" or code == "" then
-        return nil, "Libby setup-code response did not contain a code"
+        local err_msg = "Libby setup-code response did not contain a code"
+        log.err("libbee api: " .. err_msg)
+        return nil, err_msg
     end
 
     -- Save pending session in state
     State.savePendingIdentity(pending_identity, code)
+    log.info("libbee api: successfully generated setup code " .. tostring(code))
 
     return { code = code }
 end
@@ -329,7 +340,7 @@ function M.pollForCloneResult(setup_code)
             local result = _defaultHeaders()
             result["Authorization"] = "Bearer " .. token
             result["Connection"] = "keep-alive"
-            if language then result["Accept-Language"] = language end
+            result["Accept-Language"] = language or M.chip_accept_language(token)
             return result
         end
 
@@ -699,7 +710,7 @@ local function _syncShelfOnSameConnection(identity)
         local result = _defaultHeaders()
         result["Authorization"] = "Bearer " .. token
         result["Connection"] = "keep-alive"
-        if language then result["Accept-Language"] = language end
+        result["Accept-Language"] = language or M.chip_accept_language(token)
         return result
     end
 
@@ -884,7 +895,7 @@ local function _recoverFulfillmentOnSameConnection(path, identity)
         local result = _defaultHeaders()
         result["Authorization"] = "Bearer " .. token
         result["Connection"] = "keep-alive"
-        if language then result["Accept-Language"] = language end
+        result["Accept-Language"] = language or M.chip_accept_language(token)
         return result
     end
 
@@ -984,7 +995,32 @@ function M.downloadACSM(loan, dest_path)
     if response.status == 403 and _responseResult(response) == "missing_chip" then
         log.info("libbee api: 403 missing_chip during fulfillment, running sticky recovery sequence")
         fulfill_url, err = _recoverFulfillmentOnSameConnection(path, identity)
-        if not fulfill_url then return nil, err end
+        if not fulfill_url then
+            log.info("libbee api: sticky recovery failed (" .. tostring(err) .. "), attempting standalone getChip refresh")
+            local refreshed, ref_err = M.getChip(identity, false)
+            if refreshed and type(refreshed.identity) == "string" then
+                local new_id = refreshed.identity
+                if loan.account_id then
+                    local acc = State.getAccount(loan.account_id)
+                    if acc then
+                        acc.chip_identity = new_id
+                        State.addOrUpdateAccount(acc)
+                    else
+                        State.saveChipIdentity(new_id, State.getLibraryName(), State.getCards())
+                    end
+                else
+                    State.saveChipIdentity(new_id, State.getLibraryName(), State.getCards())
+                end
+                local retry_resp, retry_err = _request("GET", path, { identity = new_id })
+                if retry_resp and retry_resp.status == 200 and type(retry_resp.body) == "table" and retry_resp.body.fulfill and type(retry_resp.body.fulfill.href) == "string" then
+                    fulfill_url = retry_resp.body.fulfill.href
+                else
+                    return nil, retry_err or (retry_resp and ("Libby fulfillment failed with HTTP " .. tostring(retry_resp.status))) or "Libby fulfillment failed"
+                end
+            else
+                return nil, err or "Libby fulfillment failed: missing_chip"
+            end
+        end
     elseif response.status == 400 then
         return nil, "Libby rejected fulfillment (HTTP 400): Format not available for this loan (title may be restricted to Libby or Kindle)."
     elseif response.status ~= 200 then
