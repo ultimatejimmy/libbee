@@ -20,17 +20,26 @@ msgstr "%d days left"
 msgid "%d libraries"
 msgstr "%d libraries"
 
+msgid "%d loans"
+msgstr "%d loans"
+
 msgid "(cached)"
 msgstr "(cached)"
 
 msgid "+ New"
 msgstr "+ New"
 
+msgid "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
+msgstr "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
+
 msgid ".. (Parent Folder)"
 msgstr ".. (Parent Folder)"
 
 msgid "1 day left"
 msgstr "1 day left"
+
+msgid "1 loan"
+msgstr "1 loan"
 
 msgid "1. Open the Libby app on your phone or computer.\n"
 msgstr "1. Open the Libby app on your phone or computer.\n"
@@ -59,6 +68,9 @@ msgstr "About ByteBooks"
 msgid "Account & Keys"
 msgstr "Account & Keys"
 
+msgid "Account disconnected"
+msgstr "Account disconnected"
+
 msgid "Accounts & DRM"
 msgstr "Accounts & DRM"
 
@@ -73,6 +85,9 @@ msgstr "Active"
 
 msgid "All"
 msgstr "All"
+
+msgid "All Libby accounts disconnected"
+msgstr "All Libby accounts disconnected"
 
 msgid "Already Fulfilled on Another Device"
 msgstr "Already Fulfilled on Another Device"
@@ -106,6 +121,15 @@ msgstr "Auto on download"
 
 msgid "Auto-activates on download"
 msgstr "Auto-activates on download"
+
+msgid "Auto-delete Expired"
+msgstr "Auto-delete Expired"
+
+msgid "Auto-deleted \"%s\" (loan ended)."
+msgstr "Auto-deleted \"%s\" (loan ended)."
+
+msgid "Auto-deleted %d expired/returned loan(s)."
+msgstr "Auto-deleted %d expired/returned loan(s)."
 
 msgid "Available Format"
 msgstr "Available Format"
@@ -164,6 +188,9 @@ msgstr "Connected"
 msgid "Connected Libraries"
 msgstr "Connected Libraries"
 
+msgid "Connected Libraries & Accounts"
+msgstr "Connected Libraries & Accounts"
+
 msgid "Connected ›"
 msgstr "Connected ›"
 
@@ -197,6 +224,9 @@ msgstr "Could not request setup code."
 msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
 msgstr "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
 
+msgid "Could not return loan:\n%s"
+msgstr "Could not return loan:\n%s"
+
 msgid "Create"
 msgstr "Create"
 
@@ -224,14 +254,32 @@ msgstr "Device DRM"
 msgid "Diagnostics & Cache"
 msgstr "Diagnostics & Cache"
 
+msgid "Disabled ›"
+msgstr "Disabled ›"
+
 msgid "Disconnect"
 msgstr "Disconnect"
+
+msgid "Disconnect %s"
+msgstr "Disconnect %s"
 
 msgid "Disconnect Account"
 msgstr "Disconnect Account"
 
+msgid "Disconnect All"
+msgstr "Disconnect All"
+
+msgid "Disconnect All Accounts"
+msgstr "Disconnect All Accounts"
+
 msgid "Disconnect Libby account"
 msgstr "Disconnect Libby account"
+
+msgid "Disconnect all accounts"
+msgstr "Disconnect all accounts"
+
+msgid "Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."
+msgstr "Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."
 
 msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
 msgstr "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
@@ -274,6 +322,9 @@ msgstr "Downloads"
 
 msgid "Email cannot be blank"
 msgstr "Email cannot be blank"
+
+msgid "Enabled ›"
+msgstr "Enabled ›"
 
 msgid "Enter password for %s:\n(Used in memory only, not stored)"
 msgstr "Enter password for %s:\n(Used in memory only, not stored)"
@@ -383,6 +434,9 @@ msgstr "Library: %s\n\nYour device is now registered. You can browse and downloa
 msgid "Link Libby Account"
 msgstr "Link Libby Account"
 
+msgid "Link another Libby account"
+msgstr "Link another Libby account"
+
 msgid "Link another Libby device"
 msgstr "Link another Libby device"
 
@@ -391,6 +445,9 @@ msgstr "Loading your Libby shelf…"
 
 msgid "Loan"
 msgstr "Loan"
+
+msgid "Loan Details"
+msgstr "Loan Details"
 
 msgid "Loans"
 msgstr "Loans"
@@ -409,6 +466,12 @@ msgstr "Maintenance & Logs"
 
 msgid "Make sure your device is connected to Wi-Fi."
 msgstr "Make sure your device is connected to Wi-Fi."
+
+msgid "Manage Linked Accounts"
+msgstr "Manage Linked Accounts"
+
+msgid "Manage linked accounts (%d)"
+msgstr "Manage linked accounts (%d)"
 
 msgid "New Folder"
 msgstr "New Folder"
@@ -524,6 +587,21 @@ msgstr "Retry"
 msgid "Return"
 msgstr "Return"
 
+msgid "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
+msgstr "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
+
+msgid "Return Early"
+msgstr "Return Early"
+
+msgid "Return Failed"
+msgstr "Return Failed"
+
+msgid "Returned \"%s\" to the library."
+msgstr "Returned \"%s\" to the library."
+
+msgid "Returning \"%s\" to library…"
+msgstr "Returning \"%s\" to library…"
+
 msgid "Save"
 msgstr "Save"
 
@@ -538,6 +616,9 @@ msgstr "Select Download Folder"
 
 msgid "Select Folder"
 msgstr "Select Folder"
+
+msgid "Select an account to disconnect:"
+msgstr "Select an account to disconnect:"
 
 msgid "Session Expired"
 msgstr "Session Expired"
@@ -583,6 +664,15 @@ msgstr "Switch to Anonymous DRM"
 
 msgid "Switched to anonymous DRM"
 msgstr "Switched to anonymous DRM"
+
+msgid "Sync failed: %s"
+msgstr "Sync failed: %s"
+
+msgid "Sync library cards & accounts"
+msgstr "Sync library cards & accounts"
+
+msgid "Syncing libraries from Libby…"
+msgstr "Syncing libraries from Libby…"
 
 msgid "System"
 msgstr "System"
@@ -719,6 +809,9 @@ msgstr "Install Update"
 msgid "btn_ok"
 msgstr "OK"
 
+msgid "btn_open_book"
+msgstr "Open Book"
+
 msgid "btn_read"
 msgstr "Read"
 
@@ -737,6 +830,9 @@ msgstr "Retry"
 msgid "btn_return"
 msgstr "Return"
 
+msgid "btn_return_early"
+msgstr "Return Early"
+
 msgid "btn_save"
 msgstr "Save"
 
@@ -745,6 +841,15 @@ msgstr "Setup Passkey"
 
 msgid "btn_unlink"
 msgstr "Unlink Account"
+
+msgid "dialog_loan_details"
+msgstr "Loan Details"
+
+msgid "dialog_return_failed"
+msgstr "Return Failed"
+
+msgid "dialog_return_loan"
+msgstr "Return Early"
 
 msgid "ebook"
 msgstr "ebook"
@@ -782,6 +887,12 @@ msgstr "Libbee Settings"
 msgid "menu_sync"
 msgstr "Sync Shelf"
 
+msgid "msg_auto_delete_multiple"
+msgstr "Auto-deleted %d expired/returned loan(s)."
+
+msgid "msg_auto_delete_single"
+msgstr "Auto-deleted \\\"%s\\\" (loan ended)."
+
 msgid "msg_download_complete"
 msgstr "Download complete."
 
@@ -797,6 +908,18 @@ msgstr "Update installed. Restart KOReader now?"
 msgid "msg_return_confirm"
 msgstr "Return \\\"%s\\\" early to your library?"
 
+msgid "msg_return_confirm_details"
+msgstr "Return \\\"%s\\\" early to your library?\\n\\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
+
+msgid "msg_return_failed"
+msgstr "Could not return loan:\\n%s"
+
+msgid "msg_return_success"
+msgstr "Returned \\\"%s\\\" to the library."
+
+msgid "msg_returning_progress"
+msgstr "Returning \\\"%s\\\" to library…"
+
 msgid "msg_sync_complete"
 msgstr "Shelf synced successfully."
 
@@ -808,6 +931,12 @@ msgstr "Unlink your Libby account from this device?"
 
 msgid "progress_please_wait"
 msgstr "Please wait..."
+
+msgid "setting_auto_delete"
+msgstr "Auto-delete Expired"
+
+msgid "setting_auto_delete_desc"
+msgstr "Auto-delete enabled (removes loans 1 day after due date)"
 
 msgid "status_downloading"
 msgstr "Downloading..."
@@ -829,6 +958,9 @@ msgstr "Loans"
 
 msgid "tab_tags"
 msgstr "Tags"
+
+msgid "this book"
+msgstr "this book"
 
 msgid "view_grid"
 msgstr "Cover Grid"
@@ -862,6 +994,9 @@ msgstr "✓ Download Complete!"
 
 msgid "✓ Libbee Connected!"
 msgstr "✓ Libbee Connected!"
+
+msgid "✓ Library cards & shelf synced"
+msgstr "✓ Library cards & shelf synced"
 
 msgid "✗ Not Connected"
 msgstr "✗ Not Connected"

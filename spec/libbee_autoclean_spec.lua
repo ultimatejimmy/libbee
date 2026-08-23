@@ -186,4 +186,35 @@ describe("libbee_autoclean checkAndCleanup", function()
         if f then f:close() end
         assert.is_not_nil(State.getTrackedDownload("loan-offline"))
     end)
+
+    it("preserves KOReader .sdr sidecar directory when book file is cleaned up", function()
+        local now = os.time{ year = 2026, month = 8, day = 21, hour = 12 }
+        local path_exp = create_temp_file("exp_with_sdr")
+        local sdr_dir = path_exp:gsub("%.[^.]+$", "") .. ".sdr"
+        os.execute("mkdir -p '" .. sdr_dir .. "'")
+        local sdr_file = sdr_dir .. "/metadata.lua"
+        local sf = io.open(sdr_file, "w")
+        if sf then sf:write("return {}"); sf:close() end
+
+        State.registerDownload({
+            id = "loan-exp-sdr",
+            title = "Expired Book with SDR",
+            expires = "2026-08-19",
+        }, path_exp)
+
+        local res = AutoClean.checkAndCleanup({}, { is_live_sync = true, now_timestamp = now })
+        assert.are_equal(1, res.deleted_count)
+
+        -- Book file deleted
+        assert.is_nil(io.open(path_exp, "r"))
+
+        -- .sdr directory and its metadata.lua preserved
+        local sf_check = io.open(sdr_file, "r")
+        assert.is_not_nil(sf_check)
+        if sf_check then sf_check:close() end
+
+        -- Cleanup test sdr
+        pcall(os.remove, sdr_file)
+        os.execute("rmdir '" .. sdr_dir .. "' 2>/dev/null")
+    end)
 end)

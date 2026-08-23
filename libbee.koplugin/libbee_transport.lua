@@ -262,7 +262,7 @@ function LibbeeTransport:request_sequence(requests)
         if type(request_spec) == "function" then
             request = request_spec(responses)
         end
-        if type(request) ~= "table" then connection:close(); return nil, "Persistent HTTPS sequence produced an invalid request" end
+        if type(request) ~= "table" then break end
         if tostring(request.base_url or "") ~= base then connection:close(); return nil, "Persistent HTTPS sequence cannot change origin" end
 
         local query = query_string(request.query)

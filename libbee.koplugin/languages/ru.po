@@ -25,6 +25,10 @@ msgstr "Осталось %d дн."
 msgid "%d libraries"
 msgstr "%d библиотек"
 
+# en-hash: bd40e2574ad0ef5ed0c05049ce9b44cc
+msgid "%d loans"
+msgstr "Книг: %d"
+
 # en-hash: fed3b58ade678c6cccb2787ef13d86f6
 msgid "(cached)"
 msgstr "(в кэше)"
@@ -33,6 +37,10 @@ msgstr "(в кэше)"
 msgid "+ New"
 msgstr "+ Создать"
 
+# en-hash: 806e810f7f4f00e9c047945f357030bc
+msgid "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
+msgstr "-- Журнал отладки Libbee (сначала новые, последние %d записей) --\n\n"
+
 # en-hash: d28fdd75f93893891fb2d7e3b40683de
 msgid ".. (Parent Folder)"
 msgstr ".. (Родительская папка)"
@@ -40,6 +48,10 @@ msgstr ".. (Родительская папка)"
 # en-hash: f1a9ffba029332c15ee4a50d7dec57a3
 msgid "1 day left"
 msgstr "Остался 1 день"
+
+# en-hash: 0aa1113ea14a6b366f953eebe44a0359
+msgid "1 loan"
+msgstr "1 книга"
 
 # en-hash: bb9ef8f07574430e20fd0d806b705e99
 msgid "1. Open the Libby app on your phone or computer.\n"
@@ -77,6 +89,10 @@ msgstr "О ByteBooks"
 msgid "Account & Keys"
 msgstr "Аккаунт и ключи"
 
+# en-hash: b9125e3b8bab8806f5eddbc452cc7e1b
+msgid "Account disconnected"
+msgstr "Аккаунт отключен"
+
 # en-hash: 26e1484950dcc5ba28e9dc97a24ff9ce
 msgid "Accounts & DRM"
 msgstr "Аккаунты и DRM"
@@ -96,6 +112,10 @@ msgstr "Активно"
 # en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
 msgid "All"
 msgstr "Все"
+
+# en-hash: ac0cde1cc1a14c185fa04213c7afc0ce
+msgid "All Libby accounts disconnected"
+msgstr "Все аккаунты Libby отключены"
 
 # en-hash: 894bf223f655fcd20eb70039bc62ca12
 msgid "Already Fulfilled on Another Device"
@@ -140,6 +160,18 @@ msgstr "Авто при загрузке"
 # en-hash: 9bd1606c367713265008a2d24b589cad
 msgid "Auto-activates on download"
 msgstr "Автоактивация при загрузке"
+
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "Auto-delete Expired"
+msgstr "Автоудаление просроченных"
+
+# en-hash: bab5d7d538a3a533edd5ca9deb23f586
+msgid "Auto-deleted \"%s\" (loan ended)."
+msgstr "Автоудаление \"%s\" (срок истек)."
+
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "Auto-deleted %d expired/returned loan(s)."
+msgstr "Автоудалено просроченных/возвращенных книг: %d."
 
 # en-hash: 30aa633ceca3224e6de6cdc62d7e3307
 msgid "Available Format"
@@ -216,6 +248,10 @@ msgstr "Подключено"
 # en-hash: 265725f5f895c4f418183f9cba48fda4
 msgid "Connected Libraries"
 msgstr "Подключенные библиотеки"
+
+# en-hash: e155b7b85b5b179e1bd3197041fdb7e0
+msgid "Connected Libraries & Accounts"
+msgstr "Подключенные библиотеки и аккаунты"
 
 # en-hash: 60b7a58e56e8e2665e64fb9f42ec183c
 msgid "Connected ›"
@@ -297,17 +333,41 @@ msgstr "DRM устройства"
 msgid "Diagnostics & Cache"
 msgstr "Диагностика и кэш"
 
+# en-hash: e5f1ef27f1a4a4dea4d1d6314e5408b9
+msgid "Disabled ›"
+msgstr "Отключено ›"
+
 # en-hash: 42ae25231906c83927831e0ef7c317ac
 msgid "Disconnect"
 msgstr "Отключить"
+
+# en-hash: 01e4476182f21df0937bd370201744c5
+msgid "Disconnect %s"
+msgstr "Отключить %s"
 
 # en-hash: fd456a63260bc8f43e73094f0d826863
 msgid "Disconnect Account"
 msgstr "Отключить аккаунт"
 
+# en-hash: 1dca4ea3608cf5dff42f2e5f902af6ae
+msgid "Disconnect All"
+msgstr "Отключить все"
+
+# en-hash: 890588abcf602c3ed06bd5048103747e
+msgid "Disconnect All Accounts"
+msgstr "Отключить все аккаунты"
+
 # en-hash: 513a57621b57cca0eb03a4ceb37a97a1
 msgid "Disconnect Libby account"
 msgstr "Отключить аккаунт Libby"
+
+# en-hash: 2d7f0e5473f5090882175bec10e32749
+msgid "Disconnect all accounts"
+msgstr "Отключить все аккаунты"
+
+# en-hash: 62f1df6c552bd0008e432039448bd1bd
+msgid "Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."
+msgstr "Отключить все привязанные аккаунты Libby?\n\nСохраненные сессии и кэш полки будут очищены."
 
 # en-hash: f9cd62554bc3a60867c3fb15640e1d50
 msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
@@ -364,6 +424,10 @@ msgstr "Загрузки"
 # en-hash: 61600f254d88c842a689e3869b20d442
 msgid "Email cannot be blank"
 msgstr "Email не может быть пустым"
+
+# en-hash: 4a21023900c05e1d4da55380522f5cc9
+msgid "Enabled ›"
+msgstr "Включено ›"
 
 # en-hash: d88c31f3a550c44386a7c29f6be13c5f
 msgid "Enter password for %s:\n(Used in memory only, not stored)"
@@ -509,6 +573,10 @@ msgstr "Библиотека: %s\n\nУстройство зарегистрир�
 msgid "Link Libby Account"
 msgstr "Привязать аккаунт Libby"
 
+# en-hash: 93a63494d18a5c1132e636ae1c802205
+msgid "Link another Libby account"
+msgstr "Привязать другой аккаунт Libby"
+
 # en-hash: d59189e032a45a99e26263968bd115cf
 msgid "Link another Libby device"
 msgstr "Привязать другое устройство Libby"
@@ -544,6 +612,14 @@ msgstr "Обслуживание и журналы"
 # en-hash: c10ed6587598fe5b0c8e012eeaf74a9c
 msgid "Make sure your device is connected to Wi-Fi."
 msgstr "Убедитесь, что устройство подключено к Wi-Fi."
+
+# en-hash: de905377f7fd22f4b015dc36ca1feffa
+msgid "Manage Linked Accounts"
+msgstr "Управление аккаунтами"
+
+# en-hash: 279bdea3f4be8d935162b88de4974347
+msgid "Manage linked accounts (%d)"
+msgstr "Управление аккаунтами (%d)"
 
 # en-hash: 5148905edb46ca87df979cbb369c403d
 msgid "New Folder"
@@ -717,6 +793,10 @@ msgstr "Выбрать папку для загрузок"
 msgid "Select Folder"
 msgstr "Выбрать папку"
 
+# en-hash: e0f3ceab4f6c4e78f9d2eec932f48788
+msgid "Select an account to disconnect:"
+msgstr "Выберите аккаунт для отключения:"
+
 # en-hash: 86180348ed3fa372f89e00d4279cba3c
 msgid "Session Expired"
 msgstr "Сессия истекла"
@@ -776,6 +856,18 @@ msgstr "Переключить на анонимный DRM"
 # en-hash: fac891a83da5f2381dfe9c48f45a6fad
 msgid "Switched to anonymous DRM"
 msgstr "Переключено на анонимный DRM"
+
+# en-hash: 45fd23929597c5957b6aad1b71d966db
+msgid "Sync failed: %s"
+msgstr "Ошибка синхронизации: %s"
+
+# en-hash: 6f9735249c5e6bf3ecc263ca96586841
+msgid "Sync library cards & accounts"
+msgstr "Синхронизировать карты и аккаунты"
+
+# en-hash: 4e4b6c1fefb00e47b2db10a8dfd56a9c
+msgid "Syncing libraries from Libby…"
+msgstr "Синхронизация библиотек Libby…"
 
 # en-hash: a45da96d0bf6575970f2d27af22be28a
 msgid "System"
@@ -1041,6 +1133,14 @@ msgstr "Настройки Libbee"
 msgid "menu_sync"
 msgstr "Синхронизировать полку"
 
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "msg_auto_delete_multiple"
+msgstr "Автоудалено просроченных/возвращенных книг: %d."
+
+# en-hash: 0b439d93d6a9f6084d1b4667d84e9a7a
+msgid "msg_auto_delete_single"
+msgstr "Автоудаление \\\"%s\\\" (срок истек)."
+
 # en-hash: 3c2681ea85407c2c0d252e05a8eaf6aa
 msgid "msg_download_complete"
 msgstr "Загрузка завершена."
@@ -1076,6 +1176,14 @@ msgstr "Отвязать аккаунт Libby от этого устройств
 # en-hash: 25e8f2fd2871c8423bbe4e254066cd98
 msgid "progress_please_wait"
 msgstr "Пожалуйста, подождите..."
+
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "setting_auto_delete"
+msgstr "Автоудаление просроченных"
+
+# en-hash: a9c186d7e7b37e434c9077d4e6cc1bd0
+msgid "setting_auto_delete_desc"
+msgstr "Автоудаление включено (удаляет книги через 1 день после срока)"
 
 # en-hash: 96c4d7265c89a6e0ed70ffec22fb1afe
 msgid "status_downloading"
@@ -1148,6 +1256,10 @@ msgstr "✓ Загрузка завершена!"
 # en-hash: 339e5ff0141bb9d29554609fadf4d52b
 msgid "✓ Libbee Connected!"
 msgstr "✓ Libbee подключен!"
+
+# en-hash: 7d05ed14cfe8799130ac500f2e935784
+msgid "✓ Library cards & shelf synced"
+msgstr "✓ Читательские билеты и полка синхронизированы"
 
 # en-hash: 25c78c5528381192b859a353be7fa609
 msgid "✗ Not Connected"

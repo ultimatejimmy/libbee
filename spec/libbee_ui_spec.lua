@@ -40,9 +40,40 @@ describe("libbee_ui", function()
         assert.is_true(#_G.ui_tracker.shown > 0)
     end)
 
-    it("opens libby account submenu", function()
+    it("opens libby account submenu when unauthenticated and authenticated", function()
+        local State = require("libbee_state")
         _G.ui_tracker.shown = {}
+        State.clearChipIdentity()
         UI.showLibbyAccountSubmenu("/tmp/test_plugin")
+        assert.is_true(#_G.ui_tracker.shown > 0)
+
+        -- Test authenticated state with multiple accounts and cached loans
+        _G.ui_tracker.shown = {}
+        State.addOrUpdateAccount({
+            id = "test_acc_1",
+            chip_identity = "header.payload.sig",
+            library_name = "Wisconsin Public Library Consortium",
+            cards = {
+                { id = "card_1", library = { name = "Wisconsin Public Library Consortium" } }
+            }
+        })
+        State.saveShelfCache({
+            { id = "loan-1", library = "Wisconsin Public Library Consortium", title = "Book 1" }
+        })
+        UI.showLibbyAccountSubmenu("/tmp/test_plugin")
+        assert.is_true(#_G.ui_tracker.shown > 0)
+    end)
+
+    it("opens manage linked accounts dialog", function()
+        local State = require("libbee_state")
+        _G.ui_tracker.shown = {}
+        State.addOrUpdateAccount({
+            id = "test_acc_2",
+            chip_identity = "header.payload2.sig",
+            library_name = "Second Library",
+            cards = { { id = "card_2", cardName = "24273000240544" } }
+        })
+        UI.showManageAccountsDialog("/tmp/test_plugin")
         assert.is_true(#_G.ui_tracker.shown > 0)
     end)
 

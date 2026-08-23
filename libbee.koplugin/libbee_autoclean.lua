@@ -94,34 +94,17 @@ end
 -- File & Sidecar Cleanup
 -- ---------------------------------------------------------------------------
 
---- Safely removes a book file and any associated KOReader .sdr sidecar directory.
+--- Safely removes a book file while preserving KOReader's .sdr sidecar directory
+--- (so reading progress, bookmarks, and highlights remain intact if loaned again).
 --- @param file_path string
 function M.removeFileAndSidecar(file_path)
     if not file_path or file_path == "" then return end
 
-    -- 1. Remove book file
+    -- Remove book file only; preserve .sdr sidecar directory
     pcall(os.remove, file_path)
-
-    -- 2. Remove KOReader .sdr sidecar directory if present
-    local sdr_dir = file_path:gsub("%.[^.]+$", "") .. ".sdr"
-    local ok_lfs, lfs = pcall(require, "libs/libkoreader-lfs")
-    if not ok_lfs then ok_lfs, lfs = pcall(require, "lfs") end
-
-    if ok_lfs and lfs and lfs.dir and lfs.attributes and lfs.attributes(sdr_dir, "mode") == "directory" then
-        pcall(function()
-            for entry in lfs.dir(sdr_dir) do
-                if entry ~= "." and entry ~= ".." then
-                    pcall(os.remove, sdr_dir .. "/" .. entry)
-                end
-            end
-            if lfs.rmdir then
-                pcall(lfs.rmdir, sdr_dir)
-            else
-                pcall(os.remove, sdr_dir)
-            end
-        end)
-    end
 end
+
+M.removeBookFile = M.removeFileAndSidecar
 
 -- ---------------------------------------------------------------------------
 -- Main Cleanup Orchestrator

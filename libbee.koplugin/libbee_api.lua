@@ -128,6 +128,9 @@ local function _request(method, path, options)
     end
     if options.identity and options.identity ~= "" then
         headers["Authorization"] = "Bearer " .. options.identity
+        if not headers["Accept-Language"] then
+            headers["Accept-Language"] = M.chip_accept_language(options.identity)
+        end
     end
 
     local response, err = transport:request({
@@ -199,6 +202,58 @@ function M.getChip(identity, update_state)
 end
 
 -- ---------------------------------------------------------------------------
+-- Loan & Card Parsing Helpers
+-- ---------------------------------------------------------------------------
+
+local function _firstNonempty(...)
+    for i = 1, select("#", ...) do
+        local val = select(i, ...)
+        if type(val) == "string" and val ~= "" then return val end
+    end
+    return nil
+end
+
+local function _cardName(card)
+    if type(card) ~= "table" then return "Library Card" end
+    local lib = type(card.library) == "table" and card.library or nil
+    return _firstNonempty(
+        lib and lib.name,
+        card.libraryName,
+        card.name,
+        lib and lib.websiteId,
+        card.advantageKey
+    ) or "Library Card"
+end
+
+local function _loanLibraryName(loan, cards)
+    if type(loan) ~= "table" or type(cards) ~= "table" then return nil end
+    local card_id = tostring(loan.cardId or loan.card_id or "")
+    if card_id == "" then return nil end
+    for _, card in ipairs(cards) do
+        if type(card) == "table" then
+            local cid = tostring(card.id or card.cardId or "")
+            if cid == card_id then
+                return _cardName(card)
+            end
+        end
+    end
+    return nil
+end
+
+local function _loanAuthor(loan)
+    if type(loan) ~= "table" then return "Unknown Author" end
+    if type(loan.creators) == "table" and loan.creators[1] then
+        local c = loan.creators[1]
+        if type(c) == "table" then
+            return _firstNonempty(c.name, c.displayName, c.fullName) or "Unknown Author"
+        elseif type(c) == "string" then
+            return c
+        end
+    end
+    return _firstNonempty(loan.firstCreatorName, loan.author) or "Unknown Author"
+end
+
+-- ---------------------------------------------------------------------------
 -- Setup Flow (Pairing with Libby App)
 -- ---------------------------------------------------------------------------
 
@@ -263,127 +318,202 @@ function M.pollForCloneResult(setup_code)
     local blessing = poll_body.blessing
     log.info("libbee api: received clone blessing, completing pairing")
 
-    -- Step 3: Clone by blessing (with missing_chip auto-refresh)
-    local clone_resp, clone_err = _request("POST", "/chip/clone", {
-        identity = pending_identity,
-        json     = { blessing = blessing },
-    })
+    local short_id = M.short_chip_id(pending_identity) or ("acc_" .. tostring(os.time()))
+    local auth_identity = nil
+    local state_data = nil
 
-    if clone_resp and clone_resp.status == 403 and _responseResult(clone_resp) == "missing_chip" then
-        log.info("libbee api: missing_chip on clone, refreshing chip")
-        local refreshed, refresh_err = M.getChip(pending_identity, false)
-        if refreshed and type(refreshed.identity) == "string" then
-            pending_identity = refreshed.identity
-            State.savePendingIdentity(pending_identity, code)
-            clone_resp, clone_err = _request("POST", "/chip/clone", {
-                identity = pending_identity,
+    -- Attempt complete clone sequence on persistent keep-alive connection
+    local transport = _getTransport()
+    if type(transport.request_sequence) == "function" then
+        local function seq_headers(token, language)
+            local result = _defaultHeaders()
+            result["Authorization"] = "Bearer " .. token
+            result["Connection"] = "keep-alive"
+            if language then result["Accept-Language"] = language end
+            return result
+        end
+
+        local sequence, seq_err = transport:request_sequence({
+            -- Step 1: POST /chip/clone
+            {
+                method   = "POST",
+                base_url = M.SENTRY_BASE,
+                path     = "/chip/clone",
+                headers  = seq_headers(pending_identity),
                 json     = { blessing = blessing },
-            })
+            },
+            -- Step 2: If missing_chip, refresh with short_id; if 200, refresh chip to get authenticated token
+            function(responses)
+                local clone_resp = responses[1]
+                if clone_resp and clone_resp.status == 403 and _responseResult(clone_resp) == "missing_chip" then
+                    log.info("libbee api: missing_chip on clone, refreshing chip on same connection")
+                    return {
+                        method   = "POST",
+                        base_url = M.SENTRY_BASE,
+                        path     = "/chip",
+                        query    = { c = M.CLIENT_VERSION, s = "0", v = short_id },
+                        headers  = seq_headers(pending_identity, M.chip_accept_language(pending_identity)),
+                    }
+                elseif clone_resp and clone_resp.status == 200 then
+                    return {
+                        method   = "POST",
+                        base_url = M.SENTRY_BASE,
+                        path     = "/chip",
+                        query    = { c = M.CLIENT_VERSION, s = "0", v = short_id },
+                        headers  = seq_headers(pending_identity, M.chip_accept_language(pending_identity)),
+                    }
+                end
+                return nil
+            end,
+            -- Step 3: If step 1 was 403, retry clone with step 2's token; else step 2 was refresh, so fetch sync
+            function(responses)
+                local step1 = responses[1]
+                local step2 = responses[2]
+                local token2 = step2 and type(step2.body) == "table" and step2.body.identity
+                if type(token2) ~= "string" then return nil end
+
+                if step1 and step1.status == 403 then
+                    return {
+                        method   = "POST",
+                        base_url = M.SENTRY_BASE,
+                        path     = "/chip/clone",
+                        headers  = seq_headers(token2),
+                        json     = { blessing = blessing },
+                    }
+                else
+                    return {
+                        method   = "GET",
+                        base_url = M.SENTRY_BASE,
+                        path     = "/chip/sync",
+                        headers  = seq_headers(token2),
+                    }
+                end
+            end,
+            -- Step 4: If step 3 was retried clone, refresh chip again; else sequence done
+            function(responses)
+                local step1 = responses[1]
+                if not step1 or step1.status ~= 403 then return nil end
+                local step3 = responses[3]
+                local token2 = responses[2] and type(responses[2].body) == "table" and responses[2].body.identity
+                if not step3 or step3.status ~= 200 or type(token2) ~= "string" then return nil end
+
+                return {
+                    method   = "POST",
+                    base_url = M.SENTRY_BASE,
+                    path     = "/chip",
+                    query    = { c = M.CLIENT_VERSION, s = "0", v = short_id },
+                    headers  = seq_headers(token2, M.chip_accept_language(token2)),
+                }
+            end,
+            -- Step 5: If in retry path, final sync
+            function(responses)
+                if not responses[4] then return nil end
+                local final_token = responses[4] and type(responses[4].body) == "table" and responses[4].body.identity
+                if type(final_token) ~= "string" then return nil end
+                return {
+                    method   = "GET",
+                    base_url = M.SENTRY_BASE,
+                    path     = "/chip/sync",
+                    headers  = seq_headers(final_token),
+                }
+            end,
+        })
+
+        if sequence then
+            if sequence[5] and sequence[5].status == 200 and type(sequence[5].body) == "table" then
+                auth_identity = sequence[4] and sequence[4].body and sequence[4].body.identity
+                state_data = sequence[5].body
+            elseif sequence[3] and sequence[3].status == 200 and sequence[1] and sequence[1].status == 200 and type(sequence[3].body) == "table" then
+                auth_identity = sequence[2] and sequence[2].body and sequence[2].body.identity
+                state_data = sequence[3].body
+            end
+        else
+            log.warn("libbee api: persistent clone sequence returned error: " .. tostring(seq_err))
         end
     end
 
-    if not clone_resp or clone_resp.status ~= 200 then
-        local err_msg = "Libby clone blessing claim failed: " .. tostring(clone_err or (clone_resp and clone_resp.status))
-        log.err("libbee api: " .. err_msg)
-        return nil, err_msg
-    end
+    -- Fallback to standalone requests if sequence didn't complete
+    if not auth_identity or not state_data then
+        log.info("libbee api: running standalone clone request with blessing length " .. tostring(#blessing))
+        local clone_resp, clone_err = _request("POST", "/chip/clone", {
+            identity = pending_identity,
+            json     = { blessing = blessing },
+        })
+        log.info("libbee api: clone_resp status=" .. tostring(clone_resp and clone_resp.status) .. " body=" .. tostring(clone_resp and clone_resp.raw_body))
 
-    -- Step 4: Refresh chip to get final authenticated identity
-    local refreshed, refresh_err = M.getChip(pending_identity, false)
-    if not refreshed or type(refreshed.identity) ~= "string" then
-        local err_msg = "Libby chip refresh after clone failed: " .. tostring(refresh_err)
-        log.err("libbee api: " .. err_msg)
-        return nil, err_msg
-    end
-    local auth_identity = refreshed.identity
-
-    -- Step 5: Verify sync and fetch card details (with missing_chip auto-refresh)
-    local sync_resp, sync_err = _request("GET", "/chip/sync", {
-        identity = auth_identity,
-    })
-    if sync_resp and sync_resp.status == 403 and _responseResult(sync_resp) == "missing_chip" then
-        local sync_refreshed, sync_ref_err = M.getChip(auth_identity, false)
-        if sync_refreshed and type(sync_refreshed.identity) == "string" then
-            auth_identity = sync_refreshed.identity
-            sync_resp, sync_err = _request("GET", "/chip/sync", {
-                identity = auth_identity,
-            })
-        end
-    end
-
-    if not sync_resp or sync_resp.status ~= 200 or type(sync_resp.body) ~= "table" then
-        local err_msg = "Libby sync failed: " .. tostring(sync_err or (sync_resp and sync_resp.status))
-        log.err("libbee api: " .. err_msg)
-        return nil, err_msg
-    end
-
-    local state_data = sync_resp.body
-    local cards = state_data.cards or {}
-    local library_name = ""
-    if cards[1] and type(cards[1]) == "table" then
-        local card = cards[1]
-        library_name = (card.library and type(card.library) == "table" and card.library.name) or
-                       card.libraryName or card.name or card.advantageKey or ""
-    end
-
-    -- Step 6: Save permanent authenticated state
-    State.saveChipIdentity(auth_identity, library_name, cards)
-    State.clearPendingIdentity()
-    log.info("libbee api: pairing complete, saved chip identity and " .. #cards .. " cards")
-
-    return { chip = auth_identity, library_name = library_name, cards = cards }
-end
-
--- ---------------------------------------------------------------------------
--- Loan & Card Parsing Helpers
--- ---------------------------------------------------------------------------
-
-local function _firstNonempty(...)
-    for i = 1, select("#", ...) do
-        local val = select(i, ...)
-        if type(val) == "string" and val ~= "" then return val end
-    end
-    return nil
-end
-
-local function _cardName(card)
-    if type(card) ~= "table" then return "Library Card" end
-    local lib = type(card.library) == "table" and card.library or nil
-    return _firstNonempty(
-        lib and lib.name,
-        card.libraryName,
-        card.name,
-        lib and lib.websiteId,
-        card.advantageKey
-    ) or "Library Card"
-end
-
-local function _loanLibraryName(loan, cards)
-    if type(loan) ~= "table" or type(cards) ~= "table" then return nil end
-    local card_id = tostring(loan.cardId or loan.card_id or "")
-    if card_id == "" then return nil end
-    for _, card in ipairs(cards) do
-        if type(card) == "table" then
-            local cid = tostring(card.id or card.cardId or "")
-            if cid == card_id then
-                return _cardName(card)
+        if clone_resp and clone_resp.status == 403 and _responseResult(clone_resp) == "missing_chip" then
+            log.info("libbee api: missing_chip on clone fallback, refreshing chip")
+            local refreshed, refresh_err = M.getChip(pending_identity, false)
+            if refreshed and type(refreshed.identity) == "string" then
+                pending_identity = refreshed.identity
+                State.savePendingIdentity(pending_identity, code)
+                clone_resp, clone_err = _request("POST", "/chip/clone", {
+                    identity = pending_identity,
+                    json     = { blessing = blessing },
+                })
+                log.info("libbee api: second clone_resp status=" .. tostring(clone_resp and clone_resp.status) .. " body=" .. tostring(clone_resp and clone_resp.raw_body))
+            else
+                log.err("libbee api: refresh chip failed: " .. tostring(refresh_err))
             end
         end
-    end
-    return nil
-end
 
-local function _loanAuthor(loan)
-    if type(loan) ~= "table" then return "Unknown Author" end
-    if type(loan.creators) == "table" and loan.creators[1] then
-        local c = loan.creators[1]
-        if type(c) == "table" then
-            return _firstNonempty(c.name, c.displayName, c.fullName) or "Unknown Author"
-        elseif type(c) == "string" then
-            return c
+        if not clone_resp or clone_resp.status ~= 200 then
+            local err_msg = "Libby clone blessing claim failed: " .. tostring(clone_err or (clone_resp and clone_resp.status))
+            log.err("libbee api: " .. err_msg)
+            return nil, err_msg
+        end
+
+        local refreshed, refresh_err = M.getChip(pending_identity, false)
+        log.info("libbee api: post-clone getChip status=" .. tostring(refreshed and "ok" or refresh_err))
+        if not refreshed or type(refreshed.identity) ~= "string" then
+            local err_msg = "Libby chip refresh after clone failed: " .. tostring(refresh_err)
+            log.err("libbee api: " .. err_msg)
+            return nil, err_msg
+        end
+        auth_identity = refreshed.identity
+
+        local sync_resp, sync_err = _request("GET", "/chip/sync", { identity = auth_identity })
+        log.info("libbee api: sync_resp status=" .. tostring(sync_resp and sync_resp.status))
+        if sync_resp and sync_resp.status == 403 and _responseResult(sync_resp) == "missing_chip" then
+            local sync_refreshed, sync_ref_err = M.getChip(auth_identity, false)
+            if sync_refreshed and type(sync_refreshed.identity) == "string" then
+                auth_identity = sync_refreshed.identity
+                sync_resp, sync_err = _request("GET", "/chip/sync", { identity = auth_identity })
+            end
+        end
+
+        if not sync_resp or sync_resp.status ~= 200 or type(sync_resp.body) ~= "table" then
+            local err_msg = "Libby sync failed: " .. tostring(sync_err or (sync_resp and sync_resp.status))
+            log.err("libbee api: " .. err_msg)
+            return nil, err_msg
+        end
+
+        state_data = sync_resp.body
+    end
+
+    local cards = (state_data and state_data.cards) or {}
+    local lib_names = {}
+    for _, c in ipairs(cards) do
+        local n = _cardName(c)
+        if n and n ~= "" and not lib_names[n] then
+            table.insert(lib_names, n)
+            lib_names[n] = true
         end
     end
-    return _firstNonempty(loan.firstCreatorName, loan.author) or "Unknown Author"
+    local library_name = #lib_names > 0 and table.concat(lib_names, ", ") or "Libby"
+    local account_id = M.short_chip_id(auth_identity) or short_id
+
+    -- Save/add authenticated account to state
+    State.addOrUpdateAccount({
+        id            = account_id,
+        chip_identity = auth_identity,
+        library_name  = library_name,
+        cards         = cards,
+    })
+    State.clearPendingIdentity()
+    log.info("libbee api: pairing complete, saved account " .. tostring(account_id) .. " with " .. #cards .. " cards")
+
+    return { chip = auth_identity, library_name = library_name, cards = cards, id = account_id }
 end
 
 function M.analyzeLoanFormats(loan)
@@ -620,86 +750,115 @@ local function _syncShelfOnSameConnection(identity)
 end
 
 function M.fetchShelf()
-    local identity = State.getChipIdentity()
-    if not identity or identity == "" then
-        return nil, "Not authenticated — please run setup first"
+    local accounts = State.getAccounts()
+    if #accounts == 0 then
+        local single_id = State.getChipIdentity()
+        if not single_id or single_id == "" then
+            return nil, "Not authenticated — please run setup first"
+        end
+        accounts = { { id = M.short_chip_id(single_id) or "acc_1", chip_identity = single_id } }
     end
 
-    log.info("libbee api: syncing shelf from Libby")
+    log.info("libbee api: syncing shelf from Libby across " .. #accounts .. " account(s)")
 
-    local response, err = _request("GET", "/chip/sync", { identity = identity })
-    if not response then return nil, err end
+    local all_loans = {}
+    local auth_expired_count = 0
 
-    -- Handle missing_chip / token expiration using sticky session sequence
-    if response.status == 403 and _responseResult(response) == "missing_chip" then
-        log.info("libbee api: missing_chip received during sync, running sticky recovery sequence")
-        local recovered_resp, rec_err = _syncShelfOnSameConnection(identity)
-        if recovered_resp then
-            response = recovered_resp
-            identity = State.getChipIdentity() or identity
-        else
-            log.info("libbee api: sticky recovery failed, attempting standalone getChip")
-            local refreshed, refresh_err = M.getChip(identity, true)
-            if not refreshed or type(refreshed.identity) ~= "string" then
-                return nil, "AUTH_EXPIRED"
+    for _, account in ipairs(accounts) do
+        local identity = account.chip_identity
+        local acc_id = account.id or M.short_chip_id(identity) or "acc"
+
+        if identity and identity ~= "" then
+            local response, err = _request("GET", "/chip/sync", { identity = identity })
+
+            -- Handle missing_chip / token expiration using sticky session sequence
+            if response and response.status == 403 and _responseResult(response) == "missing_chip" then
+                log.info("libbee api: missing_chip received for account " .. tostring(acc_id) .. ", running sticky recovery")
+                local recovered_resp, rec_err = _syncShelfOnSameConnection(identity)
+                if recovered_resp then
+                    response = recovered_resp
+                    identity = State.getChipIdentity(acc_id) or identity
+                else
+                    log.info("libbee api: sticky recovery failed, attempting standalone getChip")
+                    local refreshed, refresh_err = M.getChip(identity, false)
+                    if refreshed and type(refreshed.identity) == "string" then
+                        identity = refreshed.identity
+                        response, err = _request("GET", "/chip/sync", { identity = identity })
+                    end
+                end
             end
-            identity = refreshed.identity
-            response, err = _request("GET", "/chip/sync", { identity = identity })
-            if not response then return nil, err end
+
+            if response and (response.status == 401 or response.status == 403) then
+                auth_expired_count = auth_expired_count + 1
+                log.warn("libbee api: auth expired for account " .. tostring(acc_id))
+            elseif response and response.status == 200 and type(response.body) == "table" then
+                local data = response.body
+                local cards = data.cards or {}
+                local raw_loans = data.loans or {}
+
+                local lib_names = {}
+                for _, c in ipairs(cards) do
+                    local n = _cardName(c)
+                    if n and n ~= "" and not lib_names[n] then
+                        table.insert(lib_names, n)
+                        lib_names[n] = true
+                    end
+                end
+                local acc_lib_name = #lib_names > 0 and table.concat(lib_names, ", ") or account.library_name or "Libby"
+
+                -- Update stored account data in state
+                State.addOrUpdateAccount({
+                    id            = acc_id,
+                    chip_identity = identity,
+                    library_name  = acc_lib_name,
+                    cards         = cards,
+                    registered_at = account.registered_at,
+                })
+
+                for _, raw in ipairs(raw_loans) do
+                    local format_info = M.analyzeLoanFormats(raw)
+                    local format_id = format_info.format
+                    local is_ebook = format_info.is_ebook
+                    local is_downloadable = format_info.is_downloadable
+                    local restriction_type = format_info.restriction_type
+
+                    local days_remaining = State.loanDaysRemaining(raw)
+                    local title = _firstNonempty(raw.title, raw.parentTitle, raw.sortTitle) or "Unknown Title"
+                    local author = _loanAuthor(raw)
+                    local library = _loanLibraryName(raw, cards) or acc_lib_name or ""
+
+                    table.insert(all_loans, {
+                        id                = raw.id or raw.loanId or tostring(raw.reserveId or ""),
+                        card_id           = raw.cardId or raw.card_id or (cards[1] and cards[1].id),
+                        account_id        = acc_id,
+                        chip_identity     = identity,
+                        reserveId         = raw.reserveId or raw.id,
+                        title             = title,
+                        author            = author,
+                        library           = library,
+                        format            = format_id,
+                        is_ebook          = is_ebook,
+                        is_downloadable   = is_downloadable,
+                        restriction_type  = restriction_type,
+                        formats           = format_info.available_formats,
+                        days_remaining    = days_remaining,
+                        expires           = raw.expires or raw.expireDate or raw.expireTimestamp,
+                        cover_url         = _loanCoverUrl(raw),
+                        raw               = raw,
+                    })
+                end
+            else
+                log.warn("libbee api: shelf sync for account " .. tostring(acc_id) .. " failed: " .. tostring(err or (response and response.status)))
+            end
         end
     end
 
-    if response.status == 401 or response.status == 403 then
+    if #all_loans == 0 and auth_expired_count > 0 and auth_expired_count == #accounts then
         return nil, "AUTH_EXPIRED"
     end
-    if response.status ~= 200 or type(response.body) ~= "table" then
-        return nil, "Shelf sync failed with HTTP " .. tostring(response.status)
-    end
 
-    local data = response.body
-    local cards = data.cards or {}
-    local raw_loans = data.loans or {}
-
-    -- Update stored cards in state
-    if #cards > 0 then
-        local lib_name = _cardName(cards[1])
-        State.saveChipIdentity(identity, lib_name, cards)
-    end
-
-    local loans = {}
-    for _, raw in ipairs(raw_loans) do
-        local format_info = M.analyzeLoanFormats(raw)
-        local format_id = format_info.format
-        local is_ebook = format_info.is_ebook
-        local is_downloadable = format_info.is_downloadable
-        local restriction_type = format_info.restriction_type
-
-        local days_remaining = State.loanDaysRemaining(raw)
-        local title = _firstNonempty(raw.title, raw.parentTitle, raw.sortTitle) or "Unknown Title"
-        local author = _loanAuthor(raw)
-        local library = _loanLibraryName(raw, cards) or State.getLibraryName() or ""
-
-        table.insert(loans, {
-            id                = raw.id or raw.loanId or tostring(raw.reserveId or ""),
-            card_id           = raw.cardId or raw.card_id or (cards[1] and cards[1].id),
-            reserveId         = raw.reserveId or raw.id,
-            title             = title,
-            author            = author,
-            library           = library,
-            format            = format_id,
-            is_ebook          = is_ebook,
-            is_downloadable   = is_downloadable,
-            restriction_type  = restriction_type,
-            formats           = format_info.available_formats,
-            days_remaining    = days_remaining,
-            expires           = raw.expires or raw.expireDate or raw.expireTimestamp,
-            cover_url         = _loanCoverUrl(raw),
-            raw               = raw,
-        })
-    end
-
-    log.info("libbee api: successfully fetched " .. #loans .. " loans")
-    return loans
+    log.info("libbee api: successfully fetched " .. #all_loans .. " loans across all accounts")
+    return all_loans
 end
 
 -- ---------------------------------------------------------------------------
@@ -776,7 +935,7 @@ local function _recoverFulfillmentOnSameConnection(path, identity)
 end
 
 function M.downloadACSM(loan, dest_path)
-    local identity = State.getChipIdentity()
+    local identity = loan.chip_identity or State.getChipIdentity(loan.account_id) or State.getChipIdentity()
     if not identity or identity == "" then
         return nil, "Not authenticated — please run setup first"
     end
@@ -799,7 +958,7 @@ function M.downloadACSM(loan, dest_path)
 
     local card_id = loan.card_id or loan.cardId
     if not card_id then
-        local cards = State.getCards()
+        local cards = State.getCards(loan.account_id) or State.getCards()
         card_id = cards and cards[1] and (cards[1].id or cards[1].cardId)
     end
     local loan_id = loan.id or loan.reserveId
@@ -930,12 +1089,67 @@ function M.ensureDownloadDir(dir)
 
     if lfs.attributes(dir, "mode") == "directory" then return true end
 
-    local parent = dir:match("^(.+)/[^/]+$")
-    if parent and lfs.attributes(parent, "mode") ~= "directory" then
-        pcall(lfs.mkdir, parent)
-    end
     local ok = lfs.mkdir(dir)
     if not ok then return nil, "Could not create directory: " .. tostring(dir) end
+    return true
+end
+
+function M.returnLoan(loan)
+    if type(loan) ~= "table" then
+        return nil, "Loan is missing"
+    end
+
+    local identity = loan.chip_identity or State.getChipIdentity(loan.account_id) or State.getChipIdentity()
+    if not identity or identity == "" then
+        return nil, "Not authenticated — please run setup first"
+    end
+
+    local card_id = loan.card_id or (loan.raw and (loan.raw.cardId or loan.raw.card_id))
+    local loan_id = loan.id or loan.loanId or loan.reserveId or (loan.raw and (loan.raw.id or loan.raw.loanId or loan.raw.reserveId))
+
+    if not card_id or tostring(card_id) == "" then
+        return nil, "Loan card id is missing"
+    end
+    if not loan_id or tostring(loan_id) == "" then
+        return nil, "Loan id is missing"
+    end
+
+    local path = "/card/" .. tostring(card_id) .. "/loan/" .. tostring(loan_id)
+    log.info("libbee api: returning loan early via " .. path .. " (account=" .. tostring(loan.account_id or "default") .. ")")
+
+    local response, err = _request("DELETE", path, { identity = identity })
+    if not response then return nil, err end
+
+    -- Handle missing_chip 403 with auto-refresh and retry
+    if response.status == 403 and _responseResult(response) == "missing_chip" then
+        log.info("libbee api: missing_chip received during return, refreshing chip")
+        local refreshed, refresh_err = M.getChip(identity, false)
+        if not refreshed or type(refreshed.identity) ~= "string" then
+            return nil, "AUTH_EXPIRED"
+        end
+        identity = refreshed.identity
+        if loan.account_id then
+            local acc = State.getAccount(loan.account_id)
+            if acc then
+                acc.chip_identity = identity
+                State.addOrUpdateAccount(acc)
+            end
+        else
+            State.saveChipIdentity(identity)
+        end
+        response, err = _request("DELETE", path, { identity = identity })
+        if not response then return nil, err end
+    end
+
+    if response.status == 401 or response.status == 403 then
+        return nil, "AUTH_EXPIRED"
+    end
+
+    if response.status < 200 or response.status >= 300 then
+        return nil, "Libby return failed with HTTP " .. tostring(response.status)
+    end
+
+    log.info("libbee api: successfully returned loan " .. tostring(loan_id))
     return true
 end
 

@@ -148,6 +148,7 @@ local specs = {
     "spec/libbee_covers_spec.lua",
     "spec/libbee_state_spec.lua",
     "spec/libbee_autoclean_spec.lua",
+    "spec/libbee_return_spec.lua",
     "spec/libbee_ui_spec.lua",
     "spec/libbee_localization_spec.lua",
 }

@@ -25,6 +25,10 @@ msgstr "بقي %d أيام"
 msgid "%d libraries"
 msgstr "%d مكتبات"
 
+# en-hash: bd40e2574ad0ef5ed0c05049ce9b44cc
+msgid "%d loans"
+msgstr "%d إعارات"
+
 # en-hash: fed3b58ade678c6cccb2787ef13d86f6
 msgid "(cached)"
 msgstr "(مخزن مؤقتًا)"
@@ -33,6 +37,10 @@ msgstr "(مخزن مؤقتًا)"
 msgid "+ New"
 msgstr "+ جديد"
 
+# en-hash: 806e810f7f4f00e9c047945f357030bc
+msgid "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
+msgstr "-- سجل تصحيح Libbee (الأحدث أولاً، يعرض آخر %d مدخلات) --\n\n"
+
 # en-hash: d28fdd75f93893891fb2d7e3b40683de
 msgid ".. (Parent Folder)"
 msgstr ".. (المجلد الرئيسي)"
@@ -40,6 +48,10 @@ msgstr ".. (المجلد الرئيسي)"
 # en-hash: f1a9ffba029332c15ee4a50d7dec57a3
 msgid "1 day left"
 msgstr "بقي يوم واحد"
+
+# en-hash: 0aa1113ea14a6b366f953eebe44a0359
+msgid "1 loan"
+msgstr "إعارة واحدة"
 
 # en-hash: bb9ef8f07574430e20fd0d806b705e99
 msgid "1. Open the Libby app on your phone or computer.\n"
@@ -77,6 +89,10 @@ msgstr "حول ByteBooks"
 msgid "Account & Keys"
 msgstr "الحساب والمفاتيح"
 
+# en-hash: b9125e3b8bab8806f5eddbc452cc7e1b
+msgid "Account disconnected"
+msgstr "تم فصل الحساب"
+
 # en-hash: 26e1484950dcc5ba28e9dc97a24ff9ce
 msgid "Accounts & DRM"
 msgstr "الحسابات و DRM"
@@ -96,6 +112,10 @@ msgstr "نشط"
 # en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
 msgid "All"
 msgstr "الكل"
+
+# en-hash: ac0cde1cc1a14c185fa04213c7afc0ce
+msgid "All Libby accounts disconnected"
+msgstr "تم فصل جميع حسابات Libby"
 
 # en-hash: 894bf223f655fcd20eb70039bc62ca12
 msgid "Already Fulfilled on Another Device"
@@ -140,6 +160,18 @@ msgstr "تلقائي عند التنزيل"
 # en-hash: 9bd1606c367713265008a2d24b589cad
 msgid "Auto-activates on download"
 msgstr "تنشيط تلقائي عند التنزيل"
+
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "Auto-delete Expired"
+msgstr "حذف المنتهية تلقائيًا"
+
+# en-hash: bab5d7d538a3a533edd5ca9deb23f586
+msgid "Auto-deleted \"%s\" (loan ended)."
+msgstr "تم الحذف التلقائي لـ \"%s\" (انتهت الإعارة)."
+
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "Auto-deleted %d expired/returned loan(s)."
+msgstr "تم الحذف التلقائي لـ %d من الإعارات المنتهية/المُرجعة."
 
 # en-hash: 30aa633ceca3224e6de6cdc62d7e3307
 msgid "Available Format"
@@ -217,6 +249,10 @@ msgstr "متصل"
 msgid "Connected Libraries"
 msgstr "المكتبات المتصلة"
 
+# en-hash: e155b7b85b5b179e1bd3197041fdb7e0
+msgid "Connected Libraries & Accounts"
+msgstr "المكتبات والحسابات المتصلة"
+
 # en-hash: 60b7a58e56e8e2665e64fb9f42ec183c
 msgid "Connected ›"
 msgstr "متصل ›"
@@ -261,6 +297,10 @@ msgstr "تعذر طلب رمز الإعداد."
 msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
 msgstr "تعذر طلب رمز الإعداد:\n%s\n\nتأكد من اتصال جهازك بشبكة Wi-Fi."
 
+# en-hash: 5d52fd5e9185cd8915fd819c8daab0ca
+msgid "Could not return loan:\n%s"
+msgstr "تعذر إرجاع الإعارة:\n%s"
+
 # en-hash: 686e697538050e4664636337cc3b834f
 msgid "Create"
 msgstr "إنشاء"
@@ -297,17 +337,41 @@ msgstr "DRM الجهاز"
 msgid "Diagnostics & Cache"
 msgstr "التشخيص والتخزين المؤقت"
 
+# en-hash: e5f1ef27f1a4a4dea4d1d6314e5408b9
+msgid "Disabled ›"
+msgstr "معطل ›"
+
 # en-hash: 42ae25231906c83927831e0ef7c317ac
 msgid "Disconnect"
 msgstr "فصل"
+
+# en-hash: 01e4476182f21df0937bd370201744c5
+msgid "Disconnect %s"
+msgstr "فصل %s"
 
 # en-hash: fd456a63260bc8f43e73094f0d826863
 msgid "Disconnect Account"
 msgstr "فصل الحساب"
 
+# en-hash: 1dca4ea3608cf5dff42f2e5f902af6ae
+msgid "Disconnect All"
+msgstr "فصل الكل"
+
+# en-hash: 890588abcf602c3ed06bd5048103747e
+msgid "Disconnect All Accounts"
+msgstr "فصل جميع الحسابات"
+
 # en-hash: 513a57621b57cca0eb03a4ceb37a97a1
 msgid "Disconnect Libby account"
 msgstr "فصل حساب Libby"
+
+# en-hash: 2d7f0e5473f5090882175bec10e32749
+msgid "Disconnect all accounts"
+msgstr "فصل جميع الحسابات"
+
+# en-hash: 62f1df6c552bd0008e432039448bd1bd
+msgid "Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."
+msgstr "هل تريد فصل جميع حسابات Libby المرتبطة؟\n\nسيتم مسح جلساتك المحفوظة والرف المخزن مؤقتًا."
 
 # en-hash: f9cd62554bc3a60867c3fb15640e1d50
 msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
@@ -364,6 +428,10 @@ msgstr "التنزيلات"
 # en-hash: 61600f254d88c842a689e3869b20d442
 msgid "Email cannot be blank"
 msgstr "لا يمكن أن يكون البريد الإلكتروني فارغًا"
+
+# en-hash: 4a21023900c05e1d4da55380522f5cc9
+msgid "Enabled ›"
+msgstr "مفعل ›"
 
 # en-hash: d88c31f3a550c44386a7c29f6be13c5f
 msgid "Enter password for %s:\n(Used in memory only, not stored)"
@@ -509,6 +577,10 @@ msgstr "المكتبة: %s\n\nتم تسجيل جهازك الآن. يمكنك ت
 msgid "Link Libby Account"
 msgstr "ربط حساب Libby"
 
+# en-hash: 93a63494d18a5c1132e636ae1c802205
+msgid "Link another Libby account"
+msgstr "ربط حساب Libby آخر"
+
 # en-hash: d59189e032a45a99e26263968bd115cf
 msgid "Link another Libby device"
 msgstr "ربط جهاز Libby آخر"
@@ -520,6 +592,10 @@ msgstr "جارٍ تحميل رف Libby الخاص بك…"
 # en-hash: 9ad81a8f8a5c7a6ce9e1ba9bb4759391
 msgid "Loan"
 msgstr "إعارة"
+
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "Loan Details"
+msgstr "تفاصيل الإعارة"
 
 # en-hash: 64e109fb6dde9d711f1b7cba6ce2e279
 msgid "Loans"
@@ -544,6 +620,14 @@ msgstr "الصيانة والسجلات"
 # en-hash: c10ed6587598fe5b0c8e012eeaf74a9c
 msgid "Make sure your device is connected to Wi-Fi."
 msgstr "تأكد من اتصال جهازك بشبكة Wi-Fi."
+
+# en-hash: de905377f7fd22f4b015dc36ca1feffa
+msgid "Manage Linked Accounts"
+msgstr "إدارة الحسابات المرتبطة"
+
+# en-hash: 279bdea3f4be8d935162b88de4974347
+msgid "Manage linked accounts (%d)"
+msgstr "إدارة الحسابات المرتبطة (%d)"
 
 # en-hash: 5148905edb46ca87df979cbb369c403d
 msgid "New Folder"
@@ -697,6 +781,26 @@ msgstr "إعادة المحاولة"
 msgid "Return"
 msgstr "إرجاع"
 
+# en-hash: e936f924825f1f1d14866f53c5e9d26e
+msgid "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
+msgstr "هل تريد إرجاع \"%s\" مبكرًا إلى مكتبتك؟\n\nسيؤدي هذا إلى إرجاع الإعارة إلى Libby وحذف الكتاب المحمّل من هذا الجهاز. سيتم الاحتفاظ بسجل القراءة والإشارات المرجعية."
+
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "Return Early"
+msgstr "إرجاع مبكر"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "Return Failed"
+msgstr "فشل الإرجاع"
+
+# en-hash: 38e36f9abaa17225e15b23cb14f0324e
+msgid "Returned \"%s\" to the library."
+msgstr "تم إرجاع \"%s\" إلى المكتبة."
+
+# en-hash: 178672dd9879003d55a91e11a3ad9966
+msgid "Returning \"%s\" to library…"
+msgstr "جارٍ إرجاع \"%s\" إلى المكتبة…"
+
 # en-hash: c9cc8cce247e49bae79f15173ce97354
 msgid "Save"
 msgstr "حفظ"
@@ -716,6 +820,10 @@ msgstr "تحديد مجلد التنزيل"
 # en-hash: deffb03a57b0deaf912f04da4575848f
 msgid "Select Folder"
 msgstr "تحديد المجلد"
+
+# en-hash: e0f3ceab4f6c4e78f9d2eec932f48788
+msgid "Select an account to disconnect:"
+msgstr "حدد حسابًا لفصله:"
 
 # en-hash: 86180348ed3fa372f89e00d4279cba3c
 msgid "Session Expired"
@@ -776,6 +884,18 @@ msgstr "التبديل إلى DRM مجهول"
 # en-hash: fac891a83da5f2381dfe9c48f45a6fad
 msgid "Switched to anonymous DRM"
 msgstr "تم التبديل إلى DRM المجهول"
+
+# en-hash: 45fd23929597c5957b6aad1b71d966db
+msgid "Sync failed: %s"
+msgstr "فشلت المزامنة: %s"
+
+# en-hash: 6f9735249c5e6bf3ecc263ca96586841
+msgid "Sync library cards & accounts"
+msgstr "مزامنة بطاقات المكتبة والحسابات"
+
+# en-hash: 4e4b6c1fefb00e47b2db10a8dfd56a9c
+msgid "Syncing libraries from Libby…"
+msgstr "جارٍ مزامنة المكتبات من Libby…"
 
 # en-hash: a45da96d0bf6575970f2d27af22be28a
 msgid "System"
@@ -957,6 +1077,10 @@ msgstr "تثبيت التحديث"
 msgid "btn_ok"
 msgstr "موافق"
 
+# en-hash: f5ac36a6d8af47f34aeedf97baf66fed
+msgid "btn_open_book"
+msgstr "فتح الكتاب"
+
 # en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
 msgid "btn_read"
 msgstr "قراءة"
@@ -981,6 +1105,10 @@ msgstr "إعادة المحاولة"
 msgid "btn_return"
 msgstr "إرجاع"
 
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "btn_return_early"
+msgstr "إرجاع مبكر"
+
 # en-hash: c9cc8cce247e49bae79f15173ce97354
 msgid "btn_save"
 msgstr "حفظ"
@@ -992,6 +1120,18 @@ msgstr "إعداد رمز المرور"
 # en-hash: 3be546f7eb2185fb4da2ba288cefd122
 msgid "btn_unlink"
 msgstr "إلغاء ربط الحساب"
+
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "dialog_loan_details"
+msgstr "تفاصيل الإعارة"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "dialog_return_failed"
+msgstr "فشل الإرجاع"
+
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "dialog_return_loan"
+msgstr "إرجاع مبكر"
 
 # en-hash: 4684cddc2fdd1f00234aca819c872304
 msgid "ebook"
@@ -1041,6 +1181,14 @@ msgstr "إعدادات Libbee"
 msgid "menu_sync"
 msgstr "مزامنة الرف"
 
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "msg_auto_delete_multiple"
+msgstr "تم الحذف التلقائي لـ %d من الإعارات المنتهية/المُرجعة."
+
+# en-hash: 0b439d93d6a9f6084d1b4667d84e9a7a
+msgid "msg_auto_delete_single"
+msgstr "تم الحذف التلقائي لـ \\\"%s\\\" (انتهت الإعارة)."
+
 # en-hash: 3c2681ea85407c2c0d252e05a8eaf6aa
 msgid "msg_download_complete"
 msgstr "اكتمل التنزيل."
@@ -1061,6 +1209,22 @@ msgstr "تم تثبيت التحديث. إعادة تشغيل KOReader الآن�
 msgid "msg_return_confirm"
 msgstr "إرجاع \"%s\" مبكرًا إلى مكتبتك؟"
 
+# en-hash: fb29e49e5c1a5c79c2ac05bf64d27893
+msgid "msg_return_confirm_details"
+msgstr "هل تريد إرجاع \"%s\" مبكرًا إلى مكتبتك؟\n\nسيؤدي هذا إلى إرجاع الإعارة إلى Libby وحذف الكتاب المحمّل من هذا الجهاز. سيتم الاحتفاظ بسجل القراءة والإشارات المرجعية."
+
+# en-hash: a511d0c9e5b5b82ed09c7bd7eb180a2a
+msgid "msg_return_failed"
+msgstr "تعذر إرجاع الإعارة:\n%s"
+
+# en-hash: 7cd04512172b542b54c8b9b4fa2d9032
+msgid "msg_return_success"
+msgstr "تم إرجاع \"%s\" إلى المكتبة."
+
+# en-hash: a7c3ea0bc18c3eb9a554e58ac25d0675
+msgid "msg_returning_progress"
+msgstr "جارٍ إرجاع \"%s\" إلى المكتبة…"
+
 # en-hash: 1ae31fe9e8e36bf2fdf26f08994a77b5
 msgid "msg_sync_complete"
 msgstr "تمت مزامنة الرف بنجاح."
@@ -1076,6 +1240,14 @@ msgstr "إلغاء ربط حساب Libby من هذا الجهاز؟"
 # en-hash: 25e8f2fd2871c8423bbe4e254066cd98
 msgid "progress_please_wait"
 msgstr "يرجى الانتظار..."
+
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "setting_auto_delete"
+msgstr "حذف المنتهية تلقائيًا"
+
+# en-hash: a9c186d7e7b37e434c9077d4e6cc1bd0
+msgid "setting_auto_delete_desc"
+msgstr "الحذف التلقائي مفعل (تُحذف الإعارات بعد يوم واحد من تاريخ الاستحقاق)"
 
 # en-hash: 96c4d7265c89a6e0ed70ffec22fb1afe
 msgid "status_downloading"
@@ -1104,6 +1276,10 @@ msgstr "الإعارات"
 # en-hash: 189f63f277cd73395561651753563065
 msgid "tab_tags"
 msgstr "الوسوم"
+
+# en-hash: afd56f0093199e72136ae4d8d434a79e
+msgid "this book"
+msgstr "هذا الكتاب"
 
 # en-hash: 0db2ad3bff4478b8f7402e6eeb0fe895
 msgid "view_grid"
@@ -1148,6 +1324,10 @@ msgstr "✓ اكتمل التنزيل!"
 # en-hash: 339e5ff0141bb9d29554609fadf4d52b
 msgid "✓ Libbee Connected!"
 msgstr "✓ تم اتصال Libbee!"
+
+# en-hash: 7d05ed14cfe8799130ac500f2e935784
+msgid "✓ Library cards & shelf synced"
+msgstr "✓ تمت مزامنة بطاقات المكتبة والرف"
 
 # en-hash: 25c78c5528381192b859a353be7fa609
 msgid "✗ Not Connected"

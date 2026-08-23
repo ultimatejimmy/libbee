@@ -88,10 +88,319 @@ local function _writeJson(path, data)
 end
 
 -- ---------------------------------------------------------------------------
--- Chip Identity & Setup State
+-- Chip Identity & Setup State (Multi-Account Supported)
 -- ---------------------------------------------------------------------------
 
-function M.getChipIdentity()
+local function _extractShortChipId(identity)
+    if type(identity) ~= "string" then return nil end
+    local payload = identity:match("^[^.]+%.([^.]+)%.")
+    if not payload then return nil end
+    local ok_tr, Transport = pcall(require, "libbee_transport")
+    local transport = ok_tr and Transport and Transport.new and Transport.new()
+    local decoded = nil
+    if transport and transport.base64url_decode then
+        decoded = transport:base64url_decode(payload)
+    end
+    if not decoded then
+        -- fallback rudimentary base64 url decode
+        local b64 = payload:gsub("-", "+"):gsub("_", "/")
+        local pad = #b64 % 4
+        if pad == 2 then b64 = b64 .. "==" elseif pad == 3 then b64 = b64 .. "=" end
+        local b64_ok, mime = pcall(require, "mime")
+        if b64_ok and mime and mime.unb64 then
+            decoded = mime.unb64(b64)
+        end
+    end
+    if decoded then
+        local ok_rj, rapidjson = pcall(require, "rapidjson")
+        local data = (ok_rj and rapidjson and pcall(rapidjson.decode, decoded)) and select(2, pcall(rapidjson.decode, decoded))
+        if not data then
+            local ok_j, json = pcall(require, "json")
+            data = (ok_j and json and pcall(json.decode, decoded)) and select(2, pcall(json.decode, decoded))
+        end
+        if type(data) == "table" and type(data.chip) == "table" and type(data.chip.id) == "string" then
+            return data.chip.id:match("^([^-]+)") or data.chip.id
+        end
+    end
+    return nil
+end
+
+local function _resolveCardName(card)
+    if type(card) ~= "table" then return "Library Card" end
+    local lib = type(card.library) == "table" and card.library or nil
+    local val = (lib and lib.name) or card.libraryName or card.name or (lib and lib.websiteId) or card.advantageKey
+    if type(val) == "string" and val ~= "" then
+        return val
+    end
+    return "Library Card"
+end
+
+function M.cardEmail(card)
+    if type(card) ~= "table" then return nil end
+    if type(card.emailAddress) == "string" and card.emailAddress ~= "" then
+        return card.emailAddress
+    end
+    return nil
+end
+
+function M.cardSuffix(card)
+    if type(card) ~= "table" then return nil end
+    local custom_name = card.cardName
+    if type(custom_name) == "string" and custom_name ~= "" and custom_name ~= "Library Card" and not custom_name:match("^card_") and not custom_name:match("^%d+$") then
+        return custom_name
+    end
+    local num = tostring(card.cardName or card.username or card.cardId or card.id or "")
+    if num:match("^%d+$") and #num >= 4 then
+        return "…" .. num:sub(-4)
+    elseif num ~= "" and num ~= "Library Card" and not num:match("^card_") then
+        return num
+    end
+    return nil
+end
+
+function M.cardUsername(card)
+    if type(card) ~= "table" then return nil end
+    local u = card.username or card.cardName
+    if type(u) == "string" and u ~= "" and u ~= "Library Card" and not u:match("^card_") then
+        return u
+    end
+    return nil
+end
+
+function M.cardTag(card)
+    if type(card) ~= "table" then return nil end
+    -- 1. Username / Custom Nickname (if non-numeric and not "Library Card")
+    local custom_name = card.cardName
+    if type(custom_name) == "string" and custom_name ~= "" and custom_name ~= "Library Card" and not custom_name:match("^card_") and not custom_name:match("^%d+$") then
+        return custom_name
+    end
+    local username = card.username
+    if type(username) == "string" and username ~= "" and not username:match("^%d+$") then
+        return username
+    end
+
+    -- 2. Email
+    local email = M.cardEmail(card)
+    if email then
+        return email
+    end
+
+    -- 3. Card Number Suffix (last 4 digits)
+    local suffix = M.cardSuffix(card)
+    if suffix then
+        return suffix
+    end
+    return nil
+end
+
+function M.cardIdentifier(card)
+    return M.cardTag(card)
+end
+
+function M.cardDisplayName(card)
+    if type(card) ~= "table" then return "Library Card" end
+    local lib_name = _resolveCardName(card)
+    local tag = M.cardTag(card)
+
+    if tag then
+        return lib_name .. " (" .. tag .. ")"
+    end
+    return lib_name
+end
+
+function M.cardDetailString(card)
+    if type(card) ~= "table" then return "" end
+    local parts = {}
+    local email = M.cardEmail(card)
+    local suffix = M.cardSuffix(card)
+    if email then table.insert(parts, email) end
+    if suffix then
+        table.insert(parts, "Card " .. suffix)
+    else
+        local u = M.cardUsername(card)
+        if u then table.insert(parts, "Card " .. u) end
+    end
+    return table.concat(parts, " · ")
+end
+
+function M.accountDisplayName(account)
+    if type(account) ~= "table" then return "Libby Account" end
+    local cards = account.cards or {}
+    if #cards > 0 then
+        local names = {}
+        for _, c in ipairs(cards) do
+            table.insert(names, M.cardDisplayName(c))
+        end
+        return table.concat(names, ", ")
+    end
+    if account.library_name and account.library_name ~= "" then
+        return account.library_name
+    end
+    return "Libby Account"
+end
+
+function M.getAllCards()
+    local accounts = M.getAccounts()
+    local all_cards = {}
+    for _, acc in ipairs(accounts) do
+        for _, card in ipairs(acc.cards or {}) do
+            table.insert(all_cards, card)
+        end
+    end
+    return all_cards
+end
+
+function M.loanGroupLabel(loan, all_cards)
+    if type(loan) ~= "table" then return "Libby" end
+    all_cards = all_cards or M.getAllCards()
+    local cid = tostring(loan.card_id or (loan.raw and (loan.raw.cardId or loan.raw.card_id)) or "")
+    if cid ~= "" then
+        for _, c in ipairs(all_cards) do
+            if tostring(c.cardId or c.id or "") == cid then
+                return M.cardDisplayName(c)
+            end
+        end
+    end
+    return loan.library or M.getLibraryName() or "Libby"
+end
+
+function M.getAccounts()
+    local data = _readJson(_statePath())
+    if not data then return {} end
+    local accounts = data.accounts
+    if type(accounts) == "table" and #accounts > 0 then
+        return accounts
+    end
+    -- Backward compatibility migration for legacy single chip_identity
+    if type(data.chip_identity) == "string" and data.chip_identity ~= "" then
+        local legacy_account = {
+            id            = _extractShortChipId(data.chip_identity) or "account_1",
+            chip_identity = data.chip_identity,
+            library_name  = data.library_name or "",
+            cards         = data.cards or {},
+            registered_at = data.registered_at or os.time(),
+        }
+        return { legacy_account }
+    end
+    return {}
+end
+
+function M.getAccount(account_id)
+    local accounts = M.getAccounts()
+    if not account_id then return accounts[1] end
+    for _, acc in ipairs(accounts) do
+        if tostring(acc.id) == tostring(account_id) then
+            return acc
+        end
+    end
+    return nil
+end
+
+function M.addOrUpdateAccount(account)
+    if type(account) ~= "table" or type(account.chip_identity) ~= "string" or account.chip_identity == "" then
+        return false
+    end
+    local data = _readJson(_statePath()) or {}
+    local accounts = M.getAccounts()
+    local acc_id = account.id or _extractShortChipId(account.chip_identity) or ("acc_" .. tostring(os.time()))
+    
+    local found = false
+    for idx, acc in ipairs(accounts) do
+        local is_match = (acc.id and acc.id == acc_id) or (acc.chip_identity == account.chip_identity)
+        if not is_match and acc.chip_identity and account.chip_identity then
+            local id1 = _extractShortChipId(acc.chip_identity)
+            local id2 = _extractShortChipId(account.chip_identity)
+            if id1 and id2 and id1 == id2 then
+                is_match = true
+            end
+        end
+        if is_match then
+            accounts[idx] = {
+                id            = acc_id,
+                chip_identity = account.chip_identity,
+                library_name  = account.library_name or acc.library_name or "",
+                cards         = account.cards or acc.cards or {},
+                registered_at = acc.registered_at or os.time(),
+                updated_at    = os.time(),
+            }
+            found = true
+            break
+        end
+    end
+
+    if not found then
+        table.insert(accounts, {
+            id            = acc_id,
+            chip_identity = account.chip_identity,
+            library_name  = account.library_name or "",
+            cards         = account.cards or {},
+            registered_at = account.registered_at or os.time(),
+        })
+    end
+
+    data.accounts = accounts
+    -- Keep legacy top-level keys in sync with primary account
+    if accounts[1] then
+        data.chip_identity = accounts[1].chip_identity
+        data.library_name  = accounts[1].library_name
+        data.cards         = accounts[1].cards
+        data.registered_at = accounts[1].registered_at
+    end
+    data.pending_identity = nil
+    data.pending_code     = nil
+
+    local ok = _writeJson(_statePath(), data)
+    if ok then
+        logger.info("libbee state: saved account " .. tostring(acc_id) .. " (total accounts: " .. #accounts .. ")")
+    end
+    return ok
+end
+
+function M.removeAccount(account_id)
+    local data = _readJson(_statePath()) or {}
+    local accounts = M.getAccounts()
+    local new_accounts = {}
+    local removed = false
+
+    for _, acc in ipairs(accounts) do
+        if tostring(acc.id) == tostring(account_id) or (account_id == nil and #new_accounts == 0) then
+            removed = true
+        else
+            table.insert(new_accounts, acc)
+        end
+    end
+
+    if removed then
+        data.accounts = new_accounts
+        if new_accounts[1] then
+            data.chip_identity = new_accounts[1].chip_identity
+            data.library_name  = new_accounts[1].library_name
+            data.cards         = new_accounts[1].cards
+            data.registered_at = new_accounts[1].registered_at
+        else
+            data.chip_identity = nil
+            data.library_name  = nil
+            data.cards         = nil
+            data.registered_at = nil
+        end
+        _writeJson(_statePath(), data)
+        logger.info("libbee state: removed account " .. tostring(account_id))
+    end
+    return removed
+end
+
+function M.getChipIdentity(account_id)
+    local accounts = M.getAccounts()
+    if account_id then
+        for _, acc in ipairs(accounts) do
+            if tostring(acc.id) == tostring(account_id) then
+                return acc.chip_identity
+            end
+        end
+    end
+    if accounts[1] and type(accounts[1].chip_identity) == "string" and accounts[1].chip_identity ~= "" then
+        return accounts[1].chip_identity
+    end
     local data = _readJson(_statePath())
     if data and type(data.chip_identity) == "string" and data.chip_identity ~= "" then
         return data.chip_identity
@@ -100,18 +409,11 @@ function M.getChipIdentity()
 end
 
 function M.saveChipIdentity(chip_identity, library_name, cards)
-    local data = _readJson(_statePath()) or {}
-    data.chip_identity     = chip_identity
-    data.library_name      = library_name or data.library_name or ""
-    data.cards             = cards or data.cards
-    data.registered_at     = os.time()
-    data.pending_identity  = nil
-    data.pending_code      = nil
-    local ok = _writeJson(_statePath(), data)
-    if ok then
-        logger.info("libbee state: chip identity saved")
-    end
-    return ok
+    return M.addOrUpdateAccount({
+        chip_identity = chip_identity,
+        library_name  = library_name,
+        cards         = cards,
+    })
 end
 
 function M.getPendingIdentity()
@@ -140,6 +442,7 @@ end
 
 function M.clearChipIdentity()
     local data = _readJson(_statePath()) or {}
+    data.accounts          = nil
     data.chip_identity     = nil
     data.library_name      = nil
     data.cards             = nil
@@ -147,21 +450,58 @@ function M.clearChipIdentity()
     data.pending_identity  = nil
     data.pending_code      = nil
     _writeJson(_statePath(), data)
-    logger.info("libbee state: chip identity cleared")
+    logger.info("libbee state: all chip identities cleared")
 end
 
-function M.getLibraryName()
+function M.getLibraryName(account_id)
+    local acc = M.getAccount(account_id)
+    if acc and acc.library_name and acc.library_name ~= "" then
+        return acc.library_name
+    end
     local data = _readJson(_statePath())
     return data and data.library_name or nil
 end
 
-function M.getCards()
+function M.getCards(account_id)
+    if account_id then
+        local acc = M.getAccount(account_id)
+        return acc and acc.cards or nil
+    end
+    local all_cards = {}
+    local accounts = M.getAccounts()
+    for _, acc in ipairs(accounts) do
+        if type(acc.cards) == "table" then
+            for _, card in ipairs(acc.cards) do
+                table.insert(all_cards, card)
+            end
+        end
+    end
+    if #all_cards > 0 then return all_cards end
     local data = _readJson(_statePath())
     return data and data.cards or nil
 end
 
+function M.getCardNames()
+    local cards = M.getCards() or {}
+    local names = {}
+    local seen = {}
+    for _, card in ipairs(cards) do
+        local name = _resolveCardName(card)
+        if name and name ~= "" and not seen[name] then
+            seen[name] = true
+            table.insert(names, name)
+        end
+    end
+    return names
+end
+
+function M.cardName(card)
+    return _resolveCardName(card)
+end
+
 function M.isAuthenticated()
-    return M.getChipIdentity() ~= nil
+    local accounts = M.getAccounts()
+    return #accounts > 0 or M.getChipIdentity() ~= nil
 end
 
 -- ---------------------------------------------------------------------------

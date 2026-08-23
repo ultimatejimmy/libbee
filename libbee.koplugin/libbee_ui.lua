@@ -939,8 +939,12 @@ function M.showShelfBrowser(plugin_dir)
     local cached_shelf = State.getShelfCache()
 
     local current_page = 1
+    local current_rendered_loans = cached_shelf or {}
+    local doBackgroundSync = nil
+    local handleLoanReturned = nil
 
     local function renderShelf(loans, from_cache)
+        current_rendered_loans = loans or current_rendered_loans or {}
         if active_shelf_overlay then
             local ov = active_shelf_overlay
             active_shelf_overlay = nil
@@ -974,31 +978,29 @@ function M.showShelfBrowser(plugin_dir)
 
         local lib_name = State.getLibraryName() or "Libby"
         local loan_count = #loans
+        local all_cards = State.getAllCards()
 
-        -- Determine libraries present across active loans
-        local libs_map = {}
-        local lib_order = {}
+        -- Determine library cards / accounts present across active loans
+        local card_groups = {}
+        local group_order = {}
         for _, loan in ipairs(loans) do
-            local l_name = loan.library
-            if not l_name or l_name == "" then
-                l_name = lib_name
+            local g_name = State.loanGroupLabel(loan, all_cards)
+            if not card_groups[g_name] then
+                card_groups[g_name] = {}
+                table.insert(group_order, g_name)
             end
-            if not libs_map[l_name] then
-                libs_map[l_name] = {}
-                table.insert(lib_order, l_name)
-            end
-            table.insert(libs_map[l_name], loan)
+            table.insert(card_groups[g_name], loan)
         end
-        table.sort(lib_order, function(a, b)
+        table.sort(group_order, function(a, b)
             return tostring(a):lower() < tostring(b):lower()
         end)
 
-        -- Flatten loans for pagination (keeps library grouping info)
+        -- Flatten loans for pagination (keeps card/library grouping info)
         local flat_items = {}
-        if #lib_order > 1 then
-            for _, l_name in ipairs(lib_order) do
-                for _, loan in ipairs(libs_map[l_name]) do
-                    table.insert(flat_items, { loan = loan, lib = l_name })
+        if #group_order > 1 then
+            for _, g_name in ipairs(group_order) do
+                for _, loan in ipairs(card_groups[g_name]) do
+                    table.insert(flat_items, { loan = loan, lib = g_name })
                 end
             end
         else
@@ -1006,6 +1008,8 @@ function M.showShelfBrowser(plugin_dir)
                 table.insert(flat_items, { loan = loan, lib = nil })
             end
         end
+
+        local lib_order = group_order
 
         -- Header Action Buttons using Feather SVGs (Storefront style, stroke-width 1.5)
         local btn_size = sc(30)
@@ -1115,7 +1119,7 @@ function M.showShelfBrowser(plugin_dir)
         if #lib_order == 1 then
             sub_text = count_str .. "  ·  " .. lib_order[1]
         elseif #lib_order > 1 then
-            sub_text = count_str .. "  ·  " .. _("%d libraries", #lib_order)
+            sub_text = count_str .. "  ·  " .. string.format(_("%d library cards"), #lib_order)
         elseif lib_name and lib_name ~= "" then
             sub_text = count_str .. "  ·  " .. lib_name
         end
@@ -1225,13 +1229,15 @@ function M.showShelfBrowser(plugin_dir)
         local function create_shelf_section_header(title)
             local label = TextWidget:new{
                 text = title:upper(),
-                face = Font:getFace("cfont", theme.section_header_font_size or 15),
+                face = Font:getFace("cfont", theme.section_header_font_size or 14),
                 bold = true,
                 fgcolor = Blitbuffer.COLOR_BLACK,
+                max_width = content_w - sc(16),
             }
             local frame = FrameContainer:new{
                 padding = sc(4),
                 padding_left = sc(8),
+                padding_right = sc(8),
                 bordersize = 0,
                 width = content_w,
                 background = theme.color_bg_dim or Blitbuffer.COLOR_LIGHT_GRAY,
@@ -1350,7 +1356,11 @@ function M.showShelfBrowser(plugin_dir)
 
             local row_tap = makeTapItem(row_frame, function()
                 M.showDownloadConfirm(loan, plugin_dir, function()
-                    renderShelf(loans, from_cache)
+                    renderShelf(current_rendered_loans, false)
+                end, function(returned_loan)
+                    if handleLoanReturned then
+                        handleLoanReturned(returned_loan or loan)
+                    end
                 end)
             end)
 
@@ -1437,7 +1447,11 @@ function M.showShelfBrowser(plugin_dir)
 
                 local cell_tap = makeTapItem(cell_content, function()
                     M.showDownloadConfirm(loan, plugin_dir, function()
-                        renderShelf(loans, from_cache)
+                        renderShelf(current_rendered_loans, false)
+                    end, function(returned_loan)
+                        if handleLoanReturned then
+                            handleLoanReturned(returned_loan or loan)
+                        end
                     end)
                 end)
 
@@ -1690,18 +1704,6 @@ function M.showShelfBrowser(plugin_dir)
         UIManager:show(active_shelf_overlay, "ui")
     end
 
-    local function loansEqual(a, b)
-        if not a or not b then return false end
-        if #a ~= #b then return false end
-        for i = 1, #a do
-            local ida = a[i].id or a[i].reserveId
-            local idb = b[i].id or b[i].reserveId
-            if ida ~= idb then return false end
-            if a[i].days_remaining ~= b[i].days_remaining then return false end
-        end
-        return true
-    end
-
     local current_rendered_loans = cached_shelf or {}
 
     -- Always render cached shelf (or loading placeholder) immediately with zero blocking dialogs
@@ -1711,10 +1713,11 @@ function M.showShelfBrowser(plugin_dir)
     renderShelf(current_rendered_loans, true)
 
     local is_syncing = false
-    local function doBackgroundSync()
-        if is_syncing then return end
+    doBackgroundSync = function(force)
+        if is_syncing and not force then return end
         is_syncing = true
-        UIManager:scheduleIn(0.5, function()
+        local delay = force and 0.1 or 0.5
+        UIManager:scheduleIn(delay, function()
             local ok, result, err = pcall(function()
                 return API.fetchShelf()
             end)
@@ -1738,10 +1741,8 @@ function M.showShelfBrowser(plugin_dir)
                     end
                 end
                 if active_shelf_overlay then
-                    if not loansEqual(current_rendered_loans, result) or #current_rendered_loans == 0 then
-                        current_rendered_loans = result
-                        renderShelf(result, false)
-                    end
+                    current_rendered_loans = result
+                    renderShelf(result, false)
                 end
             elseif ok and (result == "AUTH_EXPIRED" or err == "AUTH_EXPIRED") then
                 if active_shelf_overlay then
@@ -1749,6 +1750,25 @@ function M.showShelfBrowser(plugin_dir)
                 end
             end
         end)
+    end
+
+    handleLoanReturned = function(returned_loan)
+        local ret_id = returned_loan and (returned_loan.id or returned_loan.loanId or returned_loan.reserveId)
+        if ret_id then
+            local updated = {}
+            for _, l in ipairs(current_rendered_loans or {}) do
+                local lid = l.id or l.loanId or l.reserveId
+                if tostring(lid) ~= tostring(ret_id) then
+                    table.insert(updated, l)
+                end
+            end
+            current_rendered_loans = updated
+            State.saveShelfCache(updated)
+            renderShelf(updated, false)
+        end
+        if doBackgroundSync then
+            doBackgroundSync(true)
+        end
     end
 
     -- Trigger automatic background refresh
@@ -1867,7 +1887,7 @@ function M.findExistingBook(loan, base_dir)
     return nil
 end
 
-function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
+function M.showDownloadConfirm(loan, plugin_dir, after_download_fn, after_return_fn)
     local ok_api, API = pcall(require, plugin_path .. "libbee_api")
     if not ok_api or not API then
         ok_api, API = pcall(require, "libbee_api")
@@ -1928,6 +1948,12 @@ function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
             body_text = body_text,
             buttons = {
                 {
+                    text = _("Return Early"),
+                    callback = function()
+                        M.showReturnConfirm(loan, plugin_dir, after_return_fn or after_download_fn)
+                    end,
+                },
+                {
                     text = _("OK"),
                     is_primary = true,
                 }
@@ -1938,15 +1964,7 @@ function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
 
     local base_dir = (ok_st and State and State.getDownloadDir and State.getDownloadDir(plugin_dir)) or "/tmp/Libby"
     local dest_path = (ok_api and API and API.getAcsmPath and API.getAcsmPath(base_dir, loan)) or (base_dir .. "/download.acsm")
-
     local existing_book = M.findExistingBook(loan, base_dir)
-    if existing_book then
-        _toast(string.format(_("Opening \"%s\"…"), (loan and loan.title) or _("book")), 2)
-        local opened = M._openBook(existing_book)
-        if opened then
-            return
-        end
-    end
 
     local days_str = _fmtDays(loan and loan.days_remaining)
     local info_text = string.format(
@@ -1961,22 +1979,138 @@ function M.showDownloadConfirm(loan, plugin_dir, after_download_fn)
         days_str ~= "" and days_str or _("Active")
     )
 
+    if existing_book then
+        M.showCardDialog{
+            title = _("Loan Details"),
+            body_text = info_text,
+            buttons = {
+                {
+                    text = _("Open Book"),
+                    is_primary = true,
+                    callback = function()
+                        _toast(string.format(_("Opening \"%s\"…"), (loan and loan.title) or _("book")), 2)
+                        M._openBook(existing_book)
+                    end,
+                },
+                {
+                    text = _("Return Early"),
+                    callback = function()
+                        M.showReturnConfirm(loan, plugin_dir, after_return_fn or after_download_fn)
+                    end,
+                },
+                {
+                    text = _("Cancel"),
+                }
+            }
+        }
+    else
+        M.showCardDialog{
+            title = _("Download Loan"),
+            body_text = info_text,
+            buttons = {
+                {
+                    text = _("Download"),
+                    is_primary = true,
+                    callback = function()
+                        M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
+                    end,
+                },
+                {
+                    text = _("Return Early"),
+                    callback = function()
+                        M.showReturnConfirm(loan, plugin_dir, after_return_fn or after_download_fn)
+                    end,
+                },
+                {
+                    text = _("Cancel"),
+                }
+            }
+        }
+    end
+end
+
+function M.showReturnConfirm(loan, plugin_dir, after_return_fn)
+    if not loan then return end
+
+    local title_str = (loan and loan.title) or _("this book")
+    local body_text = string.format(
+        _("Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."),
+        title_str
+    )
+
     M.showCardDialog{
-        title = _("Download Loan"),
-        body_text = info_text,
+        title = _("Return Early"),
+        body_text = body_text,
         buttons = {
             {
-                text = _("Download"),
+                text = _("Return Early"),
                 is_primary = true,
                 callback = function()
-                    M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
+                    _runAsync(
+                        function()
+                            local API = require(plugin_path .. "libbee_api")
+                            local return_ok, return_err = API.returnLoan(loan)
+                            if not return_ok then
+                                return nil, return_err
+                            end
+                            return true
+                        end,
+                        _("Returning \"%s\" to library…", title_str),
+                        function(success, err)
+                            if success then
+                                local State = require(plugin_path .. "libbee_state")
+                                local AutoClean = require(plugin_path .. "libbee_autoclean")
+
+                                -- Remove local book file if tracked or found
+                                local tracked = State.getTrackedDownload and State.getTrackedDownload(loan.id or loan.loanId or loan.reserveId)
+                                if tracked and tracked.path then
+                                    AutoClean.removeFileAndSidecar(tracked.path)
+                                else
+                                    local base_dir = (State and State.getDownloadDir and State.getDownloadDir(plugin_dir)) or "/tmp/Libby"
+                                    local existing_book = M.findExistingBook(loan, base_dir)
+                                    if existing_book then
+                                        AutoClean.removeFileAndSidecar(existing_book)
+                                    end
+                                end
+
+                                if State.unregisterDownload then
+                                    State.unregisterDownload(loan.id or loan.loanId or loan.reserveId)
+                                end
+
+                                State.clearShelfCache()
+
+                                if after_return_fn then
+                                    after_return_fn(loan)
+                                end
+
+                                _toast(string.format(_("Returned \"%s\" to the library."), title_str), 3)
+                            elseif err == "AUTH_EXPIRED" or (type(err) == "string" and err:find("AUTH_EXPIRED")) then
+                                M._handleAuthExpired(plugin_dir)
+                            else
+                                local err_str = tostring(err or "Unknown error")
+                                M.showCardDialog{
+                                    title = _("Return Failed"),
+                                    body_text = string.format(_("Could not return loan:\n%s"), err_str),
+                                    buttons = {
+                                        {
+                                            text = _("Retry"),
+                                            is_primary = true,
+                                            callback = function()
+                                                M.showReturnConfirm(loan, plugin_dir, after_return_fn)
+                                            end,
+                                        },
+                                        {
+                                            text = _("Close"),
+                                        }
+                                    }
+                                }
+                            end
+                        end
+                    )
                 end,
             },
             {
                 text = _("Cancel"),
-                callback = function()
-                    -- Shelf remains open in background
-                end,
             }
         }
     }
@@ -2357,6 +2491,7 @@ end
 function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
     plugin_dir = plugin_dir or ""
     local State = require(plugin_path .. "libbee_state")
+    local API   = require(plugin_path .. "libbee_api")
 
     local sw = Screen:getWidth()
     local sh = Screen:getHeight()
@@ -2440,10 +2575,7 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 bordersize = 0,
                 padding = frame_padding,
                 width = inner_w,
-                HorizontalGroup:new{
-                    align = "center",
-                    unpack(row_elements),
-                },
+                HorizontalGroup:new(row_elements),
             }
 
             if not callback then return frame end
@@ -2483,41 +2615,96 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
         end
 
         local is_auth = State.isAuthenticated()
-        table.insert(content_vg, create_section_header(_("Connected Libraries")))
+        table.insert(content_vg, create_section_header(_("Connected Libraries & Accounts")))
 
         if is_auth then
-            local lib_name = State.getLibraryName()
-            local cards = State.getCards() or {}
-            local seen_libs = {}
+            local accounts = State.getAccounts()
+            local cached_loans = State.getShelfCache(true) or {}
 
-            for idx, card_item in ipairs(cards) do
-                local c_name = card_item.library_name or card_item.name or (card_item.advantage_key and card_item.advantage_key:upper())
-                if c_name and c_name ~= "" and not seen_libs[c_name] then
-                    seen_libs[c_name] = true
-                    local status_badge = TextWidget:new{
-                        text = _("✓ Connected"),
-                        face = Font:getFace("cfont", theme.subtext_font_size or 14),
-                        bold = true,
-                        fgcolor = Blitbuffer.COLOR_BLACK,
-                    }
-                    table.insert(content_vg, create_setting_row(c_name, status_badge, nil))
+            -- Map loan counts per card ID, account ID, and library name
+            local card_loan_counts = {}
+            for l_idx, l in ipairs(cached_loans) do
+                local cid = tostring(l.card_id or (l.raw and (l.raw.cardId or l.raw.card_id)) or "")
+                if cid ~= "" then
+                    card_loan_counts[cid] = (card_loan_counts[cid] or 0) + 1
+                end
+                local acc_id = tostring(l.account_id or "")
+                if acc_id ~= "" then
+                    card_loan_counts[acc_id] = (card_loan_counts[acc_id] or 0) + 1
+                end
+                local l_name = l.library or ""
+                if l_name ~= "" then
+                    card_loan_counts[l_name] = (card_loan_counts[l_name] or 0) + 1
                 end
             end
 
-            if lib_name and lib_name ~= "" and not seen_libs[lib_name] then
-                seen_libs[lib_name] = true
-                local status_badge = TextWidget:new{
-                    text = _("✓ Connected"),
-                    face = Font:getFace("cfont", theme.subtext_font_size or 14),
-                    bold = true,
-                    fgcolor = Blitbuffer.COLOR_BLACK,
-                }
-                table.insert(content_vg, create_setting_row(lib_name, status_badge, nil))
+            for acc_idx, acc in ipairs(accounts) do
+                local acc_cards = acc.cards or {}
+                if #acc_cards > 0 then
+                    for card_idx, card_item in ipairs(acc_cards) do
+                        local lib_name = State.cardName(card_item)
+                        local ident = State.cardIdentifier(card_item)
+                        local email = State.cardEmail(card_item)
+                        local card_cid = tostring(card_item.cardId or card_item.id or "")
+                        local count = (card_cid ~= "" and card_loan_counts[card_cid]) or (acc.id and card_loan_counts[acc.id]) or card_loan_counts[lib_name] or 0
+
+                        local badge_text = _("✓ Connected")
+                        if count > 0 then
+                            badge_text = (count == 1) and _("1 loan") or string.format(_("%d loans"), count)
+                        end
+
+                        local status_badge = TextWidget:new{
+                            text = badge_text,
+                            face = Font:getFace("cfont", theme.subtext_font_size or 14),
+                            bold = (count > 0),
+                            fgcolor = Blitbuffer.COLOR_BLACK,
+                        }
+
+                        local detail = State.cardDetailString(card_item)
+                        local row_label = lib_name
+                        if detail and detail ~= "" then
+                            row_label = lib_name .. "\n" .. detail
+                        end
+
+                        table.insert(content_vg, create_setting_row(row_label, status_badge, nil))
+                    end
+                elseif acc.library_name and acc.library_name ~= "" then
+                    local count = (acc.id and card_loan_counts[acc.id]) or card_loan_counts[acc.library_name] or 0
+                    local badge_text = _("✓ Connected")
+                    if count > 0 then
+                        badge_text = (count == 1) and _("1 loan") or string.format(_("%d loans"), count)
+                    end
+                    local status_badge = TextWidget:new{
+                        text = badge_text,
+                        face = Font:getFace("cfont", theme.subtext_font_size or 14),
+                        bold = (count > 0),
+                        fgcolor = Blitbuffer.COLOR_BLACK,
+                    }
+                    table.insert(content_vg, create_setting_row(acc.library_name, status_badge, nil))
+                end
             end
 
             table.insert(content_vg, create_section_header(_("Actions")))
 
-            table.insert(content_vg, create_setting_row(_("Link another Libby device"), arrow(), function()
+            table.insert(content_vg, create_setting_row(_("Sync library cards & accounts"), arrow(), function()
+                _runAsync(
+                    function()
+                        return API.fetchShelf()
+                    end,
+                    _("Syncing libraries from Libby…"),
+                    function(result, err)
+                        if type(result) == "table" then
+                            State.saveShelfCache(result)
+                            refresh()
+                            _toast(_("✓ Library cards & shelf synced"), 3)
+                        else
+                            _toast(_("Sync failed: %s", tostring(err or "Unknown error")), 4)
+                        end
+                    end
+                )
+            end))
+
+            table.insert(content_vg, create_setting_row(_("Link another Libby account"), arrow(), function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2527,33 +2714,25 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 end)
             end))
 
-            table.insert(content_vg, create_setting_row(_("Re-authenticate account"), arrow(), function()
-                if overlay then
-                    UIManager:close(overlay, "ui")
-                    overlay = nil
-                end
-                if active_shelf_overlay then
-                    local ov = active_shelf_overlay
-                    active_shelf_overlay = nil
-                    ov.onClose = nil
-                    UIManager:close(ov, "ui")
-                end
-                State.clearChipIdentity()
-                State.clearShelfCache()
-                M.showSetupDialog(plugin_dir, function(success)
-                    if success then
-                        M.showShelfBrowser(plugin_dir)
+            if #accounts > 1 then
+                table.insert(content_vg, create_setting_row(_("Manage linked accounts (%d)", #accounts), arrow(), function()
+                    if overlay then
+                        UIManager:close(overlay, "ui")
+                        overlay = nil
                     end
-                end)
-            end))
+                    M.showManageAccountsDialog(plugin_dir, function()
+                        M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
+                    end)
+                end))
+            end
 
-            table.insert(content_vg, create_setting_row(_("Disconnect Libby account"), arrow(), function()
+            table.insert(content_vg, create_setting_row(_("Disconnect all accounts"), arrow(), function()
                 M.showCardDialog{
-                    title = _("Disconnect Account"),
-                    body_text = _("Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."),
+                    title = _("Disconnect All Accounts"),
+                    body_text = _("Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."),
                     buttons = {
                         {
-                            text = _("Disconnect"),
+                            text = _("Disconnect All"),
                             is_primary = true,
                             callback = function()
                                 State.clearChipIdentity()
@@ -2566,7 +2745,7 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                                 end
                                 refresh()
                                 UIManager:nextTick(function()
-                                    _toast(_("Libby account disconnected"), 3)
+                                    _toast(_("All Libby accounts disconnected"), 3)
                                 end)
                             end,
                         },
@@ -2664,6 +2843,236 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
     end
 
     refresh()
+end
+
+-- ---------------------------------------------------------------------------
+-- Dialog: Manage Linked Accounts (Individual Disconnect)
+-- ---------------------------------------------------------------------------
+
+function M.showManageAccountsDialog(plugin_dir, on_back_cb)
+    plugin_dir = plugin_dir or ""
+    local State = require(plugin_path .. "libbee_state")
+
+    local sw = Screen:getWidth()
+    local sh = Screen:getHeight()
+    local dialog_w = math.min(sw - sc(16), sc(420))
+    local card_padding = sc(12)
+    local card_border = theme.border_window or sc(2)
+    local inner_w = dialog_w - (card_padding * 2) - (card_border * 2)
+    local ui_font_size = theme.face_label_size or 16
+    local title_font_size = theme.title_font_size or 20
+
+    local overlay
+    local refresh_manage
+
+    refresh_manage = function()
+        if overlay then
+            local ov = overlay
+            overlay = nil
+            UIManager:close(ov, "ui")
+        end
+
+        local accounts = State.getAccounts()
+        if #accounts == 0 then
+            if on_back_cb then on_back_cb() end
+            return
+        end
+
+        local cached_loans = State.getShelfCache(true) or {}
+        local acc_loan_counts = {}
+        for l_idx, l in ipairs(cached_loans) do
+            local acc_id = tostring(l.account_id or "")
+            if acc_id ~= "" then
+                acc_loan_counts[acc_id] = (acc_loan_counts[acc_id] or 0) + 1
+            end
+        end
+
+        local title_label = TextWidget:new{
+            text = _("Manage Linked Accounts"),
+            face = Font:getFace("NotoSerif-Regular.ttf", title_font_size),
+            bold = true,
+            fgcolor = Blitbuffer.COLOR_BLACK,
+        }
+
+        local content_vg = VerticalGroup:new{
+            align = "left",
+            title_label,
+            VerticalSpan:new{ width = sc(6) },
+            LineWidget:new{
+                dimen = Geom:new{ w = inner_w, h = sc(1) },
+                background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
+            },
+            VerticalSpan:new{ width = sc(6) },
+        }
+
+        local row_padding = sc(8)
+        local row_border = sc(1)
+        local row_inner_w = inner_w - (row_padding * 2) - (row_border * 2)
+
+        for acc_idx, acc in ipairs(accounts) do
+            local lib_name = acc.library_name or "Libby"
+            local cards = acc.cards or {}
+            local card_descs = {}
+            for c_idx, c in ipairs(cards) do
+                local detail = State.cardDetailString(c)
+                if detail and detail ~= "" then
+                    table.insert(card_descs, detail)
+                end
+            end
+            local card_sub = #card_descs > 0 and table.concat(card_descs, "\n") or nil
+
+            local loan_count = acc_loan_counts[acc.id] or 0
+            local loan_text = loan_count > 0
+                and ((loan_count == 1) and _("1 active loan") or string.format(_("%d active loans"), loan_count))
+                or _("No active loans")
+
+            local btn_w = sc(80)
+            local h_gap = sc(8)
+            local text_max_w = row_inner_w - btn_w - h_gap
+
+            local info_items = {
+                TextBoxWidget:new{
+                    text = lib_name,
+                    face = Font:getFace("cfont", ui_font_size),
+                    bold = true,
+                    fgcolor = Blitbuffer.COLOR_BLACK,
+                    width = text_max_w,
+                    alignment = "left",
+                },
+            }
+
+            if card_sub then
+                table.insert(info_items, VerticalSpan:new{ width = sc(1) })
+                table.insert(info_items, TextBoxWidget:new{
+                    text = card_sub,
+                    face = Font:getFace("cfont", theme.subtext_font_size or 13),
+                    fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
+                    width = text_max_w,
+                    alignment = "left",
+                })
+            end
+
+            table.insert(info_items, VerticalSpan:new{ width = sc(1) })
+            table.insert(info_items, TextWidget:new{
+                text = loan_text,
+                face = Font:getFace("cfont", theme.subtext_font_size or 12),
+                fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
+            })
+
+            local acc_info_vg = VerticalGroup:new{
+                align = "left",
+                unpack(info_items),
+            }
+
+            local disconnect_btn = createButton{
+                text = _("Disconnect"),
+                text_font_size = theme.subtext_font_size or 13,
+                bold = true,
+                padding = sc(4),
+                padding_h = sc(6),
+                width = btn_w,
+                height = sc(32),
+                callback = function()
+                    local confirm_text = lib_name
+                    if card_sub then confirm_text = confirm_text .. "\n" .. card_sub end
+                    M.showCardDialog{
+                        title = _("Disconnect Account?"),
+                        body_text = _("Disconnect this Libby account and remove its library cards?\n\n%s", confirm_text),
+                        buttons = {
+                            {
+                                text = _("Disconnect"),
+                                is_primary = true,
+                                callback = function()
+                                    State.removeAccount(acc.id)
+                                    State.clearShelfCache()
+                                    refresh_manage()
+                                    _toast(_("Account disconnected"), 3)
+                                end,
+                            },
+                            { text = _("Cancel") },
+                        }
+                    }
+                end,
+            }
+
+            local row_elements = {
+                acc_info_vg,
+                HorizontalSpan:new{ width = h_gap },
+                disconnect_btn,
+            }
+
+            local row_frame = FrameContainer:new{
+                padding = row_padding,
+                radius = theme.radius_btn or sc(4),
+                bordersize = row_border,
+                color = theme.color_bg_dim or Blitbuffer.COLOR_LIGHT_GRAY,
+                background = theme.color_bg or Blitbuffer.COLOR_WHITE,
+                width = inner_w,
+                HorizontalGroup:new(row_elements),
+            }
+
+            table.insert(content_vg, row_frame)
+            table.insert(content_vg, VerticalSpan:new{ width = sc(6) })
+        end
+
+        local back_btn = createButton{
+            text = _("‹ Back"),
+            text_font_size = ui_font_size,
+            bold = true,
+            bordersize = theme.border_btn or sc(1),
+            radius = theme.radius_btn or sc(4),
+            width = inner_w,
+            height = sc(36),
+            callback = function()
+                if overlay then
+                    local ov = overlay
+                    overlay = nil
+                    UIManager:close(ov, "ui")
+                end
+                if on_back_cb then on_back_cb() end
+            end,
+        }
+
+        table.insert(content_vg, VerticalSpan:new{ width = sc(4) })
+        table.insert(content_vg, LineWidget:new{
+            dimen = Geom:new{ w = inner_w, h = sc(1) },
+            background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
+        })
+        table.insert(content_vg, VerticalSpan:new{ width = sc(8) })
+        table.insert(content_vg, back_btn)
+
+        local card = FrameContainer:new{
+            padding = card_padding,
+            radius = theme.radius_window or 0,
+            bordersize = card_border,
+            color = Blitbuffer.COLOR_BLACK,
+            background = theme.color_bg or Blitbuffer.COLOR_WHITE,
+            width = dialog_w,
+            content_vg,
+        }
+
+        overlay = InputContainer:new{
+            align = "center",
+            vertical_align = "center",
+            dimen = Geom:new{ w = sw, h = sh },
+            key_events = { Close = { { "Back" } } },
+            card,
+        }
+
+        overlay.onClose = function()
+            if overlay then
+                local ov = overlay
+                overlay = nil
+                UIManager:close(ov, "ui")
+            end
+            if on_back_cb then on_back_cb() end
+            return true
+        end
+
+        UIManager:show(overlay, "ui")
+    end
+
+    refresh_manage()
 end
 
 -- ---------------------------------------------------------------------------
