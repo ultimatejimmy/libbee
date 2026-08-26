@@ -461,6 +461,10 @@ msgstr "التنسيق غير مدعوم"
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "جارٍ استيفاء إعارة ACSM باستخدام Libbee…"
 
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "Group by Library Card"
+msgstr "تجميع حسب بطاقة المكتبة"
+
 # en-hash: c60da36641d760351933ace6a9927b41
 msgid "Holds"
 msgstr "الحجوزات"

@@ -393,6 +393,10 @@ msgstr "지원되지 않는 형식"
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "Libbee로 ACSM 대출 처리 중…"
 
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "Group by Library Card"
+msgstr "도서관 카드별 그룹화"
+
 # en-hash: c60da36641d760351933ace6a9927b41
 msgid "Holds"
 msgstr "예약 목록"

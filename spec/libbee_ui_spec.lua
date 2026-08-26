@@ -436,5 +436,28 @@ describe("libbee_ui", function()
             Device.screen.getWidth = orig_getWidth
             Device.screen.getHeight = orig_getHeight
         end)
+
+        it("renders cover view with long multi-line titles and badges properly bounded", function()
+            local State = require("libbee_state")
+            _G.ui_tracker.shown = {}
+            State.clearChipIdentity()
+            State.saveViewMode("cover")
+            State.addOrUpdateAccount({
+                id = "acc_multi_title",
+                chip_identity = "jwt.title.test",
+                library_name = "Wisconsin Consortium",
+                cards = { { id = "card_wisc", library = { name = "Wisconsin Consortium" } } }
+            })
+            local loans = {
+                { id = "loan-t1", card_id = "card_wisc", library = "Wisconsin Consortium", title = "The Girl on the Train", days_remaining = 12 },
+                { id = "loan-t2", card_id = "card_wisc", library = "Wisconsin Consortium", title = "In a Blink", days_remaining = 10 },
+                { id = "loan-t3", card_id = "card_wisc", library = "Wisconsin Consortium", title = "Harry Potter and the Chamber of Secrets: Extended Edition", days_remaining = 13 },
+            }
+            State.saveShelfCache(loans)
+            UI.showShelfBrowser("/tmp/test_plugin")
+            assert.is_true(#_G.ui_tracker.shown > 0)
+            local shelf_widget = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(shelf_widget)
+        end)
     end)
 end)

@@ -393,6 +393,10 @@ msgstr "不支持的格式"
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "正在使用 Libbee 处理 ACSM 借阅…"
 
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "Group by Library Card"
+msgstr "按借书证分组"
+
 # en-hash: c60da36641d760351933ace6a9927b41
 msgid "Holds"
 msgstr "预约"

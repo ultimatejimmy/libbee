@@ -11,6 +11,9 @@ msgstr "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
 msgid "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
 msgstr "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
 
+msgid "%d active loans"
+msgstr "%d active loans"
+
 msgid "%d books found in this folder"
 msgstr "%d books found in this folder"
 
@@ -19,6 +22,9 @@ msgstr "%d days left"
 
 msgid "%d libraries"
 msgstr "%d libraries"
+
+msgid "%d library cards"
+msgstr "%d library cards"
 
 msgid "%d loans"
 msgstr "%d loans"
@@ -34,6 +40,9 @@ msgstr "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
 
 msgid ".. (Parent Folder)"
 msgstr ".. (Parent Folder)"
+
+msgid "1 active loan"
+msgstr "1 active loan"
 
 msgid "1 day left"
 msgstr "1 day left"
@@ -266,6 +275,9 @@ msgstr "Disconnect %s"
 msgid "Disconnect Account"
 msgstr "Disconnect Account"
 
+msgid "Disconnect Account?"
+msgstr "Disconnect Account?"
+
 msgid "Disconnect All"
 msgstr "Disconnect All"
 
@@ -280,6 +292,9 @@ msgstr "Disconnect all accounts"
 
 msgid "Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."
 msgstr "Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."
+
+msgid "Disconnect this Libby account and remove its library cards?\n\n%s"
+msgstr "Disconnect this Libby account and remove its library cards?\n\n%s"
 
 msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
 msgstr "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
@@ -346,6 +361,9 @@ msgstr "Format Not Supported"
 
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "Fulfilling ACSM loan with Libbee…"
+
+msgid "Group by Library Card"
+msgstr "Group by Library Card"
 
 msgid "Holds"
 msgstr "Holds"
@@ -482,6 +500,9 @@ msgstr "Next"
 msgid "Next ›"
 msgstr "Next ›"
 
+msgid "No active loans"
+msgstr "No active loans"
+
 msgid "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
 msgstr "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
 
@@ -514,6 +535,9 @@ msgstr "Open Shelf"
 
 msgid "Opening \"%s\"…"
 msgstr "Opening \"%s\"…"
+
+msgid "Operation cancelled"
+msgstr "Operation cancelled"
 
 msgid "Page %d of %d"
 msgstr "Page %d of %d"
@@ -938,6 +962,9 @@ msgstr "Auto-delete Expired"
 msgid "setting_auto_delete_desc"
 msgstr "Auto-delete enabled (removes loans 1 day after due date)"
 
+msgid "setting_group_by_card"
+msgstr "Group by Library Card"
+
 msgid "status_downloading"
 msgstr "Downloading..."
 
@@ -967,6 +994,9 @@ msgstr "Cover Grid"
 
 msgid "view_list"
 msgstr "List View"
+
+msgid "‹ Back"
+msgstr "‹ Back"
 
 msgid "‹ Back to Settings"
 msgstr "‹ Back to Settings"

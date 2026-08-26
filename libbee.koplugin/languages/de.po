@@ -457,6 +457,10 @@ msgstr "Format nicht unterstützt"
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "Erfülle ACSM-Ausleihe mit Libbee…"
 
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "Group by Library Card"
+msgstr "Nach Bibliothekskarte gruppieren"
+
 # en-hash: c60da36641d760351933ace6a9927b41
 msgid "Holds"
 msgstr "Vormerkungen"

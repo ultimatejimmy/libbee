@@ -878,19 +878,19 @@ local function _createBadge(text, is_urgent)
     local fg = is_urgent and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK
     local label = TextWidget:new{
         text = text,
-        face = Font:getFace("cfont", 15),
+        face = Font:getFace("cfont", 14),
         bold = is_urgent,
         fgcolor = fg,
     }
     return FrameContainer:new{
-        padding_top = sc(3),
-        padding_bottom = sc(3),
-        padding_left = sc(8),
-        padding_right = sc(8),
+        padding_top = sc(2),
+        padding_bottom = sc(2),
+        padding_left = sc(7),
+        padding_right = sc(7),
         bordersize = is_urgent and 0 or sc(1),
         color = Blitbuffer.COLOR_BLACK,
         background = bg,
-        radius = theme.radius_badge or sc(10),
+        radius = theme.radius_badge or sc(8),
         label,
     }
 end
@@ -999,12 +999,13 @@ function M.showShelfBrowser(plugin_dir)
         local lib_name = State.getLibraryName() or "Libby"
         local loan_count = #loans
         local all_cards = State.getAllCards()
+        local group_by_card = State.getGroupByCard and State.getGroupByCard() ~= false
 
         -- Determine library cards / accounts present across active loans
         local card_groups = {}
         local group_order = {}
         for _, loan in ipairs(loans) do
-            local g_name = State.loanGroupLabel(loan, all_cards)
+            local g_name = group_by_card and State.loanGroupLabel(loan, all_cards) or ""
             if not card_groups[g_name] then
                 card_groups[g_name] = {}
                 table.insert(group_order, g_name)
@@ -1080,7 +1081,11 @@ function M.showShelfBrowser(plugin_dir)
             padding = btn_pad,
             padding_h = btn_pad,
             callback = function()
-                M.showAbout(plugin_dir)
+                M.showAbout(plugin_dir, function()
+                    renderShelf(loans, from_cache)
+                end, function()
+                    renderShelf(loans, from_cache)
+                end)
             end,
         }
 
@@ -1136,9 +1141,9 @@ function M.showShelfBrowser(plugin_dir)
         if from_cache then count_str = count_str .. " " .. _("(cached)") end
 
         local sub_text = count_str
-        if #lib_order == 1 then
+        if #lib_order == 1 and group_by_card and lib_order[1] ~= "" then
             sub_text = count_str .. "  ·  " .. lib_order[1]
-        elseif #lib_order > 1 then
+        elseif #lib_order > 1 and group_by_card then
             sub_text = count_str .. "  ·  " .. string.format(_("%d library cards"), #lib_order)
         elseif lib_name and lib_name ~= "" then
             sub_text = count_str .. "  ·  " .. lib_name
@@ -1184,9 +1189,10 @@ function M.showShelfBrowser(plugin_dir)
 
         -- Dynamic pagination metrics based on available height
         local header_h = header_frame:getSize().h + sc(2)
-        local footer_h = sc(58)
-        local top_margin = sc(12)
-        local avail_h = sh - header_h - footer_h - top_margin - sc(10)
+        local footer_h = sc(48)
+        local top_margin = sc(6)
+        local safety_margin = sc(20)
+        local avail_h = sh - header_h - footer_h - top_margin - safety_margin
 
         local COLS = 3
         local items_per_page
@@ -1202,15 +1208,17 @@ function M.showShelfBrowser(plugin_dir)
         local content_w = row_total_w
         local content_inner = content_w - sc(16)
 
-        local section_header_reserve = (#lib_order > 1) and (math.min(#lib_order, 2) * sc(36)) or 0
+        local section_hdr_h = sc(34)
+        local section_header_reserve = (#lib_order > 1) and (math.min(#lib_order, 2) * section_hdr_h) or 0
         local avail_grid_h = avail_h - section_header_reserve
 
-        local tile_extra_h = (border_w * 2) + sc(3) + sc(38) + sc(3) + sc(24)
+        local tile_extra_h = (border_w * 2) + sc(4) + sc(40) + sc(4) + sc(26)
         local grid_gap_v = sc(8)
 
         local cover_inner_w
         local cover_inner_h
         local num_rows
+        local cover_row_h
 
         if view_mode == "cover" then
             local max_cover_w_by_cell = cell_w - (border_w * 2)
@@ -1224,79 +1232,105 @@ function M.showShelfBrowser(plugin_dir)
 
             if max_cover_h_3 >= math.floor(ideal_cover_h * 0.90) then
                 num_rows = 3
-            elseif max_cover_h_2 >= sc(90) then
+            elseif max_cover_h_2 >= sc(70) then
                 num_rows = 2
             else
                 num_rows = 1
             end
 
             local max_row_h = math.floor((avail_grid_h - (grid_gap_v * (num_rows - 1))) / num_rows)
-            local max_cover_h = math.max(sc(50), max_row_h - tile_extra_h)
+            local max_cover_h = math.max(sc(45), max_row_h - tile_extra_h)
             local max_cover_w_by_h = math.floor(max_cover_h / 1.38)
 
             cover_inner_w = math.max(sc(40), math.min(max_cover_w_by_cell, max_cover_w_by_h))
             cover_inner_h = math.floor(cover_inner_w * 1.38)
+            cover_row_h = cover_inner_h + tile_extra_h
         end
 
-        -- Build capacity-aware pages ensuring no page exceeds available row capacity
+        -- Build capacity-aware pages ensuring no page exceeds available vertical capacity
         local pages = {}
         local cur_page = {}
-        local cur_page_rows = 0
 
         if view_mode == "cover" then
-            local max_rows = num_rows
+            local max_page_h = avail_h
+            local cur_page_h = 0
+
             for _, g_name in ipairs(group_order) do
                 local loans_in_group = card_groups[g_name] or {}
                 local loan_idx = 1
+                local is_new_section = true
+
                 while loan_idx <= #loans_in_group do
-                    local rows_avail = max_rows - cur_page_rows
-                    if rows_avail <= 0 then
+                    local header_cost = (#group_order > 1 and is_new_section) and section_hdr_h or 0
+                    local gap_cost = (cur_page_h > 0) and grid_gap_v or 0
+                    local row_cost = header_cost + gap_cost + cover_row_h
+
+                    if cur_page_h > 0 and (cur_page_h + row_cost > max_page_h) then
                         table.insert(pages, cur_page)
                         cur_page = {}
-                        cur_page_rows = 0
-                        rows_avail = max_rows
+                        cur_page_h = 0
+                        gap_cost = 0
+                        header_cost = (#group_order > 1) and section_hdr_h or 0
+                        row_cost = header_cost + cover_row_h
                     end
 
-                    local max_items_can_fit = rows_avail * COLS
+                    local remaining_h = max_page_h - (cur_page_h + header_cost + gap_cost)
+                    local max_rows_can_fit = math.max(1, math.floor((remaining_h + grid_gap_v) / (cover_row_h + grid_gap_v)))
+                    local max_items_can_fit = max_rows_can_fit * COLS
+
                     local items_to_take = math.min(#loans_in_group - loan_idx + 1, max_items_can_fit)
                     local rows_taken = math.ceil(items_to_take / COLS)
+                    local actual_row_height_taken = (rows_taken * cover_row_h) + ((rows_taken - 1) * grid_gap_v)
 
                     local chunk = {}
                     for k = 0, items_to_take - 1 do
-                        table.insert(chunk, { loan = loans_in_group[loan_idx + k], lib = (#group_order > 1 and g_name or nil) })
+                        table.insert(chunk, { loan = loans_in_group[loan_idx + k], lib = (#group_order > 1 and is_new_section and g_name or nil) })
                     end
 
-                    table.insert(cur_page, { lib = (#group_order > 1 and g_name or nil), items = chunk })
-                    cur_page_rows = cur_page_rows + rows_taken
+                    table.insert(cur_page, { lib = (#group_order > 1 and is_new_section and g_name or nil), items = chunk })
+                    cur_page_h = cur_page_h + header_cost + gap_cost + actual_row_height_taken
                     loan_idx = loan_idx + items_to_take
+                    is_new_section = false
                 end
             end
             if #cur_page > 0 then
                 table.insert(pages, cur_page)
             end
         else -- list mode
-            local max_items = math.max(3, math.floor((avail_h - section_header_reserve) / sc(94)))
+            local list_row_h = sc(92)
+            local max_page_h = avail_h
+            local cur_page_h = 0
+
             for _, g_name in ipairs(group_order) do
                 local loans_in_group = card_groups[g_name] or {}
                 local loan_idx = 1
+                local is_new_section = true
+
                 while loan_idx <= #loans_in_group do
-                    local items_avail = max_items - cur_page_rows
-                    if items_avail <= 0 then
+                    local header_cost = (#group_order > 1 and is_new_section) and section_hdr_h or 0
+                    local item_cost = header_cost + list_row_h
+
+                    if cur_page_h > 0 and (cur_page_h + item_cost > max_page_h) then
                         table.insert(pages, cur_page)
                         cur_page = {}
-                        cur_page_rows = 0
-                        items_avail = max_items
+                        cur_page_h = 0
+                        header_cost = (#group_order > 1) and section_hdr_h or 0
+                        item_cost = header_cost + list_row_h
                     end
 
-                    local items_to_take = math.min(#loans_in_group - loan_idx + 1, items_avail)
+                    local remaining_h = max_page_h - (cur_page_h + header_cost)
+                    local items_can_fit = math.max(1, math.floor(remaining_h / list_row_h))
+                    local items_to_take = math.min(#loans_in_group - loan_idx + 1, items_can_fit)
+
                     local chunk = {}
                     for k = 0, items_to_take - 1 do
-                        table.insert(chunk, { loan = loans_in_group[loan_idx + k], lib = (#group_order > 1 and g_name or nil) })
+                        table.insert(chunk, { loan = loans_in_group[loan_idx + k], lib = (#group_order > 1 and is_new_section and g_name or nil) })
                     end
 
-                    table.insert(cur_page, { lib = (#group_order > 1 and g_name or nil), items = chunk })
-                    cur_page_rows = cur_page_rows + items_to_take
+                    table.insert(cur_page, { lib = (#group_order > 1 and is_new_section and g_name or nil), items = chunk })
+                    cur_page_h = cur_page_h + header_cost + (items_to_take * list_row_h)
                     loan_idx = loan_idx + items_to_take
+                    is_new_section = false
                 end
             end
             if #cur_page > 0 then
@@ -1314,13 +1348,13 @@ function M.showShelfBrowser(plugin_dir)
         local function create_shelf_section_header(title)
             local label = TextWidget:new{
                 text = title:upper(),
-                face = Font:getFace("cfont", theme.section_header_font_size or 14),
+                face = Font:getFace("cfont", theme.section_header_font_size or 13),
                 bold = true,
                 fgcolor = Blitbuffer.COLOR_BLACK,
                 max_width = content_w - sc(16),
             }
             local frame = FrameContainer:new{
-                padding = sc(4),
+                padding = sc(3),
                 padding_left = sc(8),
                 padding_right = sc(8),
                 bordersize = 0,
@@ -1530,9 +1564,9 @@ function M.showShelfBrowser(plugin_dir)
                 local cell_content = VerticalGroup:new{
                     align = "center",
                     cover_frame,
-                    VerticalSpan:new{ width = sc(3) },
+                    VerticalSpan:new{ width = sc(4) },
                     title_box,
-                    VerticalSpan:new{ width = sc(3) },
+                    VerticalSpan:new{ width = sc(4) },
                     badge_widget or VerticalSpan:new{ width = 0 },
                 }
 
@@ -1606,10 +1640,13 @@ function M.showShelfBrowser(plugin_dir)
                     end
                 end
             else
-                for _, section in ipairs(cur_page_sections) do
+                for s_idx, section in ipairs(cur_page_sections) do
                     if section.lib then
+                        if s_idx > 1 then
+                            table.insert(page_content_vg, VerticalSpan:new{ width = sc(8) })
+                        end
                         table.insert(page_content_vg, create_shelf_section_header(section.lib))
-                        table.insert(page_content_vg, VerticalSpan:new{ width = sc(8) })
+                        table.insert(page_content_vg, VerticalSpan:new{ width = sc(6) })
                     end
                     render_cover_grid(section.items, global_item_offset)
                     global_item_offset = global_item_offset + #section.items
@@ -1677,9 +1714,14 @@ function M.showShelfBrowser(plugin_dir)
             current_page < total_pages and next_btn or HorizontalSpan:new{ width = next_w },
         }
 
+        local footer_divider = LineWidget:new{
+            dimen = Geom:new{ w = sw, h = sc(1) },
+            background = theme.color_section_rule or Blitbuffer.COLOR_LIGHT_GRAY,
+        }
+
         local footer_frame = FrameContainer:new{
-            padding_top = sc(4),
-            padding_bottom = sc(14),
+            padding_top = sc(3),
+            padding_bottom = sc(10),
             padding_left = sc(10),
             padding_right = sc(10),
             bordersize = 0,
@@ -1687,7 +1729,7 @@ function M.showShelfBrowser(plugin_dir)
             width = sw,
             height = footer_h,
             CenterContainer:new{
-                dimen = Geom:new{ w = sw - sc(20), h = footer_h - sc(18) },
+                dimen = Geom:new{ w = sw - sc(20), h = footer_h - sc(14) },
                 footer_widgets,
             }
         }
@@ -1702,6 +1744,7 @@ function M.showShelfBrowser(plugin_dir)
 
         local bottom_vg = VerticalGroup:new{
             align = "left",
+            footer_divider,
             footer_frame,
         }
 
@@ -3682,7 +3725,7 @@ end
 -- Main Settings Card (Ultra-Clean, Guaranteed Single View, No Scrollbars)
 -- ---------------------------------------------------------------------------
 
-function M.showAbout(plugin_dir, on_close_cb)
+function M.showAbout(plugin_dir, on_close_cb, on_change_cb)
     _dismissActiveToast()
     plugin_dir = plugin_dir or ""
     local State     = require(plugin_path .. "libbee_state")
@@ -3711,6 +3754,10 @@ function M.showAbout(plugin_dir, on_close_cb)
         if overlay then
             UIManager:close(overlay, "ui")
             overlay = nil
+        end
+
+        if on_change_cb then
+            on_change_cb()
         end
 
         -- Title Header
@@ -3841,7 +3888,7 @@ function M.showAbout(plugin_dir, on_close_cb)
                 overlay = nil
             end
             M.showLibbyAccountSubmenu(plugin_dir, function()
-                M.showAbout(plugin_dir, on_close_cb)
+                M.showAbout(plugin_dir, on_close_cb, on_change_cb)
             end)
         end))
 
@@ -3861,8 +3908,24 @@ function M.showAbout(plugin_dir, on_close_cb)
                 overlay = nil
             end
             M.showByteBooksDRMSubmenu(plugin_dir, function()
-                M.showAbout(plugin_dir, on_close_cb)
+                M.showAbout(plugin_dir, on_close_cb, on_change_cb)
             end)
+        end))
+
+        local group_by_card_enabled = State.getGroupByCard and State.getGroupByCard()
+        local group_card_status = group_by_card_enabled and _("Enabled ›") or _("Disabled ›")
+        local group_card_right = TextWidget:new{
+            text = group_card_status,
+            face = Font:getFace("cfont", theme.subtext_font_size or 14),
+            bold = group_by_card_enabled,
+            fgcolor = group_by_card_enabled and Blitbuffer.COLOR_BLACK or theme.color_label_dim,
+        }
+        table.insert(content_vg, create_setting_row(_("Group by Library Card"), group_card_right, function()
+            local new_val = not group_by_card_enabled
+            if State.setGroupByCard then
+                State.setGroupByCard(new_val)
+            end
+            refresh()
         end))
 
         -- SECTION 3: DOWNLOADS
@@ -3892,19 +3955,19 @@ function M.showAbout(plugin_dir, on_close_cb)
                                 _toast(string.format(_("Download folder set to '%s'"), chosen_path), 2)
                             end
                             UIManager:nextTick(function()
-                                M.showAbout(plugin_dir, on_close_cb)
+                                M.showAbout(plugin_dir, on_close_cb, on_change_cb)
                             end)
                         end,
                         on_cancel = function()
                             UIManager:nextTick(function()
-                                M.showAbout(plugin_dir, on_close_cb)
+                                M.showAbout(plugin_dir, on_close_cb, on_change_cb)
                             end)
                         end,
                     }
                 end)
                 if not ok then
                     log.err("openFolderPicker error: " .. tostring(err))
-                    M.showAbout(plugin_dir, on_close_cb)
+                    M.showAbout(plugin_dir, on_close_cb, on_change_cb)
                 end
             end)
         end
@@ -3959,7 +4022,7 @@ function M.showAbout(plugin_dir, on_close_cb)
                 overlay = nil
             end
             M.showMaintenanceSubmenu(plugin_dir, function()
-                M.showAbout(plugin_dir, on_close_cb)
+                M.showAbout(plugin_dir, on_close_cb, on_change_cb)
             end)
         end))
 

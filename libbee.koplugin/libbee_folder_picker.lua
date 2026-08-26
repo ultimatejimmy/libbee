@@ -15,6 +15,7 @@ if not ok_size or not Size then
 end
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
+local ImageWidget = require("ui/widget/imagewidget")
 local Button = require("ui/widget/button")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
@@ -159,6 +160,43 @@ local function getLfs()
         return lfs
     end
     return nil
+end
+
+local _asset_path_cache = {}
+local function getAssetPath(filename)
+    if _asset_path_cache[filename] then
+        return _asset_path_cache[filename]
+    end
+    local ok_ffiu, ffiutil = pcall(require, "ffi/util")
+    local lfs_mod = getLfs()
+    local ok_ds, DataStorage = pcall(require, "datastorage")
+    local info = debug.getinfo(1, "S")
+    local dir = (info and info.source and info.source:match("^@(.*[/\\])")) or ""
+    local rel_path = dir .. "assets/" .. filename
+    local data_dir = (ok_ds and DataStorage and DataStorage.getDataDir and DataStorage:getDataDir()) or ""
+    local paths_to_try = {
+        rel_path,
+        (data_dir ~= "") and (data_dir .. "/" .. rel_path) or nil,
+        (data_dir ~= "") and (data_dir .. "/plugins/" .. rel_path) or nil,
+        (data_dir ~= "") and (data_dir .. "/plugins/libbee.koplugin/assets/" .. filename) or nil,
+    }
+    for _, p in ipairs(paths_to_try) do
+        if p then
+            if ok_ffiu and ffiutil and ffiutil.realpath then
+                local rp = ffiutil.realpath(p)
+                if rp and lfs_mod and lfs_mod.attributes and lfs_mod.attributes(rp, "mode") == "file" then
+                    _asset_path_cache[filename] = rp
+                    return rp
+                end
+            elseif lfs_mod and lfs_mod.attributes and lfs_mod.attributes(p, "mode") == "file" then
+                _asset_path_cache[filename] = p
+                return p
+            end
+        end
+    end
+    local fallback = dir .. "assets/" .. filename
+    _asset_path_cache[filename] = fallback
+    return fallback
 end
 
 function LibbeeFolderPicker.getParentPath(path)
@@ -381,7 +419,7 @@ function LibbeeFolderPicker.show(options)
             local fixed_header_h = sc(130)
             local fixed_footer_h = close_h + sc(50)
             local available_list_h = math.max(sc(180), max_dialog_h - fixed_header_h - fixed_footer_h)
-            local row_h = (ui_font_size + subtext_font_size) + (row_pad_v * 2) + sc(14)
+            local row_h = (ui_font_size * 2 + subtext_font_size) + (row_pad_v * 2) + sc(14)
             local items_per_page = math.max(4, math.min(7, math.floor((available_list_h - (parent_path and row_h or 0)) / row_h)))
 
             local total_items = #subdirs
@@ -472,6 +510,9 @@ function LibbeeFolderPicker.show(options)
 
             -- Parent Directory Row (Pinned above folder list if not at root)
             if parent_path then
+                local up_icon_reserved = sc(30)
+                local max_desc_w = inner_w - sc(16) - up_icon_reserved
+
                 local up_title = TextWidget:new{
                     text = _(".. (Parent Folder)"),
                     face = Font:getFace("cfont", ui_font_size),
@@ -482,6 +523,7 @@ function LibbeeFolderPicker.show(options)
                     text = parent_path,
                     face = Font:getFace("cfont", subtext_font_size),
                     fgcolor = theme.color_label_dim,
+                    width = max_desc_w,
                 }
 
                 local up_text_vg = VerticalGroup:new{
@@ -491,14 +533,17 @@ function LibbeeFolderPicker.show(options)
                     up_desc,
                 }
 
-                local up_icon = TextWidget:new{
-                    text = "<",
-                    face = Font:getFace("cfont", ui_font_size + 2),
-                    bold = true,
-                    fgcolor = Blitbuffer.COLOR_BLACK,
+                local up_icon = ImageWidget:new{
+                    file = getAssetPath("chevron-left.svg"),
+                    width = sc(18),
+                    height = sc(18),
+                    scale_factor = 0,
+                    is_icon = true,
+                    alpha = true,
                 }
 
                 local up_hg = HorizontalGroup:new{
+                    align = "center",
                     up_icon,
                     HorizontalSpan:new{ width = sc(8) },
                     up_text_vg,
@@ -550,11 +595,16 @@ function LibbeeFolderPicker.show(options)
 
                 for i = start_idx, end_idx do
                     local subdir = subdirs[i]
-                    local name_w = TextWidget:new{
+                    local chev_reserved = sc(28)
+                    local max_name_w = inner_w - sc(16) - chev_reserved
+
+                    local name_w = TextBoxWidget:new{
                         text = subdir.name,
                         face = Font:getFace("cfont", ui_font_size),
                         bold = true,
                         fgcolor = Blitbuffer.COLOR_BLACK,
+                        width = max_name_w,
+                        max_lines = 2,
                     }
 
                     local info_w = TextWidget:new{
@@ -570,19 +620,22 @@ function LibbeeFolderPicker.show(options)
                         info_w,
                     }
 
-                    local chevron_w = TextWidget:new{
-                        text = ">",
-                        face = Font:getFace("cfont", ui_font_size + 2),
-                        bold = true,
-                        fgcolor = theme.color_label_dim,
+                    local chevron_w = ImageWidget:new{
+                        file = getAssetPath("chevron-right.svg"),
+                        width = sc(18),
+                        height = sc(18),
+                        scale_factor = 0,
+                        is_icon = true,
+                        alpha = true,
                     }
 
                     local left_w = (text_col.getSize and text_col:getSize().w) or sc(100)
-                    local chev_w = (chevron_w.getSize and chevron_w:getSize().w) or sc(16)
+                    local chev_w = (chevron_w.getSize and chevron_w:getSize().w) or sc(18)
                     local avail_row_w = inner_w - sc(16)
                     local span_w = math.max(sc(6), avail_row_w - left_w - chev_w)
 
                     local row_hg = HorizontalGroup:new{
+                        align = "center",
                         text_col,
                         HorizontalSpan:new{ width = span_w },
                         chevron_w,
@@ -614,26 +667,36 @@ function LibbeeFolderPicker.show(options)
             if total_pages > 1 then
                 local is_prev_active = (current_page > 1)
                 local is_next_active = (current_page < total_pages)
-                local pag_btn_w = sc(48)
 
-                local prev_btn = Button:new{
-                    text = "<",
-                    text_font_size = 18,
-                    bold = true,
-                    bordersize = sc(1),
-                    color = is_prev_active and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_LIGHT_GRAY,
-                    radius = sc(3),
-                    padding = sc(3),
-                    width = pag_btn_w,
-                    background = is_prev_active and Blitbuffer.COLOR_WHITE or Blitbuffer.Color8(240),
-                    text_font_color = is_prev_active and Blitbuffer.COLOR_BLACK or Blitbuffer.Color8(160),
-                    callback = function()
-                        if current_page > 1 then
-                            current_page = current_page - 1
-                            refresh()
-                        end
-                    end,
-                }
+                local function makePagIconBtn(icon_file, is_active, callback)
+                    local icon = ImageWidget:new{
+                        file = getAssetPath(icon_file),
+                        width = sc(18),
+                        height = sc(18),
+                        scale_factor = 0,
+                        is_icon = true,
+                        alpha = true,
+                        dimmed = not is_active,
+                    }
+                    local frame = FrameContainer:new{
+                        padding = sc(4),
+                        padding_left = sc(12),
+                        padding_right = sc(12),
+                        bordersize = sc(1),
+                        radius = sc(3),
+                        color = is_active and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_LIGHT_GRAY,
+                        background = is_active and Blitbuffer.COLOR_WHITE or Blitbuffer.Color8(240),
+                        icon,
+                    }
+                    return make_row_item(frame, is_active and callback or nil)
+                end
+
+                local prev_btn = makePagIconBtn("chevron-left.svg", is_prev_active, function()
+                    if current_page > 1 then
+                        current_page = current_page - 1
+                        refresh()
+                    end
+                end)
 
                 local page_text = TextWidget:new{
                     text = string.format(_("Page %d of %d"), current_page, total_pages),
@@ -642,26 +705,15 @@ function LibbeeFolderPicker.show(options)
                     fgcolor = Blitbuffer.COLOR_BLACK,
                 }
 
-                local next_btn = Button:new{
-                    text = ">",
-                    text_font_size = 18,
-                    bold = true,
-                    bordersize = sc(1),
-                    color = is_next_active and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_LIGHT_GRAY,
-                    radius = sc(3),
-                    padding = sc(3),
-                    width = pag_btn_w,
-                    background = is_next_active and Blitbuffer.COLOR_WHITE or Blitbuffer.Color8(240),
-                    text_font_color = is_next_active and Blitbuffer.COLOR_BLACK or Blitbuffer.Color8(160),
-                    callback = function()
-                        if current_page < total_pages then
-                            current_page = current_page + 1
-                            refresh()
-                        end
-                    end,
-                }
+                local next_btn = makePagIconBtn("chevron-right.svg", is_next_active, function()
+                    if current_page < total_pages then
+                        current_page = current_page + 1
+                        refresh()
+                    end
+                end)
 
                 local pag_hg = HorizontalGroup:new{
+                    align = "center",
                     prev_btn,
                     HorizontalSpan:new{ width = sc(16) },
                     page_text,
@@ -670,7 +722,7 @@ function LibbeeFolderPicker.show(options)
                 }
 
                 local pag_frame = FrameContainer:new{
-                    padding = sc(6),
+                    padding = sc(4),
                     bordersize = 0,
                     width = inner_w,
                     CenterContainer:new{

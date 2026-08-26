@@ -393,6 +393,10 @@ msgstr "Формат није подржан"
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "Обрада ACSM позајмице у Libbee…"
 
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "Group by Library Card"
+msgstr "Групиши по библиотечкој картици"
+
 # en-hash: c60da36641d760351933ace6a9927b41
 msgid "Holds"
 msgstr "Резервације"

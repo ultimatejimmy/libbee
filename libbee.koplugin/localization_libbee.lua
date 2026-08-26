@@ -351,6 +351,7 @@ local FALLBACKS = {
     msg_auto_delete_multiple = "Auto-deleted %d expired/returned loan(s).",
     setting_auto_delete = "Auto-delete Expired",
     setting_auto_delete_desc = "Auto-delete enabled (removes loans 1 day after due date)",
+    setting_group_by_card = "Group by Library Card",
     btn_open_book = "Open Book",
     btn_return_early = "Return Early",
     dialog_loan_details = "Loan Details",
@@ -391,6 +392,7 @@ local KEY_ALIASES = {
     ["All"] = "filter_all",
     ["Settings"] = "menu_settings",
     ["About"] = "menu_about",
+    ["Group by Library Card"] = "setting_group_by_card",
 }
 
 -- Translate string key with formatting support

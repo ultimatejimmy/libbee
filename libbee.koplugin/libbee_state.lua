@@ -568,6 +568,24 @@ function M.saveViewMode(view_mode)
     return _writeJson(_statePath(), data)
 end
 
+function M.getGroupByCard()
+    local data = _readJson(_statePath())
+    if data and data.group_by_card ~= nil then
+        return data.group_by_card == true
+    end
+    return true -- default: grouping enabled
+end
+
+function M.setGroupByCard(enabled)
+    local data = _readJson(_statePath()) or {}
+    data.group_by_card = (enabled == true)
+    local ok = _writeJson(_statePath(), data)
+    if ok then
+        logger.info("libbee state: group_by_card set to " .. tostring(data.group_by_card))
+    end
+    return ok
+end
+
 -- ---------------------------------------------------------------------------
 -- Auto-Delete Expired Loans Settings & Download Tracking Registry
 -- ---------------------------------------------------------------------------

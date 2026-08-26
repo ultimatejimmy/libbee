@@ -393,6 +393,10 @@ msgstr "非対応のフォーマット"
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "Libbee で ACSM 貸出本を処理中…"
 
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "Group by Library Card"
+msgstr "図書館カードでグループ化"
+
 # en-hash: c60da36641d760351933ace6a9927b41
 msgid "Holds"
 msgstr "予約中"

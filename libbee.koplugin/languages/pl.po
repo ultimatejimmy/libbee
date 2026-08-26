@@ -457,6 +457,10 @@ msgstr "Format nieobsługiwany"
 msgid "Fulfilling ACSM loan with Libbee…"
 msgstr "Przetwarzanie wypożyczenia ACSM w Libbee…"
 
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "Group by Library Card"
+msgstr "Grupuj według karty bibliotecznej"
+
 # en-hash: c60da36641d760351933ace6a9927b41
 msgid "Holds"
 msgstr "Rezerwacje"

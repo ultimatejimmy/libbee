@@ -242,7 +242,8 @@
         "Created '%s'": "'%s' creada",
         "+ New": "+ Nueva",
         "Downloads": "Descargas",
-        "Libbee: Open": "Libbee: Abrir"
+        "Libbee: Open": "Libbee: Abrir",
+        "Group by Library Card": "Agrupar por tarjeta de biblioteca"
     },
     "fr": {
         "menu_libbee": "Libbee",
@@ -488,7 +489,8 @@
         "Created '%s'": "'%s' créé",
         "+ New": "+ Nouveau",
         "Downloads": "Téléchargements",
-        "Libbee: Open": "Libbee : Ouvrir"
+        "Libbee: Open": "Libbee : Ouvrir",
+        "Group by Library Card": "Grouper par carte de bibliothèque"
     },
     "it": {
         "menu_libbee": "Libbee",
@@ -733,7 +735,8 @@
         "Created '%s'": "'%s' creata",
         "+ New": "+ Nuova",
         "Downloads": "Download",
-        "Libbee: Open": "Libbee: Apri"
+        "Libbee: Open": "Libbee: Apri",
+        "Group by Library Card": "Raggruppa per tessera biblioteca"
     },
     "pt_br": {
         "menu_libbee": "Libbee",
@@ -978,7 +981,8 @@
         "Created '%s'": "'%s' criada",
         "+ New": "+ Nova",
         "Downloads": "Downloads",
-        "Libbee: Open": "Libbee: Abrir"
+        "Libbee: Open": "Libbee: Abrir",
+        "Group by Library Card": "Agrupar por cartão de biblioteca"
     },
     "de": {
         "menu_libbee": "Libbee",
@@ -1223,7 +1227,8 @@
         "Created '%s'": "'%s' erstellt",
         "+ New": "+ Neu",
         "Downloads": "Herunterladen",
-        "Libbee: Open": "Libbee: Öffnen"
+        "Libbee: Open": "Libbee: Öffnen",
+        "Group by Library Card": "Nach Bibliothekskarte gruppieren"
     },
     "nl": {
         "menu_libbee": "Libbee",
@@ -1468,7 +1473,8 @@
         "Created '%s'": "'%s' aangemaakt",
         "+ New": "+ Nieuw",
         "Downloads": "Downloads",
-        "Libbee: Open": "Libbee: Openen"
+        "Libbee: Open": "Libbee: Openen",
+        "Group by Library Card": "Groeperen op bibliotheekpas"
     },
     "pl": {
         "menu_libbee": "Libbee",
@@ -1713,7 +1719,8 @@
         "Created '%s'": "Utworzono '%s'",
         "+ New": "+ Nowy",
         "Downloads": "Pobrane",
-        "Libbee: Open": "Libbee: Otwórz"
+        "Libbee: Open": "Libbee: Otwórz",
+        "Group by Library Card": "Grupuj według karty bibliotecznej"
     },
     "ru": {
         "menu_libbee": "Libbee",
@@ -1958,7 +1965,8 @@
         "Created '%s'": "Создано '%s'",
         "+ New": "+ Создать",
         "Downloads": "Загрузки",
-        "Libbee: Open": "Libbee: Открыть"
+        "Libbee: Open": "Libbee: Открыть",
+        "Group by Library Card": "Группировать по читательскому билету"
     },
     "uk": {
         "menu_libbee": "Libbee",
@@ -2203,7 +2211,8 @@
         "Created '%s'": "Створено '%s'",
         "+ New": "+ Створити",
         "Downloads": "Завантаження",
-        "Libbee: Open": "Libbee: Відкрити"
+        "Libbee: Open": "Libbee: Відкрити",
+        "Group by Library Card": "Групувати за карткою бібліотеки"
     },
     "sr": {
         "menu_libbee": "Libbee",
@@ -2448,7 +2457,8 @@
         "Created '%s'": "Креирано '%s'",
         "+ New": "+ Нова",
         "Downloads": "Преузимања",
-        "Libbee: Open": "Libbee: Отвори"
+        "Libbee: Open": "Libbee: Отвори",
+        "Group by Library Card": "Групиши по библиотечкој картици"
     },
     "zh_CN": {
         "menu_libbee": "Libbee",
@@ -2693,7 +2703,8 @@
         "Created '%s'": "已创建“%s”",
         "+ New": "+ 新建",
         "Downloads": "下载",
-        "Libbee: Open": "Libbee: 打开"
+        "Libbee: Open": "Libbee: 打开",
+        "Group by Library Card": "按借书证分组"
     },
     "ja": {
         "menu_libbee": "Libbee",
@@ -2938,7 +2949,8 @@
         "Created '%s'": "'%s' を作成しました",
         "+ New": "+ 新規",
         "Downloads": "ダウンロード",
-        "Libbee: Open": "Libbee: 開く"
+        "Libbee: Open": "Libbee: 開く",
+        "Group by Library Card": "図書館カードでグループ化"
     },
     "ko": {
         "menu_libbee": "Libbee",
@@ -3183,7 +3195,8 @@
         "Created '%s'": "'%s' 생성됨",
         "+ New": "+ 새로 만들기",
         "Downloads": "다운로드",
-        "Libbee: Open": "Libbee: 열기"
+        "Libbee: Open": "Libbee: 열기",
+        "Group by Library Card": "도서관 카드별 그룹화"
     },
     "id": {
         "menu_libbee": "Libbee",
@@ -3428,7 +3441,8 @@
         "Created '%s'": "'%s' dibuat",
         "+ New": "+ Baru",
         "Downloads": "Unduhan",
-        "Libbee: Open": "Libbee: Buka"
+        "Libbee: Open": "Libbee: Buka",
+        "Group by Library Card": "Kelompokkan berdasarkan kartu perpustakaan"
     },
     "tr": {
         "menu_libbee": "Libbee",
@@ -3673,7 +3687,8 @@
         "Created '%s'": "'%s' oluşturuldu",
         "+ New": "+ Yeni",
         "Downloads": "İndirmeler",
-        "Libbee: Open": "Libbee: Aç"
+        "Libbee: Open": "Libbee: Aç",
+        "Group by Library Card": "Kütüphane kartına göre grupla"
     },
     "hu": {
         "menu_libbee": "Libbee",
@@ -3918,7 +3933,8 @@
         "Created '%s'": "'%s' létrehozva",
         "+ New": "+ Új",
         "Downloads": "Letöltések",
-        "Libbee: Open": "Libbee: Megnyitás"
+        "Libbee: Open": "Libbee: Megnyitás",
+        "Group by Library Card": "Csoportosítás könyvtári kártya szerint"
     },
     "ar": {
         "menu_libbee": "Libbee",
@@ -4163,6 +4179,7 @@
         "Created '%s'": "تم إنشاء '%s'",
         "+ New": "+ جديد",
         "Downloads": "التنزيلات",
-        "Libbee: Open": "Libbee: فتح"
+        "Libbee: Open": "Libbee: فتح",
+        "Group by Library Card": "تجميع حسب بطاقة المكتبة"
     }
 }
