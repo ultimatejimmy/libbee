@@ -90,6 +90,125 @@ local function calcProportionalBtnWidths(button_texts, total_avail_width, gap, f
     return widths
 end
 
+local function getTextWidth(text, face, bold)
+    if not text or text == "" then return 0 end
+    local tw = TextWidget:new{ text = text, face = face, bold = bold }
+    return (tw.getSize and tw:getSize().w) or 0
+end
+
+local function truncateToWidth(text, max_w, face, bold, ellipsis)
+    ellipsis = ellipsis or "..."
+    if getTextWidth(text, face, bold) <= max_w then
+        return text
+    end
+    local ellip_w = getTextWidth(ellipsis, face, bold)
+    local avail_w = max_w - ellip_w
+    if avail_w <= 0 then
+        return ellipsis
+    end
+
+    local chars = {}
+    for c in text:gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+        table.insert(chars, c)
+    end
+    if #chars == 0 then return ellipsis end
+
+    local low = 1
+    local high = #chars
+    local best = 0
+    while low <= high do
+        local mid = math.floor((low + high) / 2)
+        local sub = table.concat(chars, "", 1, mid)
+        if getTextWidth(sub, face, bold) <= avail_w then
+            best = mid
+            low = mid + 1
+        else
+            high = mid - 1
+        end
+    end
+    if best == 0 then
+        return ellipsis
+    end
+    return table.concat(chars, "", 1, best) .. ellipsis
+end
+
+local function formatTwoLinesMax(text, max_w, face, bold)
+    if not text or text == "" then return "" end
+    text = text:gsub("[\r\n]+", " "):match("^%s*(.-)%s*$") or ""
+    if getTextWidth(text, face, bold) <= max_w then
+        return text
+    end
+
+    -- Find split point for Line 1
+    local words = {}
+    for w in text:gmatch("%S+") do
+        table.insert(words, w)
+    end
+
+    local line1 = ""
+    local line1_word_count = 0
+
+    if #words > 1 then
+        for i, w in ipairs(words) do
+            local test_line = (line1 == "") and w or (line1 .. " " .. w)
+            if getTextWidth(test_line, face, bold) <= max_w then
+                line1 = test_line
+                line1_word_count = i
+            else
+                break
+            end
+        end
+    end
+
+    local remainder = ""
+    if line1_word_count > 0 and line1_word_count < #words then
+        local rem_words = {}
+        for i = line1_word_count + 1, #words do
+            table.insert(rem_words, words[i])
+        end
+        remainder = table.concat(rem_words, " ")
+    else
+        -- Break Line 1 by character if no multi-word fit was found
+        local chars = {}
+        for c in text:gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+            table.insert(chars, c)
+        end
+        local low = 1
+        local high = #chars
+        local best = 1
+        while low <= high do
+            local mid = math.floor((low + high) / 2)
+            local sub = table.concat(chars, "", 1, mid)
+            if getTextWidth(sub, face, bold) <= max_w then
+                best = mid
+                low = mid + 1
+            else
+                high = mid - 1
+            end
+        end
+        line1 = table.concat(chars, "", 1, best)
+        if best < #chars then
+            remainder = table.concat(chars, "", best + 1):match("^%s*(.-)%s*$") or ""
+        else
+            remainder = ""
+        end
+    end
+
+    if remainder == "" then
+        return line1
+    end
+
+    -- Line 2: remainder if it fits, or truncated with "..."
+    local line2
+    if getTextWidth(remainder, face, bold) <= max_w then
+        line2 = remainder
+    else
+        line2 = truncateToWidth(remainder, max_w, face, bold, "...")
+    end
+
+    return line1 .. "\n" .. line2
+end
+
 local function createButton(opts)
     opts = opts or {}
     local is_primary = (opts.background == Blitbuffer.COLOR_BLACK) or (opts.primary == true)
@@ -597,14 +716,15 @@ function LibbeeFolderPicker.show(options)
                     local subdir = subdirs[i]
                     local chev_reserved = sc(28)
                     local max_name_w = inner_w - sc(16) - chev_reserved
+                    local name_face = Font:getFace("cfont", ui_font_size)
+                    local formatted_name = formatTwoLinesMax(subdir.name, max_name_w, name_face, true)
 
                     local name_w = TextBoxWidget:new{
-                        text = subdir.name,
-                        face = Font:getFace("cfont", ui_font_size),
+                        text = formatted_name,
+                        face = name_face,
                         bold = true,
                         fgcolor = Blitbuffer.COLOR_BLACK,
                         width = max_name_w,
-                        max_lines = 2,
                     }
 
                     local info_w = TextWidget:new{
