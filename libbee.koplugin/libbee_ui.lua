@@ -1106,11 +1106,11 @@ function M.showShelfBrowser(plugin_dir)
 
         local header_actions = HorizontalGroup:new{
             view_toggle_btn,
-            HorizontalSpan:new{ width = sc(6) },
+            HorizontalSpan:new{ width = sc(14) },
             refresh_btn,
-            HorizontalSpan:new{ width = sc(6) },
+            HorizontalSpan:new{ width = sc(14) },
             menu_btn,
-            HorizontalSpan:new{ width = sc(6) },
+            HorizontalSpan:new{ width = sc(14) },
             close_btn,
         }
 
