@@ -87,5 +87,55 @@ describe("LibbeeFolderPicker", function()
             assert.is_true(shown_widget ~= nil)
             UIManager.show = orig_show
         end)
+
+        it("supports D-Pad focus cycling, horizontal button navigation, and page turns", function()
+            local UIManager = require("ui/uimanager")
+            local shown_widget = nil
+            local orig_show = UIManager.show
+            UIManager.show = function(self, widget)
+                shown_widget = widget
+            end
+
+            local confirmed_path = nil
+            local cancelled = false
+            LibbeeFolderPicker.show{
+                title = "Select Download Folder",
+                initial_path = "/test/books",
+                on_confirm = function(path)
+                    confirmed_path = path
+                end,
+                on_cancel = function()
+                    cancelled = true
+                end,
+            }
+
+            assert.is_table(shown_widget)
+            assert.is_true(type(shown_widget.onUp) == "function")
+            assert.is_true(type(shown_widget.onDown) == "function")
+            assert.is_true(type(shown_widget.onLeft) == "function")
+            assert.is_true(type(shown_widget.onRight) == "function")
+            assert.is_true(type(shown_widget.onPress) == "function")
+            assert.is_true(type(shown_widget.onPrevPage) == "function")
+            assert.is_true(type(shown_widget.onNextPage) == "function")
+            assert.is_true(type(shown_widget.onClose) == "function")
+
+            -- D-Pad Up / Down cycles focus
+            shown_widget:onDown()
+            shown_widget:onDown()
+            shown_widget:onUp()
+
+            -- Horizontal button navigation
+            shown_widget:onRight()
+            shown_widget:onLeft()
+
+            -- Page turns
+            shown_widget:onNextPage()
+            shown_widget:onPrevPage()
+
+            -- Close navigation
+            shown_widget:onClose()
+
+            UIManager.show = orig_show
+        end)
     end)
 end)

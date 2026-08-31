@@ -34,6 +34,17 @@ end
 local theme = require(plugin_path .. "libbee_theme")
 local log = require(plugin_path .. "libbee_logger")
 
+local function isTouchDevice()
+    if Device then
+        if Device.isTouchDevice then
+            return Device:isTouchDevice()
+        elseif Device.isTouch then
+            return Device:isTouch()
+        end
+    end
+    return false
+end
+
 local function sc(val)
     return (Device.screen and Device.screen.scaleBySize and Device.screen:scaleBySize(val)) or val
 end
@@ -514,6 +525,11 @@ function LibbeeFolderPicker.show(options)
         return item
     end
 
+    local is_touch_device = isTouchDevice()
+    local focus_visible = not is_touch_device
+    local focused_picker_idx = focus_visible and 1 or nil
+    local focusable_items = {}
+
     refresh = function()
         local ok, err = pcall(function()
             if overlay then
@@ -522,6 +538,7 @@ function LibbeeFolderPicker.show(options)
                 ov.onClose = nil
                 UIManager:close(ov, "ui")
             end
+            focusable_items = {}
 
             local available_h = sh - sc(24)
             local title_font_size = (available_h >= sc(650)) and 20 or ((available_h >= sc(520)) and 18 or 16)
@@ -668,19 +685,37 @@ function LibbeeFolderPicker.show(options)
                     up_text_vg,
                 }
 
+                local parent_cb = function()
+                    current_path = parent_path
+                    current_page = 1
+                    if not is_touch_device then
+                        focused_picker_idx = 1
+                    else
+                        focused_picker_idx = nil
+                    end
+                    refresh()
+                end
+
+                local parent_item_idx = #focusable_items + 1
+                table.insert(focusable_items, { callback = parent_cb })
+                local is_parent_focused = (focus_visible and focused_picker_idx == parent_item_idx)
+
                 local up_frame = FrameContainer:new{
                     padding = row_pad_v,
                     padding_left = sc(6),
                     padding_right = sc(6),
-                    bordersize = 0,
+                    bordersize = is_parent_focused and (theme.border_btn or sc(1)) or 0,
+                    color = Blitbuffer.COLOR_BLACK,
+                    background = is_parent_focused and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or nil,
+                    radius = is_parent_focused and (theme.radius_focus or sc(4)) or 0,
                     width = inner_w,
                     up_hg,
                 }
 
                 table.insert(content_vg, make_row_item(up_frame, function()
-                    current_path = parent_path
-                    current_page = 1
-                    refresh()
+                    if is_touch_device then focus_visible = false end
+                    focused_picker_idx = parent_item_idx
+                    parent_cb()
                 end))
 
                 table.insert(content_vg, LineWidget:new{
@@ -761,19 +796,37 @@ function LibbeeFolderPicker.show(options)
                         chevron_w,
                     }
 
+                    local dir_cb = function()
+                        current_path = subdir.path
+                        current_page = 1
+                        if not is_touch_device then
+                            focused_picker_idx = 1
+                        else
+                            focused_picker_idx = nil
+                        end
+                        refresh()
+                    end
+
+                    local row_item_idx = #focusable_items + 1
+                    table.insert(focusable_items, { callback = dir_cb })
+                    local is_row_focused = (focus_visible and focused_picker_idx == row_item_idx)
+
                     local row_frame = FrameContainer:new{
                         padding = row_pad_v,
                         padding_left = sc(6),
                         padding_right = sc(6),
-                        bordersize = 0,
+                        bordersize = is_row_focused and (theme.border_btn or sc(1)) or 0,
+                        color = Blitbuffer.COLOR_BLACK,
+                        background = is_row_focused and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or nil,
+                        radius = is_row_focused and (theme.radius_focus or sc(4)) or 0,
                         width = inner_w,
                         row_hg,
                     }
 
                     table.insert(content_vg, make_row_item(row_frame, function()
-                        current_path = subdir.path
-                        current_page = 1
-                        refresh()
+                        if is_touch_device then focus_visible = false end
+                        focused_picker_idx = row_item_idx
+                        dir_cb()
                     end))
 
                     table.insert(content_vg, LineWidget:new{
@@ -814,6 +867,7 @@ function LibbeeFolderPicker.show(options)
                 local prev_btn = makePagIconBtn("chevron-left.svg", is_prev_active, function()
                     if current_page > 1 then
                         current_page = current_page - 1
+                        focused_picker_idx = 1
                         refresh()
                     end
                 end)
@@ -828,6 +882,7 @@ function LibbeeFolderPicker.show(options)
                 local next_btn = makePagIconBtn("chevron-right.svg", is_next_active, function()
                     if current_page < total_pages then
                         current_page = current_page + 1
+                        focused_picker_idx = 1
                         refresh()
                     end
                 end)
@@ -875,11 +930,16 @@ function LibbeeFolderPicker.show(options)
                 "cfont"
             )
 
+            local cancel_idx = #focusable_items + 1
+            table.insert(focusable_items, { callback = closePicker })
+            local is_cancel_focused = (focus_visible and focused_picker_idx == cancel_idx)
+
             local cancel_btn = createButton{
                 text = cancel_str,
                 text_font_size = btn_font_size,
                 bold = true,
-                bordersize = theme.border_btn or sc(1),
+                is_focused = is_cancel_focused,
+                bordersize = is_cancel_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
                 radius = theme.radius_btn or sc(4),
                 width = btn_widths[1],
                 height = close_h,
@@ -888,11 +948,16 @@ function LibbeeFolderPicker.show(options)
                 callback = closePicker,
             }
 
+            local new_idx = #focusable_items + 1
+            table.insert(focusable_items, { callback = promptNewFolder })
+            local is_new_focused = (focus_visible and focused_picker_idx == new_idx)
+
             local new_btn = createButton{
                 text = new_folder_str,
                 text_font_size = btn_font_size,
                 bold = true,
-                bordersize = theme.border_btn or sc(1),
+                is_focused = is_new_focused,
+                bordersize = is_new_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
                 radius = theme.radius_btn or sc(4),
                 width = btn_widths[2],
                 height = close_h,
@@ -901,11 +966,16 @@ function LibbeeFolderPicker.show(options)
                 callback = promptNewFolder,
             }
 
+            local select_idx = #focusable_items + 1
+            table.insert(focusable_items, { callback = confirmPicker })
+            local is_select_focused = (focus_visible and focused_picker_idx == select_idx)
+
             local select_btn = createButton{
                 text = select_str,
                 text_font_size = btn_font_size,
                 bold = true,
-                bordersize = theme.border_btn or sc(1),
+                is_focused = is_select_focused,
+                bordersize = is_select_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
                 radius = theme.radius_btn or sc(4),
                 width = btn_widths[3],
                 height = close_h,
@@ -942,30 +1012,39 @@ function LibbeeFolderPicker.show(options)
             }
 
             local key_events = {
-                Close = { { "Back" } },
-                NextPage = {
-                    { "Right" },
-                    { "PageDown" },
-                    { "Down" },
-                },
+                Close = { { "Back" }, { "Escape" } },
+                Up = { { "Up" } },
+                Down = { { "Down" } },
+                Left = { { "Left" } },
+                Right = { { "Right" } },
                 PrevPage = {
-                    { "Left" },
                     { "PageUp" },
-                    { "Up" },
+                    { "PgUp" },
+                    { "Prev" },
+                    { "LPgBack" },
+                    { "RPgBack" },
                 },
+                NextPage = {
+                    { "PageDown" },
+                    { "PgDn" },
+                    { "Next" },
+                    { "LPgFwd" },
+                    { "RPgFwd" },
+                },
+                Press = { { "Press" }, { "Enter" }, { "Return" }, { "Select" } },
             }
 
-            local Device_input = Device.input
+            local Device_input = Device and Device.input
             if Device_input and Device_input.group then
-                if Device_input.group.PgFwd then
-                    table.insert(key_events.NextPage, { Device_input.group.PgFwd })
-                end
-                if Device_input.group.PgBack then
-                    table.insert(key_events.PrevPage, { Device_input.group.PgBack })
-                end
-                if Device_input.group.Back then
-                    table.insert(key_events.Close, { Device_input.group.Back })
-                end
+                if Device_input.group.PgFwd then table.insert(key_events.NextPage, { Device_input.group.PgFwd }) end
+                if Device_input.group.PgBack then table.insert(key_events.PrevPage, { Device_input.group.PgBack }) end
+                if Device_input.group.Back then table.insert(key_events.Close, { Device_input.group.Back }) end
+                if Device_input.group.Up then table.insert(key_events.Up, { Device_input.group.Up }) end
+                if Device_input.group.Down then table.insert(key_events.Down, { Device_input.group.Down }) end
+                if Device_input.group.Left then table.insert(key_events.Left, { Device_input.group.Left }) end
+                if Device_input.group.Right then table.insert(key_events.Right, { Device_input.group.Right }) end
+                if Device_input.group.Press then table.insert(key_events.Press, { Device_input.group.Press }) end
+                if Device_input.group.Enter then table.insert(key_events.Press, { Device_input.group.Enter }) end
             end
 
             overlay = InputContainer:new{
@@ -984,9 +1063,73 @@ function LibbeeFolderPicker.show(options)
                 card,
             }
 
+            overlay.onUp = function()
+                focus_visible = true
+                if not focused_picker_idx then
+                    focused_picker_idx = 1
+                elseif #focusable_items > 0 then
+                    focused_picker_idx = (focused_picker_idx > 1) and (focused_picker_idx - 1) or #focusable_items
+                end
+                refresh()
+                return true
+            end
+
+            overlay.onDown = function()
+                focus_visible = true
+                if not focused_picker_idx then
+                    focused_picker_idx = 1
+                elseif #focusable_items > 0 then
+                    focused_picker_idx = (focused_picker_idx < #focusable_items) and (focused_picker_idx + 1) or 1
+                end
+                refresh()
+                return true
+            end
+
+            overlay.onLeft = function()
+                focus_visible = true
+                if not focused_picker_idx then
+                    focused_picker_idx = 1
+                    refresh()
+                    return true
+                end
+                local bottom_start_idx = #focusable_items - 2
+                if focused_picker_idx > bottom_start_idx then
+                    focused_picker_idx = focused_picker_idx - 1
+                    refresh()
+                    return true
+                elseif current_page > 1 then
+                    return overlay:onPrevPage()
+                end
+            end
+
+            overlay.onRight = function()
+                focus_visible = true
+                if not focused_picker_idx then
+                    focused_picker_idx = 1
+                    refresh()
+                    return true
+                end
+                local bottom_start_idx = #focusable_items - 2
+                if focused_picker_idx >= bottom_start_idx and focused_picker_idx < #focusable_items then
+                    focused_picker_idx = focused_picker_idx + 1
+                    refresh()
+                    return true
+                elseif current_page < total_pages then
+                    return overlay:onNextPage()
+                end
+            end
+
+            overlay.onPress = function()
+                if focusable_items[focused_picker_idx] and focusable_items[focused_picker_idx].callback then
+                    focusable_items[focused_picker_idx].callback()
+                    return true
+                end
+            end
+
             overlay.onNextPage = function()
                 if current_page < total_pages then
                     current_page = current_page + 1
+                    focused_picker_idx = 1
                     refresh()
                     return true
                 end
@@ -995,6 +1138,7 @@ function LibbeeFolderPicker.show(options)
             overlay.onPrevPage = function()
                 if current_page > 1 then
                     current_page = current_page - 1
+                    focused_picker_idx = 1
                     refresh()
                     return true
                 end
@@ -1004,12 +1148,14 @@ function LibbeeFolderPicker.show(options)
                 if ges and (ges.direction == "west" or ges.direction == "south") then
                     if current_page < total_pages then
                         current_page = current_page + 1
+                        focused_picker_idx = 1
                         refresh()
                         return true
                     end
                 elseif ges and (ges.direction == "east" or ges.direction == "north") then
                     if current_page > 1 then
                         current_page = current_page - 1
+                        focused_picker_idx = 1
                         refresh()
                         return true
                     end
@@ -1020,6 +1166,7 @@ function LibbeeFolderPicker.show(options)
                 if parent_path then
                     current_path = parent_path
                     current_page = 1
+                    focused_picker_idx = 1
                     refresh()
                 else
                     closePicker()

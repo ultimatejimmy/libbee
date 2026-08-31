@@ -94,6 +94,7 @@ describe("libbee_autoclean checkAndCleanup", function()
     end)
 
     it("auto-deletes early-returned books during live sync", function()
+        local now = os.time{ year = 2026, month = 8, day = 21, hour = 12 }
         local path1 = create_temp_file("returned_early")
         local path2 = create_temp_file("still_active")
 
@@ -114,7 +115,7 @@ describe("libbee_autoclean checkAndCleanup", function()
             { id = "loan-active", title = "Active Book", expires = "2026-08-30" }
         }
 
-        local res = AutoClean.checkAndCleanup(live_shelf, { is_live_sync = true })
+        local res = AutoClean.checkAndCleanup(live_shelf, { is_live_sync = true, now_timestamp = now })
         assert.are_equal(1, res.deleted_count)
         assert.are_equal("Early Returned Book", res.deleted_titles[1])
 

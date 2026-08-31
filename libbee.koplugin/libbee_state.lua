@@ -550,6 +550,31 @@ function M.clearDrmActivation()
     return ok
 end
 
+function M.getOrCreateDeviceSerial()
+    local data = _readJson(_statePath()) or {}
+    if data.device_serial and type(data.device_serial) == "string" and #data.device_serial >= 32 then
+        return data.device_serial
+    end
+    local ok_nc, nativecrypto = pcall(require, "adobe.util.nativecrypto")
+    local serial = nil
+    if ok_nc and nativecrypto and nativecrypto.rand_bytes then
+        local rand = nativecrypto.rand_bytes(20)
+        if rand then
+            local s = ""
+            for i = 1, 20 do
+                s = s .. string.format("%02x", rand:byte(i))
+            end
+            serial = s
+        end
+    end
+    if not serial or #serial < 32 then
+        serial = string.format("%08x%08x%08x%08x%08x", os.time(), math.random(100000, 999999), math.random(100000, 999999), math.random(100000, 999999), math.random(100000, 999999)):sub(1, 40)
+    end
+    data.device_serial = serial
+    _writeJson(_statePath(), data)
+    return serial
+end
+
 -- ---------------------------------------------------------------------------
 -- UI Preferences
 -- ---------------------------------------------------------------------------

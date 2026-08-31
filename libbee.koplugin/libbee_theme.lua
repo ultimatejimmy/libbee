@@ -33,6 +33,11 @@ local libbee_theme = {
     title_font_size = 22,
     subtext_font_size = 16,
     section_header_font_size = 16,
+    border_focus = sc(3),
+    color_focus_border = Blitbuffer.COLOR_BLACK,
+    color_focus_bg = Blitbuffer.COLOR_LIGHT_GRAY,
+    color_focus_fg = Blitbuffer.COLOR_BLACK,
+    radius_focus = sc(4),
 }
 
 return libbee_theme

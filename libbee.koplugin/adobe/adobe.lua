@@ -325,11 +325,15 @@ function adobe.targetDevice(fingerprint, activationToken)
     }
 end
 
-function adobe.activate(user, deviceKey, pkcs12)
+function adobe.activate(user, deviceKey, pkcs12, persistentSerial)
     logger.info("[ACSM] activate: generating device serial and fingerprint...")
-    local serial, serialErr = crypto.serial()
-    if not serial then
-        return nil, serialErr
+    local serial = persistentSerial
+    if not serial or serial == "" then
+        local serialErr
+        serial, serialErr = crypto.serial()
+        if not serial then
+            return nil, serialErr
+        end
     end
     local fingerprint, fingerprintErr = crypto.fingerprint(serial, deviceKey)
     if not fingerprint then

@@ -68,7 +68,8 @@ function M.createAnonymousActivation()
         return nil, "Anonymous sign-in failed: " .. tostring(signInErr)
     end
 
-    local device_uuid, fingerprintOrErr = adobe.activate(creds.user, creds.deviceKey, creds.pkcs12)
+    local serial = State.getOrCreateDeviceSerial and State.getOrCreateDeviceSerial()
+    local device_uuid, fingerprintOrErr = adobe.activate(creds.user, creds.deviceKey, creds.pkcs12, serial)
     if not device_uuid then
         return nil, "Device registration failed: " .. tostring(fingerprintOrErr)
     end
@@ -122,7 +123,8 @@ function M.authorizeByteBooks(username, password)
         return nil, "ByteBooks authorization failed: " .. tostring(signInErr)
     end
 
-    local device_uuid, fingerprintOrErr = adobe.activate(creds.user, creds.deviceKey, creds.pkcs12)
+    local serial = State.getOrCreateDeviceSerial and State.getOrCreateDeviceSerial()
+    local device_uuid, fingerprintOrErr = adobe.activate(creds.user, creds.deviceKey, creds.pkcs12, serial)
     if not device_uuid then
         return nil, "Device registration failed: " .. tostring(fingerprintOrErr)
     end

@@ -459,5 +459,165 @@ describe("libbee_ui", function()
             local shelf_widget = _G.ui_tracker.shown[#_G.ui_tracker.shown]
             assert.is_table(shelf_widget)
         end)
+
+        it("supports button cycling, enter, and back in showCardDialog", function()
+            _G.ui_tracker.shown = {}
+            local primary_clicked = false
+            local cancel_clicked = false
+            local dlg = UI.showCardDialog{
+                title = "Keyboard Navigation Dialog",
+                body_text = "Testing D-Pad and keyboard navigation in card dialog.",
+                buttons = {
+                    {
+                        text = "Confirm",
+                        is_primary = true,
+                        callback = function() primary_clicked = true end,
+                    },
+                    {
+                        text = "Cancel",
+                        callback = function() cancel_clicked = true end,
+                    },
+                }
+            }
+            assert.is_table(dlg)
+            assert.is_true(type(dlg.onPrevBtn) == "function")
+            assert.is_true(type(dlg.onNextBtn) == "function")
+            assert.is_true(type(dlg.onPress) == "function")
+            assert.is_true(type(dlg.onClose) == "function")
+
+            -- Cycle buttons
+            dlg:onNextBtn()
+            dlg:onPrevBtn()
+            -- Trigger primary button press
+            dlg:onPress()
+            assert.is_true(primary_clicked)
+
+            -- Test onClose on second dialog
+            local dlg2 = UI.showCardDialog{
+                title = "Dialog 2",
+                body_text = "Testing onClose",
+                buttons = { { text = "OK" } }
+            }
+            dlg2:onClose()
+        end)
+
+        it("supports D-Pad, number keys, view toggle, and refresh shortcuts on active shelf overlay", function()
+            local State = require("libbee_state")
+            _G.ui_tracker.shown = {}
+            State.clearChipIdentity()
+            State.saveViewMode("cover")
+            State.addOrUpdateAccount({
+                id = "acc_nav_test",
+                chip_identity = "jwt.nav.test",
+                library_name = "Navigation Library",
+                cards = { { id = "card_nav", library = { name = "Navigation Library" } } }
+            })
+            local loans = {
+                { id = "loan-n1", card_id = "card_nav", library = "Navigation Library", title = "Book One", days_remaining = 5 },
+                { id = "loan-n2", card_id = "card_nav", library = "Navigation Library", title = "Book Two", days_remaining = 6 },
+                { id = "loan-n3", card_id = "card_nav", library = "Navigation Library", title = "Book Three", days_remaining = 7 },
+            }
+            State.saveShelfCache(loans)
+            UI.showShelfBrowser("/tmp/test_plugin")
+
+            local shelf_overlay = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(shelf_overlay)
+            assert.is_true(type(shelf_overlay.onUp) == "function")
+            assert.is_true(type(shelf_overlay.onDown) == "function")
+            assert.is_true(type(shelf_overlay.onLeft) == "function")
+            assert.is_true(type(shelf_overlay.onRight) == "function")
+            assert.is_true(type(shelf_overlay.onPress) == "function")
+            assert.is_true(type(shelf_overlay.onNum1) == "function")
+            assert.is_true(type(shelf_overlay.onNum2) == "function")
+            assert.is_true(type(shelf_overlay.onNum3) == "function")
+            assert.is_true(type(shelf_overlay.onMenuKey) == "function")
+            assert.is_true(type(shelf_overlay.onViewToggleKey) == "function")
+            assert.is_true(type(shelf_overlay.onRefreshKey) == "function")
+            assert.is_true(type(shelf_overlay.onClose) == "function")
+
+            -- D-Pad movements
+            shelf_overlay:onRight()
+            shelf_overlay:onLeft()
+            shelf_overlay:onDown()
+            shelf_overlay:onUp() -- transitions into header zone
+
+            -- Header cycling
+            shelf_overlay:onRight()
+            shelf_overlay:onLeft()
+            shelf_overlay:onPress() -- triggers focused header action
+
+            -- Transition back down from header to items
+            local current_ov = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            current_ov:onDown()
+            current_ov:onPress()
+
+            -- Toggle view mode via shortcut
+            current_ov = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            current_ov:onViewToggleKey()
+            assert.are_equal("list", State.getViewMode())
+
+            -- Press number shortcut
+            local active_overlay = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            active_overlay:onNum1()
+
+            -- Close shelf
+            active_overlay:onClose()
+        end)
+
+        it("supports D-Pad navigation across submenu items and settings dialogs", function()
+            local State = require("libbee_state")
+
+            -- 1. Libby Account Submenu
+            _G.ui_tracker.shown = {}
+            UI.showLibbyAccountSubmenu("/tmp/test_plugin")
+            local libby_menu = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(libby_menu)
+            assert.is_true(type(libby_menu.onDown) == "function")
+            assert.is_true(type(libby_menu.onUp) == "function")
+            assert.is_true(type(libby_menu.onPress) == "function")
+            assert.is_true(type(libby_menu.onClose) == "function")
+            libby_menu:onDown()
+            libby_menu:onUp()
+            libby_menu:onClose()
+
+            -- 2. ByteBooks DRM Submenu
+            _G.ui_tracker.shown = {}
+            UI.showByteBooksDRMSubmenu("/tmp/test_plugin")
+            local drm_menu = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(drm_menu)
+            assert.is_true(type(drm_menu.onDown) == "function")
+            assert.is_true(type(drm_menu.onUp) == "function")
+            assert.is_true(type(drm_menu.onPress) == "function")
+            assert.is_true(type(drm_menu.onClose) == "function")
+            drm_menu:onDown()
+            drm_menu:onUp()
+            drm_menu:onClose()
+
+            -- 3. Maintenance Submenu
+            _G.ui_tracker.shown = {}
+            UI.showMaintenanceSubmenu("/tmp/test_plugin")
+            local maint_menu = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(maint_menu)
+            assert.is_true(type(maint_menu.onDown) == "function")
+            assert.is_true(type(maint_menu.onUp) == "function")
+            assert.is_true(type(maint_menu.onPress) == "function")
+            assert.is_true(type(maint_menu.onClose) == "function")
+            maint_menu:onDown()
+            maint_menu:onUp()
+            maint_menu:onClose()
+
+            -- 4. Main About / Settings Menu
+            _G.ui_tracker.shown = {}
+            UI.showAbout("/tmp/test_plugin")
+            local about_menu = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(about_menu)
+            assert.is_true(type(about_menu.onDown) == "function")
+            assert.is_true(type(about_menu.onUp) == "function")
+            assert.is_true(type(about_menu.onPress) == "function")
+            assert.is_true(type(about_menu.onClose) == "function")
+            about_menu:onDown()
+            about_menu:onUp()
+            about_menu:onClose()
+        end)
     end)
 end)

@@ -67,6 +67,17 @@ local Covers = require(plugin_path .. "libbee_covers")
 local M = {}
 local sc = theme.sc
 
+local function isTouchDevice()
+    if Device then
+        if Device.isTouchDevice then
+            return Device:isTouchDevice()
+        elseif Device.isTouch then
+            return Device:isTouch()
+        end
+    end
+    return false
+end
+
 local _asset_path_cache = {}
 local function getAssetPath(filename)
     if _asset_path_cache[filename] then
@@ -361,7 +372,8 @@ end
 local function createButton(opts)
     opts = opts or {}
     local is_primary = (opts.is_primary == true) or (opts.primary == true) or (opts.background ~= nil and opts.background == Blitbuffer.COLOR_BLACK)
-    local border_sz = opts.bordersize or (theme.border_btn or sc(1))
+    local is_focused = (opts.is_focused == true)
+    local border_sz = opts.bordersize or (is_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)))
     local radius = opts.radius or (theme.radius_btn or sc(4))
     local text_color = is_primary and Blitbuffer.COLOR_WHITE or (opts.text_font_color or Blitbuffer.COLOR_BLACK)
 
@@ -381,6 +393,9 @@ local function createButton(opts)
     if is_primary then
         btn_opts.background = Blitbuffer.COLOR_BLACK
         btn_opts.text_font_color = Blitbuffer.COLOR_WHITE
+    elseif is_focused then
+        btn_opts.background = theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY
+        btn_opts.text_font_color = text_color
     else
         btn_opts.background = nil -- nil tells Button:init to render white background with black border
         btn_opts.text_font_color = text_color
@@ -400,6 +415,7 @@ end
 local function createIconButton(opts)
     opts = opts or {}
     local icon_size = opts.size or sc(22)
+    local is_focused = (opts.is_focused == true)
     local icon_widget = ImageWidget:new{
         file = getAssetPath(opts.icon),
         width = icon_size,
@@ -409,10 +425,12 @@ local function createIconButton(opts)
         alpha = true,
     }
     local frame = FrameContainer:new{
-        padding = opts.padding or sc(6),
-        padding_h = opts.padding_h or sc(8),
-        bordersize = opts.bordersize or 0,
-        background = theme.color_bg or Blitbuffer.COLOR_WHITE,
+        padding = opts.padding or sc(4),
+        padding_h = opts.padding_h or sc(6),
+        bordersize = is_focused and (theme.border_focus or sc(2)) or (opts.bordersize or 0),
+        color = Blitbuffer.COLOR_BLACK,
+        radius = is_focused and (theme.radius_focus or sc(4)) or (opts.radius or 0),
+        background = is_focused and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or (opts.background or theme.color_bg or Blitbuffer.COLOR_WHITE),
         icon_widget,
     }
     return makeTapItem(frame, opts.callback)
@@ -443,98 +461,157 @@ function M.showCardDialog(opts)
         if callback then callback() end
     end
 
-    local content_items = {}
-
-    -- Header / Title
-    if opts.title and opts.title ~= "" then
-        local title_label = TextBoxWidget:new{
-            text = opts.title,
-            face = Font:getFace("NotoSerif-Regular.ttf", theme.title_font_size or 22),
-            bold = true,
-            fgcolor = Blitbuffer.COLOR_BLACK,
-            width = inner_w,
-            alignment = opts.title_align or "left",
-        }
-        table.insert(content_items, title_label)
-        table.insert(content_items, VerticalSpan:new{ width = sc(6) })
-        table.insert(content_items, LineWidget:new{
-            dimen = Geom:new{ w = inner_w, h = sc(1) },
-            background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
-        })
-        table.insert(content_items, VerticalSpan:new{ width = sc(10) })
-    end
-
-    -- Body
-    if opts.body_widget then
-        table.insert(content_items, opts.body_widget)
-        table.insert(content_items, VerticalSpan:new{ width = sc(10) })
-    elseif opts.body_text and opts.body_text ~= "" then
-        local body_box = TextBoxWidget:new{
-            text = opts.body_text,
-            face = Font:getFace("cfont", theme.face_label_size or 16),
-            fgcolor = Blitbuffer.COLOR_BLACK,
-            width = inner_w,
-            alignment = opts.body_align or "left",
-        }
-        table.insert(content_items, body_box)
-        table.insert(content_items, VerticalSpan:new{ width = sc(12) })
-    end
-
-    -- Button Row
     local buttons = opts.buttons or { { text = _("OK"), is_primary = true } }
-    local btn_widgets = {}
-    local num_btns = #buttons
-    local btn_gap = sc(8)
-    local btn_w = math.floor((inner_w - (btn_gap * (num_btns - 1))) / num_btns)
-    local btn_h = sc(36)
-
+    local focused_button_idx = 1
     for i, b in ipairs(buttons) do
-        if i > 1 then
-            table.insert(btn_widgets, HorizontalSpan:new{ width = btn_gap })
+        if b.is_primary then
+            focused_button_idx = i
+            break
+        end
+    end
+
+    local buildCardWidget
+    buildCardWidget = function()
+        local content_items = {}
+
+        -- Header / Title
+        if opts.title and opts.title ~= "" then
+            local title_label = TextBoxWidget:new{
+                text = opts.title,
+                face = Font:getFace("NotoSerif-Regular.ttf", theme.title_font_size or 22),
+                bold = true,
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                width = inner_w,
+                alignment = opts.title_align or "left",
+            }
+            table.insert(content_items, title_label)
+            table.insert(content_items, VerticalSpan:new{ width = sc(6) })
+            table.insert(content_items, LineWidget:new{
+                dimen = Geom:new{ w = inner_w, h = sc(1) },
+                background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
+            })
+            table.insert(content_items, VerticalSpan:new{ width = sc(10) })
         end
 
-        local is_pri = (b.is_primary == true)
-        local btn = createButton{
-            text = b.text,
-            text_font_size = theme.subtext_font_size or 15,
-            bold = is_pri or b.bold,
-            is_primary = is_pri,
-            bordersize = theme.border_btn or sc(1),
-            radius = theme.radius_btn or sc(4),
-            width = btn_w,
-            height = btn_h,
-            callback = function()
-                closeDialog(b.callback)
-            end,
+        -- Body
+        if opts.body_widget then
+            table.insert(content_items, opts.body_widget)
+            table.insert(content_items, VerticalSpan:new{ width = sc(10) })
+        elseif opts.body_text and opts.body_text ~= "" then
+            local body_box = TextBoxWidget:new{
+                text = opts.body_text,
+                face = Font:getFace("cfont", theme.face_label_size or 16),
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                width = inner_w,
+                alignment = opts.body_align or "left",
+            }
+            table.insert(content_items, body_box)
+            table.insert(content_items, VerticalSpan:new{ width = sc(12) })
+        end
+
+        -- Button Row
+        local btn_widgets = {}
+        local num_btns = #buttons
+        local btn_gap = sc(8)
+        local btn_w = math.floor((inner_w - (btn_gap * (num_btns - 1))) / num_btns)
+        local btn_h = sc(36)
+
+        for i, b in ipairs(buttons) do
+            if i > 1 then
+                table.insert(btn_widgets, HorizontalSpan:new{ width = btn_gap })
+            end
+
+            local is_pri = (b.is_primary == true)
+            local is_focused = (i == focused_button_idx)
+            local btn = createButton{
+                text = b.text,
+                text_font_size = theme.subtext_font_size or 15,
+                bold = is_pri or b.bold or is_focused,
+                is_primary = is_pri,
+                is_focused = is_focused,
+                bordersize = is_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
+                radius = theme.radius_btn or sc(4),
+                width = btn_w,
+                height = btn_h,
+                callback = function()
+                    closeDialog(b.callback)
+                end,
+            }
+            table.insert(btn_widgets, btn)
+        end
+
+        table.insert(content_items, HorizontalGroup:new(btn_widgets))
+
+        return FrameContainer:new{
+            padding = card_padding,
+            radius = theme.radius_window or sc(4),
+            bordersize = card_border,
+            color = Blitbuffer.COLOR_BLACK,
+            background = theme.color_bg or Blitbuffer.COLOR_WHITE,
+            width = dialog_w,
+            VerticalGroup:new{
+                align = "left",
+                unpack(content_items)
+            }
         }
-        table.insert(btn_widgets, btn)
     end
 
-    table.insert(content_items, HorizontalGroup:new(btn_widgets))
-
-    local card = FrameContainer:new{
-        padding = card_padding,
-        radius = theme.radius_window or sc(4),
-        bordersize = card_border,
-        color = Blitbuffer.COLOR_BLACK,
-        background = theme.color_bg or Blitbuffer.COLOR_WHITE,
-        width = dialog_w,
-        VerticalGroup:new{
-            align = "left",
-            unpack(content_items)
-        }
+    local key_events = {
+        Close = { { "Back" }, { "Escape" } },
+        PrevBtn = { { "Left" }, { "Up" } },
+        NextBtn = { { "Right" }, { "Down" } },
+        Press = { { "Press" }, { "Enter" }, { "Return" }, { "Select" } },
     }
+    if Device and Device.input and Device.input.group then
+        if Device.input.group.Back then table.insert(key_events.Close, { Device.input.group.Back }) end
+        if Device.input.group.Left then table.insert(key_events.PrevBtn, { Device.input.group.Left }) end
+        if Device.input.group.Up then table.insert(key_events.PrevBtn, { Device.input.group.Up }) end
+        if Device.input.group.Right then table.insert(key_events.NextBtn, { Device.input.group.Right }) end
+        if Device.input.group.Down then table.insert(key_events.NextBtn, { Device.input.group.Down }) end
+        if Device.input.group.Press then table.insert(key_events.Press, { Device.input.group.Press }) end
+        if Device.input.group.Enter then table.insert(key_events.Press, { Device.input.group.Enter }) end
+    end
+
+    local card = buildCardWidget()
 
     overlay = InputContainer:new{
         dimen = Geom:new{ w = sw, h = sh },
-        key_events = {
-            Close = { { "Back" } }
-        },
+        key_events = key_events,
         CenterContainer:new{
             dimen = Geom:new{ w = sw, h = sh },
             card,
         }
     }
+
+    local function refreshCard()
+        if overlay and overlay[1] then
+            overlay[1][1] = buildCardWidget()
+            UIManager:setDirty(overlay, "ui")
+        end
+    end
+
+    overlay.onPrevBtn = function()
+        if #buttons > 1 then
+            focused_button_idx = (focused_button_idx > 1) and (focused_button_idx - 1) or #buttons
+            refreshCard()
+            return true
+        end
+    end
+
+    overlay.onNextBtn = function()
+        if #buttons > 1 then
+            focused_button_idx = (focused_button_idx < #buttons) and (focused_button_idx + 1) or 1
+            refreshCard()
+            return true
+        end
+    end
+
+    overlay.onPress = function()
+        if buttons[focused_button_idx] then
+            closeDialog(buttons[focused_button_idx].callback)
+            return true
+        end
+    end
 
     overlay.onClose = function()
         closeDialog(opts.on_close or opts.cancel_callback)
@@ -914,15 +991,15 @@ local function _restrictionBadgeLabel(loan)
     return nil
 end
 
-local function _loanBadge(loan)
+local function _loanBadge(loan, is_focused)
     if not loan then return nil end
     local rest_label = _restrictionBadgeLabel(loan)
     if rest_label then
-        return _createBadge(rest_label, false)
+        return _createBadge(rest_label, is_focused or false)
     end
     local days_str = _fmtDays(loan.days_remaining)
     local is_urgent = (loan.days_remaining and loan.days_remaining <= 2)
-    return _createBadge(days_str, is_urgent)
+    return _createBadge(days_str, is_urgent or is_focused)
 end
 
 -- ---------------------------------------------------------------------------
@@ -956,9 +1033,13 @@ function M.showShelfBrowser(plugin_dir)
         return
     end
 
+    local is_touch_device = isTouchDevice()
+    local focus_visible = not is_touch_device
     local cached_shelf = State.getShelfCache()
-
     local current_page = 1
+    local focused_shelf_idx = 1
+    local focused_header_idx = 1
+    local focus_zone = "items" -- "items" or "header"
     local current_rendered_loans = cached_shelf or {}
     local doBackgroundSync = nil
     local handleLoanReturned = nil
@@ -1001,6 +1082,10 @@ function M.showShelfBrowser(plugin_dir)
         local all_cards = State.getAllCards()
         local group_by_card = State.getGroupByCard and State.getGroupByCard() ~= false
 
+        if loan_count == 0 then
+            focus_zone = "header"
+        end
+
         -- Determine library cards / accounts present across active loans
         local card_groups = {}
         local group_order = {}
@@ -1033,8 +1118,10 @@ function M.showShelfBrowser(plugin_dir)
         local lib_order = group_order
 
         -- Header Action Buttons using Feather SVGs (Storefront style, stroke-width 1.5)
-        local btn_size = sc(30)
+        local btn_size = sc(24)
         local btn_pad = sc(4)
+
+        local is_hdr = (focus_zone == "header")
 
         local view_toggle_icon = (view_mode == "cover") and "list.svg" or "grid.svg"
         local view_toggle_btn = createIconButton{
@@ -1042,10 +1129,14 @@ function M.showShelfBrowser(plugin_dir)
             size = btn_size,
             padding = btn_pad,
             padding_h = btn_pad,
+            is_focused = (focus_visible and is_hdr and focused_header_idx == 1),
             callback = function()
+                focus_zone = "header"
+                focused_header_idx = 1
                 local next_mode = (view_mode == "cover") and "list" or "cover"
                 State.saveViewMode(next_mode)
                 current_page = 1
+                focused_shelf_idx = 1
                 renderShelf(loans, from_cache)
             end,
         }
@@ -1055,7 +1146,10 @@ function M.showShelfBrowser(plugin_dir)
             size = btn_size,
             padding = btn_pad,
             padding_h = btn_pad,
+            is_focused = (focus_visible and is_hdr and focused_header_idx == 2),
             callback = function()
+                focus_zone = "header"
+                focused_header_idx = 2
                 State.clearShelfCache()
                 _runAsync(
                     function() return API.fetchShelf() end,
@@ -1064,6 +1158,8 @@ function M.showShelfBrowser(plugin_dir)
                         if type(result) == "table" then
                             State.saveShelfCache(result)
                             current_page = 1
+                            focused_shelf_idx = 1
+                            if #result > 0 then focus_zone = "items" end
                             renderShelf(result, false)
                         elseif err == "AUTH_EXPIRED" or result == "AUTH_EXPIRED" then
                             M._handleAuthExpired(plugin_dir)
@@ -1080,7 +1176,10 @@ function M.showShelfBrowser(plugin_dir)
             size = btn_size,
             padding = btn_pad,
             padding_h = btn_pad,
+            is_focused = (focus_visible and is_hdr and focused_header_idx == 3),
             callback = function()
+                focus_zone = "header"
+                focused_header_idx = 3
                 M.showAbout(plugin_dir, function()
                     renderShelf(loans, from_cache)
                 end, function()
@@ -1094,6 +1193,7 @@ function M.showShelfBrowser(plugin_dir)
             size = btn_size,
             padding = btn_pad,
             padding_h = btn_pad,
+            is_focused = (focus_visible and is_hdr and focused_header_idx == 4),
             callback = function()
                 if active_shelf_overlay then
                     local ov = active_shelf_overlay
@@ -1106,11 +1206,11 @@ function M.showShelfBrowser(plugin_dir)
 
         local header_actions = HorizontalGroup:new{
             view_toggle_btn,
-            HorizontalSpan:new{ width = sc(14) },
+            HorizontalSpan:new{ width = sc(10) },
             refresh_btn,
-            HorizontalSpan:new{ width = sc(14) },
+            HorizontalSpan:new{ width = sc(10) },
             menu_btn,
-            HorizontalSpan:new{ width = sc(14) },
+            HorizontalSpan:new{ width = sc(10) },
             close_btn,
         }
 
@@ -1342,6 +1442,22 @@ function M.showShelfBrowser(plugin_dir)
         if current_page > total_pages then current_page = total_pages end
         if current_page < 1 then current_page = 1 end
 
+        -- Flatten current page loans for D-Pad focus index tracking
+        local cur_page_loans = {}
+        if #loans > 0 then
+            local cur_page_sections = pages[current_page] or {}
+            for _, section in ipairs(cur_page_sections) do
+                for _, item in ipairs(section.items) do
+                    table.insert(cur_page_loans, item.loan)
+                end
+            end
+        end
+        if focused_shelf_idx > #cur_page_loans and #cur_page_loans > 0 then
+            focused_shelf_idx = #cur_page_loans
+        elseif focused_shelf_idx < 1 then
+            focused_shelf_idx = 1
+        end
+
         -- 2. Page Content
         local page_content_vg = VerticalGroup:new{ align = "left" }
 
@@ -1369,8 +1485,9 @@ function M.showShelfBrowser(plugin_dir)
             }
         end
 
-        local function render_list_loan(loan, loan_idx)
-            local badge_w = _loanBadge(loan)
+        local function render_list_loan(loan, loan_idx, page_item_idx)
+            local is_focused = (focus_visible and focus_zone == "items" and page_item_idx == focused_shelf_idx)
+            local badge_w = _loanBadge(loan, is_focused)
 
             local badge_reserve = badge_w and (badge_w:getSize().w + sc(8)) or 0
             local thumb_w_size = sc(54)
@@ -1471,12 +1588,18 @@ function M.showShelfBrowser(plugin_dir)
 
             local row_frame = FrameContainer:new{
                 padding = sc(8),
-                bordersize = 0,
+                bordersize = is_focused and (theme.border_focus or sc(2)) or 0,
+                color = Blitbuffer.COLOR_BLACK,
+                background = is_focused and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or nil,
+                radius = is_focused and (theme.radius_focus or sc(6)) or 0,
                 width = content_w,
                 row_overlap,
             }
 
             local row_tap = makeTapItem(row_frame, function()
+                focus_zone = "items"
+                focused_shelf_idx = page_item_idx
+                if is_touch_device then focus_visible = false end
                 M.showDownloadConfirm(loan, plugin_dir, function()
                     renderShelf(current_rendered_loans, false)
                 end, function(returned_loan)
@@ -1501,13 +1624,15 @@ function M.showShelfBrowser(plugin_dir)
             })
         end
 
-        local function render_cover_grid(page_items, global_start_idx)
+        local function render_cover_grid(page_items, global_start_idx, page_item_start_idx)
             local num_cols = COLS
             local current_row_widgets = {}
 
             for i, item in ipairs(page_items) do
                 local loan = item.loan
                 local global_idx = (global_start_idx or 0) + i
+                local page_item_idx = (page_item_start_idx or 0) + i
+                local is_focused = (focus_visible and focus_zone == "items" and page_item_idx == focused_shelf_idx)
 
                 local cached_cover = Covers.getCachedCoverPath(loan)
                 local cover_img = nil
@@ -1521,11 +1646,11 @@ function M.showShelfBrowser(plugin_dir)
                 end
 
                 local cover_frame = FrameContainer:new{
-                    bordersize = border_w,
+                    bordersize = is_focused and (theme.border_focus or sc(3)) or border_w,
                     color = Blitbuffer.COLOR_BLACK,
-                    padding = 0,
-                    width = cover_inner_w,
-                    height = cover_inner_h,
+                    padding = is_focused and sc(3) or 0,
+                    background = is_focused and Blitbuffer.COLOR_WHITE or nil,
+                    radius = is_focused and (theme.radius_focus or sc(4)) or 0,
                     cover_img,
                 }
 
@@ -1550,27 +1675,29 @@ function M.showShelfBrowser(plugin_dir)
                 local display_title = (loan.title or _("Unknown Title")):gsub("[\r\n]+", " "):match("^%s*(.-)%s*$")
                 if not display_title or display_title == "" then display_title = _("Unknown Title") end
 
-                local title_box = TextBoxWidget:new{
+                local title_w = TextWidget:new{
                     text = display_title,
                     face = Font:getFace("NotoSerif-Regular.ttf", 15),
                     bold = true,
-                    width = cell_w,
-                    alignment = "center",
+                    max_width = cell_w - sc(4),
                     fgcolor = Blitbuffer.COLOR_BLACK,
                 }
 
-                local badge_widget = _loanBadge(loan)
+                local badge_widget = _loanBadge(loan, is_focused)
 
                 local cell_content = VerticalGroup:new{
                     align = "center",
                     cover_frame,
-                    VerticalSpan:new{ width = sc(4) },
-                    title_box,
+                    VerticalSpan:new{ width = sc(6) },
+                    title_w,
                     VerticalSpan:new{ width = sc(4) },
                     badge_widget or VerticalSpan:new{ width = 0 },
                 }
 
                 local cell_tap = makeTapItem(cell_content, function()
+                    focus_zone = "items"
+                    focused_shelf_idx = page_item_idx
+                    if is_touch_device then focus_visible = false end
                     M.showDownloadConfirm(loan, plugin_dir, function()
                         renderShelf(current_rendered_loans, false)
                     end, function(returned_loan)
@@ -1623,6 +1750,7 @@ function M.showShelfBrowser(plugin_dir)
         else
             local cur_page_sections = pages[current_page] or {}
             local global_item_offset = 0
+            local cur_loan_idx = 0
             for p = 1, current_page - 1 do
                 for _, s in ipairs(pages[p] or {}) do
                     global_item_offset = global_item_offset + #s.items
@@ -1636,7 +1764,8 @@ function M.showShelfBrowser(plugin_dir)
                     end
                     for _, item in ipairs(section.items) do
                         global_item_offset = global_item_offset + 1
-                        render_list_loan(item.loan, global_item_offset)
+                        cur_loan_idx = cur_loan_idx + 1
+                        render_list_loan(item.loan, global_item_offset, cur_loan_idx)
                     end
                 end
             else
@@ -1648,8 +1777,9 @@ function M.showShelfBrowser(plugin_dir)
                         table.insert(page_content_vg, create_shelf_section_header(section.lib))
                         table.insert(page_content_vg, VerticalSpan:new{ width = sc(6) })
                     end
-                    render_cover_grid(section.items, global_item_offset)
+                    render_cover_grid(section.items, global_item_offset, cur_loan_idx)
                     global_item_offset = global_item_offset + #section.items
+                    cur_loan_idx = cur_loan_idx + #section.items
                 end
             end
         end
@@ -1673,6 +1803,7 @@ function M.showShelfBrowser(plugin_dir)
             callback = function()
                 if current_page > 1 then
                     current_page = current_page - 1
+                    focused_shelf_idx = 1
                     renderShelf(loans, from_cache)
                 end
             end,
@@ -1689,6 +1820,7 @@ function M.showShelfBrowser(plugin_dir)
             callback = function()
                 if current_page < total_pages then
                     current_page = current_page + 1
+                    focused_shelf_idx = 1
                     renderShelf(loans, from_cache)
                 end
             end,
@@ -1766,13 +1898,44 @@ function M.showShelfBrowser(plugin_dir)
             },
         }
 
+        local shelf_key_events = {
+            Close = { { "Back" }, { "Escape" } },
+            PrevPage = { { "PgUp" }, { "Prev" }, { "LPgBack" }, { "RPgBack" } },
+            NextPage = { { "PgDn" }, { "Next" }, { "LPgFwd" }, { "RPgFwd" } },
+            Up = { { "Up" } },
+            Down = { { "Down" } },
+            Left = { { "Left" } },
+            Right = { { "Right" } },
+            Press = { { "Press" }, { "Enter" }, { "Return" }, { "Select" } },
+            MenuKey = { { "Menu" }, { "F10" } },
+            ViewToggleKey = { { "v" }, { "V" } },
+            RefreshKey = { { "r" }, { "R" }, { "F5" } },
+            Num1 = { { "1" } },
+            Num2 = { { "2" } },
+            Num3 = { { "3" } },
+            Num4 = { { "4" } },
+            Num5 = { { "5" } },
+            Num6 = { { "6" } },
+            Num7 = { { "7" } },
+            Num8 = { { "8" } },
+            Num9 = { { "9" } },
+        }
+        if Device and Device.input and Device.input.group then
+            if Device.input.group.Back then table.insert(shelf_key_events.Close, { Device.input.group.Back }) end
+            if Device.input.group.PgBack then table.insert(shelf_key_events.PrevPage, { Device.input.group.PgBack }) end
+            if Device.input.group.PgFwd then table.insert(shelf_key_events.NextPage, { Device.input.group.PgFwd }) end
+            if Device.input.group.Up then table.insert(shelf_key_events.Up, { Device.input.group.Up }) end
+            if Device.input.group.Down then table.insert(shelf_key_events.Down, { Device.input.group.Down }) end
+            if Device.input.group.Left then table.insert(shelf_key_events.Left, { Device.input.group.Left }) end
+            if Device.input.group.Right then table.insert(shelf_key_events.Right, { Device.input.group.Right }) end
+            if Device.input.group.Press then table.insert(shelf_key_events.Press, { Device.input.group.Press }) end
+            if Device.input.group.Enter then table.insert(shelf_key_events.Press, { Device.input.group.Enter }) end
+            if Device.input.group.Menu then table.insert(shelf_key_events.MenuKey, { Device.input.group.Menu }) end
+        end
+
         active_shelf_overlay = InputContainer:new{
             dimen = Geom:new{ w = sw, h = sh },
-            key_events = {
-                Close = { { "Back" } },
-                PrevPage = { { "Left" }, { "PgUp" }, { "Prev" }, { "LPgBack" }, { "RPgBack" } },
-                NextPage = { { "Right" }, { "PgDn" }, { "Next" }, { "LPgFwd" }, { "RPgFwd" } },
-            },
+            key_events = shelf_key_events,
             ges_events = {
                 Swipe = {
                     GestureRange:new{
@@ -1784,9 +1947,25 @@ function M.showShelfBrowser(plugin_dir)
             shelf_background_frame,
         }
 
+        local function activateLoanAtIndex(idx)
+            if cur_page_loans[idx] then
+                focused_shelf_idx = idx
+                local target_loan = cur_page_loans[idx]
+                M.showDownloadConfirm(target_loan, plugin_dir, function()
+                    renderShelf(current_rendered_loans, false)
+                end, function(returned_loan)
+                    if handleLoanReturned then
+                        handleLoanReturned(returned_loan or target_loan)
+                    end
+                end)
+                return true
+            end
+        end
+
         active_shelf_overlay.onPrevPage = function()
             if current_page > 1 then
                 current_page = current_page - 1
+                focused_shelf_idx = 1
                 renderShelf(loans, from_cache)
                 return true
             end
@@ -1795,17 +1974,261 @@ function M.showShelfBrowser(plugin_dir)
         active_shelf_overlay.onNextPage = function()
             if current_page < total_pages then
                 current_page = current_page + 1
+                focused_shelf_idx = 1
                 renderShelf(loans, from_cache)
                 return true
             end
         end
 
-        active_shelf_overlay.onSwipe = function(self, arg, ges_ev)
-            if ges_ev and ges_ev.direction then
-                if ges_ev.direction == "east" or ges_ev.direction == "right" then
-                    return self:onPrevPage()
-                elseif ges_ev.direction == "west" or ges_ev.direction == "left" then
-                    return self:onNextPage()
+        local function ensureFocusVisible()
+            if not focus_visible then
+                focus_visible = true
+                renderShelf(loans, from_cache)
+                return true
+            end
+            return false
+        end
+
+        active_shelf_overlay.onUp = function()
+            if ensureFocusVisible() then return true end
+            if focus_zone == "header" then
+                return true
+            end
+            local count = #cur_page_loans
+            if view_mode == "list" then
+                if focused_shelf_idx > 1 then
+                    focused_shelf_idx = focused_shelf_idx - 1
+                    renderShelf(loans, from_cache)
+                    return true
+                else
+                    focus_zone = "header"
+                    focused_header_idx = 1
+                    renderShelf(loans, from_cache)
+                    return true
+                end
+            else
+                if focused_shelf_idx > COLS then
+                    focused_shelf_idx = focused_shelf_idx - COLS
+                    renderShelf(loans, from_cache)
+                    return true
+                else
+                    focus_zone = "header"
+                    focused_header_idx = math.min(4, math.max(1, focused_shelf_idx))
+                    renderShelf(loans, from_cache)
+                    return true
+                end
+            end
+        end
+
+        active_shelf_overlay.onDown = function()
+            if ensureFocusVisible() then return true end
+            if focus_zone == "header" then
+                local count = #cur_page_loans
+                if count > 0 then
+                    focus_zone = "items"
+                    if view_mode == "cover" then
+                        if focused_header_idx == 1 then
+                            focused_shelf_idx = 1
+                        elseif focused_header_idx == 2 then
+                            focused_shelf_idx = math.min(2, count)
+                        else
+                            focused_shelf_idx = math.min(3, count)
+                        end
+                    else
+                        focused_shelf_idx = 1
+                    end
+                    renderShelf(loans, from_cache)
+                    return true
+                end
+                return true
+            end
+            local count = #cur_page_loans
+            if count == 0 then return end
+            if view_mode == "list" then
+                if focused_shelf_idx < count then
+                    focused_shelf_idx = focused_shelf_idx + 1
+                    renderShelf(loans, from_cache)
+                    return true
+                end
+            else
+                if focused_shelf_idx + COLS <= count then
+                    focused_shelf_idx = focused_shelf_idx + COLS
+                    renderShelf(loans, from_cache)
+                    return true
+                elseif focused_shelf_idx < count and focused_shelf_idx <= math.floor((count - 1) / COLS) * COLS then
+                    focused_shelf_idx = count
+                    renderShelf(loans, from_cache)
+                    return true
+                end
+            end
+        end
+
+        active_shelf_overlay.onLeft = function()
+            if ensureFocusVisible() then return true end
+            if focus_zone == "header" then
+                if focused_header_idx > 1 then
+                    focused_header_idx = focused_header_idx - 1
+                    renderShelf(loans, from_cache)
+                    return true
+                elseif current_page > 1 then
+                    return active_shelf_overlay:onPrevPage()
+                end
+                return true
+            end
+            if view_mode == "list" then
+                return active_shelf_overlay:onPrevPage()
+            else
+                if focused_shelf_idx > 1 then
+                    focused_shelf_idx = focused_shelf_idx - 1
+                    renderShelf(loans, from_cache)
+                    return true
+                elseif current_page > 1 then
+                    return active_shelf_overlay:onPrevPage()
+                end
+            end
+        end
+
+        active_shelf_overlay.onRight = function()
+            if ensureFocusVisible() then return true end
+            if focus_zone == "header" then
+                if focused_header_idx < 4 then
+                    focused_header_idx = focused_header_idx + 1
+                    renderShelf(loans, from_cache)
+                    return true
+                elseif current_page < total_pages then
+                    return active_shelf_overlay:onNextPage()
+                end
+                return true
+            end
+            local count = #cur_page_loans
+            if view_mode == "list" then
+                return active_shelf_overlay:onNextPage()
+            else
+                if focused_shelf_idx < count then
+                    focused_shelf_idx = focused_shelf_idx + 1
+                    renderShelf(loans, from_cache)
+                    return true
+                elseif current_page < total_pages then
+                    return active_shelf_overlay:onNextPage()
+                end
+            end
+        end
+
+        active_shelf_overlay.onPress = function()
+            if focus_zone == "header" then
+                if focused_header_idx == 1 then
+                    local next_mode = (view_mode == "cover") and "list" or "cover"
+                    State.saveViewMode(next_mode)
+                    current_page = 1
+                    focused_shelf_idx = 1
+                    renderShelf(loans, from_cache)
+                    return true
+                elseif focused_header_idx == 2 then
+                    State.clearShelfCache()
+                    _runAsync(
+                        function() return API.fetchShelf() end,
+                        _("Refreshing shelf from Libby…"),
+                        function(result, err)
+                            if type(result) == "table" then
+                                State.saveShelfCache(result)
+                                current_page = 1
+                                focused_shelf_idx = 1
+                                if #result > 0 then focus_zone = "items" end
+                                renderShelf(result, false)
+                            elseif err == "AUTH_EXPIRED" or result == "AUTH_EXPIRED" then
+                                M._handleAuthExpired(plugin_dir)
+                            else
+                                _toast(_("Refresh failed: %s", tostring(err or _("error"))), 4)
+                            end
+                        end
+                    )
+                    return true
+                elseif focused_header_idx == 3 then
+                    M.showAbout(plugin_dir, function()
+                        renderShelf(loans, from_cache)
+                    end, function()
+                        renderShelf(loans, from_cache)
+                    end)
+                    return true
+                elseif focused_header_idx == 4 then
+                    if active_shelf_overlay then
+                        local ov = active_shelf_overlay
+                        active_shelf_overlay = nil
+                        ov.onClose = nil
+                        UIManager:close(ov, "ui")
+                    end
+                    return true
+                end
+            else
+                return activateLoanAtIndex(focused_shelf_idx)
+            end
+        end
+
+        active_shelf_overlay.onNum1 = function() return activateLoanAtIndex(1) end
+        active_shelf_overlay.onNum2 = function() return activateLoanAtIndex(2) end
+        active_shelf_overlay.onNum3 = function() return activateLoanAtIndex(3) end
+        active_shelf_overlay.onNum4 = function() return activateLoanAtIndex(4) end
+        active_shelf_overlay.onNum5 = function() return activateLoanAtIndex(5) end
+        active_shelf_overlay.onNum6 = function() return activateLoanAtIndex(6) end
+        active_shelf_overlay.onNum7 = function() return activateLoanAtIndex(7) end
+        active_shelf_overlay.onNum8 = function() return activateLoanAtIndex(8) end
+        active_shelf_overlay.onNum9 = function() return activateLoanAtIndex(9) end
+
+        active_shelf_overlay.onMenuKey = function()
+            M.showAbout(plugin_dir, function()
+                renderShelf(loans, from_cache)
+            end, function()
+                renderShelf(loans, from_cache)
+            end)
+            return true
+        end
+
+        active_shelf_overlay.onViewToggleKey = function()
+            local next_mode = (view_mode == "cover") and "list" or "cover"
+            State.saveViewMode(next_mode)
+            current_page = 1
+            focused_shelf_idx = 1
+            renderShelf(loans, from_cache)
+            return true
+        end
+
+        active_shelf_overlay.onRefreshKey = function()
+            State.clearShelfCache()
+            _runAsync(
+                function() return API.fetchShelf() end,
+                _("Refreshing shelf from Libby…"),
+                function(result, err)
+                    if type(result) == "table" then
+                        State.saveShelfCache(result)
+                        current_page = 1
+                        focused_shelf_idx = 1
+                        if #result > 0 then focus_zone = "items" end
+                        renderShelf(result, false)
+                    elseif err == "AUTH_EXPIRED" or result == "AUTH_EXPIRED" then
+                        M._handleAuthExpired(plugin_dir)
+                    else
+                        _toast(_("Refresh failed: %s", tostring(err or _("error"))), 4)
+                    end
+                end
+            )
+            return true
+        end
+
+        active_shelf_overlay.onSwipe = function(self, arg, ges)
+            if is_touch_device then focus_visible = false end
+            if ges and (ges.direction == "west" or ges.direction == "south") then
+                if current_page < total_pages then
+                    current_page = current_page + 1
+                    focused_shelf_idx = 1
+                    renderShelf(loans, from_cache)
+                    return true
+                end
+            elseif ges and (ges.direction == "east" or ges.direction == "north") then
+                if current_page > 1 then
+                    current_page = current_page - 1
+                    focused_shelf_idx = 1
+                    renderShelf(loans, from_cache)
+                    return true
                 end
             end
         end
@@ -2527,6 +2950,20 @@ function M.showByteBooksAuthDialog(plugin_dir, on_done)
                 if res == true then
                     _toast(_("✓ ByteBooks authorized successfully!"), 4)
                     if on_done then on_done(true) end
+                elseif err and (err:find("E_ACT_TOO_MANY_ACTIVATIONS") or err:find("TOO_MANY_ACTIVATIONS")) then
+                    M.showCardDialog{
+                        title = _("Device Activation Limit Reached"),
+                        body_text = _("Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."),
+                        buttons = {
+                            {
+                                text = _("OK"),
+                                is_primary = true,
+                                callback = function()
+                                    if on_done then on_done(false) end
+                                end,
+                            }
+                        }
+                    }
                 else
                     M.showCardDialog{
                         title = _("Authorization Failed"),
@@ -2637,16 +3074,19 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
     local card_border = theme.border_window or sc(2)
     local inner_w = dialog_w - (card_padding * 2) - (card_border * 2)
     local ui_font_size = theme.face_label_size or 16
-    local title_font_size = theme.title_font_size or 20
-
+    local is_touch_device = isTouchDevice()
+    local focus_visible = not is_touch_device
     local overlay
     local refresh
+    local focused_row_idx = focus_visible and 1 or nil
+    local interactive_items = {}
 
     refresh = function()
         if overlay then
             UIManager:close(overlay, "ui")
             overlay = nil
         end
+        interactive_items = {}
 
         local title_label = TextWidget:new{
             text = _("Libby Account"),
@@ -2692,24 +3132,51 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             local max_left_w = avail_w - right_w - sc(8)
             if max_left_w < sc(60) then max_left_w = sc(60) end
 
-            local txt = TextBoxWidget:new{
-                text = left_text,
-                face = Font:getFace("cfont", ui_font_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                width = max_left_w,
-                alignment = "left",
-            }
+            local left_w
+            if left_text:find("\n") then
+                local vg_items = {}
+                for line in left_text:gmatch("[^\r\n]+") do
+                    if #vg_items > 0 then
+                        table.insert(vg_items, VerticalSpan:new{ width = sc(1) })
+                    end
+                    table.insert(vg_items, TextWidget:new{
+                        text = line,
+                        face = Font:getFace("cfont", #vg_items == 0 and ui_font_size or (theme.subtext_font_size or 13)),
+                        fgcolor = #vg_items == 0 and Blitbuffer.COLOR_BLACK or (theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY),
+                        max_width = max_left_w,
+                    })
+                end
+                left_w = VerticalGroup:new{ align = "left", unpack(vg_items) }
+            else
+                left_w = TextWidget:new{
+                    text = left_text,
+                    face = Font:getFace("cfont", ui_font_size),
+                    fgcolor = Blitbuffer.COLOR_BLACK,
+                    max_width = max_left_w,
+                }
+            end
 
-            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
+            local left_used_w = (left_w.getSize and left_w:getSize().w) or max_left_w
             local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
 
-            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
+            local row_elements = { left_w, HorizontalSpan:new{ width = spacer_w } }
             if right_widget then
                 table.insert(row_elements, right_widget)
             end
 
+            local is_focused = false
+            local item_idx = nil
+            if callback then
+                item_idx = #interactive_items + 1
+                table.insert(interactive_items, { callback = callback })
+                is_focused = (focus_visible and focused_row_idx == item_idx)
+            end
+
             local frame = FrameContainer:new{
-                bordersize = 0,
+                bordersize = is_focused and (theme.border_focus or sc(2)) or 0,
+                color = Blitbuffer.COLOR_BLACK,
+                background = is_focused and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or nil,
+                radius = is_focused and (theme.radius_focus or sc(4)) or 0,
                 padding = frame_padding,
                 width = inner_w,
                 HorizontalGroup:new(row_elements),
@@ -2737,6 +3204,8 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 }
             }
             item.onTap = function()
+                if item_idx then focused_row_idx = item_idx end
+                if is_touch_device then focus_visible = false end
                 callback()
                 return true
             end
@@ -2751,97 +3220,43 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             }
         end
 
-        local is_auth = State.isAuthenticated()
-        table.insert(content_vg, create_section_header(_("Connected Libraries & Accounts")))
+        local accounts = State.getAccounts()
 
-        if is_auth then
-            local accounts = State.getAccounts()
-            local cached_loans = State.getShelfCache(true) or {}
+        if #accounts > 0 then
+            table.insert(content_vg, create_section_header(_("Linked Accounts")))
 
-            -- Map loan counts per card ID, account ID, and library name
-            local card_loan_counts = {}
-            for l_idx, l in ipairs(cached_loans) do
-                local cid = tostring(l.card_id or (l.raw and (l.raw.cardId or l.raw.card_id)) or "")
-                if cid ~= "" then
-                    card_loan_counts[cid] = (card_loan_counts[cid] or 0) + 1
+            local acc_label = (#accounts == 1)
+                and (_("1 account linked"))
+                or string.format(_("%d accounts linked"), #accounts)
+
+            table.insert(content_vg, create_setting_row(acc_label, arrow(), function()
+                if overlay then
+                    UIManager:close(overlay, "ui")
+                    overlay = nil
                 end
-                local acc_id = tostring(l.account_id or "")
-                if acc_id ~= "" then
-                    card_loan_counts[acc_id] = (card_loan_counts[acc_id] or 0) + 1
-                end
-                local l_name = l.library or ""
-                if l_name ~= "" then
-                    card_loan_counts[l_name] = (card_loan_counts[l_name] or 0) + 1
-                end
-            end
+                M.showManageAccountsDialog(plugin_dir, function()
+                    M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
+                end)
+            end))
 
-            for acc_idx, acc in ipairs(accounts) do
-                local acc_cards = acc.cards or {}
-                if #acc_cards > 0 then
-                    for card_idx, card_item in ipairs(acc_cards) do
-                        local lib_name = State.cardName(card_item)
-                        local ident = State.cardIdentifier(card_item)
-                        local email = State.cardEmail(card_item)
-                        local card_cid = tostring(card_item.cardId or card_item.id or "")
-                        local count = (card_cid ~= "" and card_loan_counts[card_cid]) or (acc.id and card_loan_counts[acc.id]) or card_loan_counts[lib_name] or 0
+            table.insert(content_vg, create_section_header(_("Cards & Libraries")))
 
-                        local badge_text = _("✓ Connected")
-                        if count > 0 then
-                            badge_text = (count == 1) and _("1 loan") or string.format(_("%d loans"), count)
-                        end
-
-                        local status_badge = TextWidget:new{
-                            text = badge_text,
-                            face = Font:getFace("cfont", theme.subtext_font_size or 14),
-                            bold = (count > 0),
-                            fgcolor = Blitbuffer.COLOR_BLACK,
-                        }
-
-                        local detail = State.cardDetailString(card_item)
-                        local row_label = lib_name
-                        if detail and detail ~= "" then
-                            row_label = lib_name .. "\n" .. detail
-                        end
-
-                        table.insert(content_vg, create_setting_row(row_label, status_badge, nil))
+            for _, acc in ipairs(accounts) do
+                local lib_name = acc.library_name or "Libby"
+                local cards = acc.cards or {}
+                for _, card in ipairs(cards) do
+                    local card_desc = State.cardDetailString(card)
+                    local display_str = lib_name
+                    if card_desc and card_desc ~= "" then
+                        display_str = display_str .. "\n" .. card_desc
                     end
-                elseif acc.library_name and acc.library_name ~= "" then
-                    local count = (acc.id and card_loan_counts[acc.id]) or card_loan_counts[acc.library_name] or 0
-                    local badge_text = _("✓ Connected")
-                    if count > 0 then
-                        badge_text = (count == 1) and _("1 loan") or string.format(_("%d loans"), count)
-                    end
-                    local status_badge = TextWidget:new{
-                        text = badge_text,
-                        face = Font:getFace("cfont", theme.subtext_font_size or 14),
-                        bold = (count > 0),
-                        fgcolor = Blitbuffer.COLOR_BLACK,
-                    }
-                    table.insert(content_vg, create_setting_row(acc.library_name, status_badge, nil))
+                    table.insert(content_vg, create_setting_row(display_str, nil, nil))
                 end
             end
 
             table.insert(content_vg, create_section_header(_("Actions")))
 
-            table.insert(content_vg, create_setting_row(_("Sync library cards & accounts"), arrow(), function()
-                _runAsync(
-                    function()
-                        return API.fetchShelf()
-                    end,
-                    _("Syncing libraries from Libby…"),
-                    function(result, err)
-                        if type(result) == "table" then
-                            State.saveShelfCache(result)
-                            refresh()
-                            _toast(_("✓ Library cards & shelf synced"), 3)
-                        else
-                            _toast(_("Sync failed: %s", tostring(err or "Unknown error")), 4)
-                        end
-                    end
-                )
-            end))
-
-            table.insert(content_vg, create_setting_row(_("Link another Libby account"), arrow(), function()
+            table.insert(content_vg, create_setting_row(_("Add another Libby card"), arrow(), function()
                 if overlay then
                     UIManager:close(overlay, "ui")
                     overlay = nil
@@ -2851,22 +3266,31 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                 end)
             end))
 
-            if #accounts > 1 then
-                table.insert(content_vg, create_setting_row(_("Manage linked accounts (%d)", #accounts), arrow(), function()
-                    if overlay then
-                        UIManager:close(overlay, "ui")
-                        overlay = nil
+            local is_syncing = false
+            table.insert(content_vg, create_setting_row(_("Sync account changes now"), nil, function()
+                if is_syncing then return end
+                is_syncing = true
+                _runAsync(
+                    function()
+                        return API.syncAllAccounts()
+                    end,
+                    _("Syncing account details…"),
+                    function(res, err)
+                        is_syncing = false
+                        if res == true then
+                            _toast(_("✓ Account synced successfully"), 3)
+                            refresh()
+                        else
+                            _toast(_("Sync failed: %s", tostring(err or _("error"))), 4)
+                        end
                     end
-                    M.showManageAccountsDialog(plugin_dir, function()
-                        M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
-                    end)
-                end))
-            end
+                )
+            end))
 
             table.insert(content_vg, create_setting_row(_("Disconnect all accounts"), arrow(), function()
                 M.showCardDialog{
-                    title = _("Disconnect All Accounts"),
-                    body_text = _("Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."),
+                    title = _("Disconnect All?"),
+                    body_text = _("Disconnect all Libby accounts and remove stored cards from this device?"),
                     buttons = {
                         {
                             text = _("Disconnect All"),
@@ -2874,23 +3298,21 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
                             callback = function()
                                 State.clearChipIdentity()
                                 State.clearShelfCache()
-                                if active_shelf_overlay then
-                                    local ov = active_shelf_overlay
-                                    active_shelf_overlay = nil
-                                    ov.onClose = nil
-                                    UIManager:close(ov, "ui")
+                                if overlay then
+                                    UIManager:close(overlay, "ui")
+                                    overlay = nil
                                 end
-                                refresh()
-                                UIManager:nextTick(function()
-                                    _toast(_("All Libby accounts disconnected"), 3)
-                                end)
+                                if on_back_cb then on_back_cb() end
+                                _toast(_("All accounts disconnected"), 3)
                             end,
                         },
-                        { text = _("Cancel") }
+                        { text = _("Cancel") },
                     }
                 }
             end))
         else
+            table.insert(content_vg, create_section_header(_("Account Status")))
+
             local status_badge = TextWidget:new{
                 text = _("Not connected"),
                 face = Font:getFace("cfont", theme.subtext_font_size or 14),
@@ -2911,21 +3333,28 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             end))
         end
 
+        local back_cb = function()
+            if overlay then
+                UIManager:close(overlay, "ui")
+                overlay = nil
+            end
+            if on_back_cb then on_back_cb() end
+        end
+
+        local back_idx = #interactive_items + 1
+        table.insert(interactive_items, { callback = back_cb })
+        local is_back_focused = (focus_visible and focused_row_idx == back_idx)
+
         local back_btn = createButton{
             text = _("‹ Back to Settings"),
             text_font_size = ui_font_size,
             bold = true,
-            bordersize = theme.border_btn or sc(1),
+            is_focused = is_back_focused,
+            bordersize = is_back_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
             radius = theme.radius_btn or sc(4),
             width = inner_w,
             height = sc(36),
-            callback = function()
-                if overlay then
-                    UIManager:close(overlay, "ui")
-                    overlay = nil
-                end
-                if on_back_cb then on_back_cb() end
-            end,
+            callback = back_cb,
         }
 
         local back_frame = FrameContainer:new{
@@ -2958,13 +3387,58 @@ function M.showLibbyAccountSubmenu(plugin_dir, on_back_cb)
             }
         }
 
+        local sub_key_events = {
+            Close = { { "Back" }, { "Escape" } },
+            Up = { { "Up" }, { "Left" } },
+            Down = { { "Down" }, { "Right" } },
+            Press = { { "Press" }, { "Enter" }, { "Return" }, { "Select" } },
+        }
+        if Device and Device.input and Device.input.group then
+            if Device.input.group.Back then table.insert(sub_key_events.Close, { Device.input.group.Back }) end
+            if Device.input.group.Up then table.insert(sub_key_events.Up, { Device.input.group.Up }) end
+            if Device.input.group.Down then table.insert(sub_key_events.Down, { Device.input.group.Down }) end
+            if Device.input.group.Left then table.insert(sub_key_events.Up, { Device.input.group.Left }) end
+            if Device.input.group.Right then table.insert(sub_key_events.Down, { Device.input.group.Right }) end
+            if Device.input.group.Press then table.insert(sub_key_events.Press, { Device.input.group.Press }) end
+            if Device.input.group.Enter then table.insert(sub_key_events.Press, { Device.input.group.Enter }) end
+        end
+
         overlay = InputContainer:new{
             align = "center",
             vertical_align = "center",
             dimen = Geom:new{ w = sw, h = sh },
-            key_events = { Close = { { "Back" } } },
+            key_events = sub_key_events,
             card
         }
+
+        overlay.onUp = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx > 1) and (focused_row_idx - 1) or #interactive_items
+            end
+            refresh()
+            return true
+        end
+
+        overlay.onDown = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx < #interactive_items) and (focused_row_idx + 1) or 1
+            end
+            refresh()
+            return true
+        end
+
+        overlay.onPress = function()
+            if interactive_items[focused_row_idx] and interactive_items[focused_row_idx].callback then
+                interactive_items[focused_row_idx].callback()
+                return true
+            end
+        end
 
         overlay.onClose = function()
             if overlay then
@@ -2999,8 +3473,12 @@ function M.showManageAccountsDialog(plugin_dir, on_back_cb)
     local ui_font_size = theme.face_label_size or 16
     local title_font_size = theme.title_font_size or 20
 
+    local is_touch_device = isTouchDevice()
+    local focus_visible = not is_touch_device
     local overlay
     local refresh_manage
+    local focused_row_idx = focus_visible and 1 or nil
+    local interactive_items = {}
 
     refresh_manage = function()
         if overlay then
@@ -3008,6 +3486,7 @@ function M.showManageAccountsDialog(plugin_dir, on_back_cb)
             overlay = nil
             UIManager:close(ov, "ui")
         end
+        interactive_items = {}
 
         local accounts = State.getAccounts()
         if #accounts == 0 then
@@ -3068,25 +3547,25 @@ function M.showManageAccountsDialog(plugin_dir, on_back_cb)
             local text_max_w = row_inner_w - btn_w - h_gap
 
             local info_items = {
-                TextBoxWidget:new{
+                TextWidget:new{
                     text = lib_name,
                     face = Font:getFace("cfont", ui_font_size),
                     bold = true,
                     fgcolor = Blitbuffer.COLOR_BLACK,
-                    width = text_max_w,
-                    alignment = "left",
+                    max_width = text_max_w,
                 },
             }
 
             if card_sub then
                 table.insert(info_items, VerticalSpan:new{ width = sc(1) })
-                table.insert(info_items, TextBoxWidget:new{
-                    text = card_sub,
-                    face = Font:getFace("cfont", theme.subtext_font_size or 13),
-                    fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
-                    width = text_max_w,
-                    alignment = "left",
-                })
+                for line in card_sub:gmatch("[^\r\n]+") do
+                    table.insert(info_items, TextWidget:new{
+                        text = line,
+                        face = Font:getFace("cfont", theme.subtext_font_size or 13),
+                        fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
+                        max_width = text_max_w,
+                    })
+                end
             end
 
             table.insert(info_items, VerticalSpan:new{ width = sc(1) })
@@ -3094,6 +3573,7 @@ function M.showManageAccountsDialog(plugin_dir, on_back_cb)
                 text = loan_text,
                 face = Font:getFace("cfont", theme.subtext_font_size or 12),
                 fgcolor = theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY,
+                max_width = text_max_w,
             })
 
             local acc_info_vg = VerticalGroup:new{
@@ -3101,35 +3581,43 @@ function M.showManageAccountsDialog(plugin_dir, on_back_cb)
                 unpack(info_items),
             }
 
+            local disconnect_action = function()
+                local confirm_text = lib_name
+                if card_sub then confirm_text = confirm_text .. "\n" .. card_sub end
+                M.showCardDialog{
+                    title = _("Disconnect Account?"),
+                    body_text = _("Disconnect this Libby account and remove its library cards?\n\n%s", confirm_text),
+                    buttons = {
+                        {
+                            text = _("Disconnect"),
+                            is_primary = true,
+                            callback = function()
+                                State.removeAccount(acc.id)
+                                State.clearShelfCache()
+                                refresh_manage()
+                                _toast(_("Account disconnected"), 3)
+                            end,
+                        },
+                        { text = _("Cancel") },
+                    }
+                }
+            end
+
+            local row_btn_idx = #interactive_items + 1
+            table.insert(interactive_items, { callback = disconnect_action })
+            local is_btn_focused = (focus_visible and focused_row_idx == row_btn_idx)
+
             local disconnect_btn = createButton{
                 text = _("Disconnect"),
                 text_font_size = theme.subtext_font_size or 13,
                 bold = true,
+                is_focused = is_btn_focused,
+                bordersize = is_btn_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
                 padding = sc(4),
                 padding_h = sc(6),
                 width = btn_w,
                 height = sc(32),
-                callback = function()
-                    local confirm_text = lib_name
-                    if card_sub then confirm_text = confirm_text .. "\n" .. card_sub end
-                    M.showCardDialog{
-                        title = _("Disconnect Account?"),
-                        body_text = _("Disconnect this Libby account and remove its library cards?\n\n%s", confirm_text),
-                        buttons = {
-                            {
-                                text = _("Disconnect"),
-                                is_primary = true,
-                                callback = function()
-                                    State.removeAccount(acc.id)
-                                    State.clearShelfCache()
-                                    refresh_manage()
-                                    _toast(_("Account disconnected"), 3)
-                                end,
-                            },
-                            { text = _("Cancel") },
-                        }
-                    }
-                end,
+                callback = disconnect_action,
             }
 
             local row_elements = {
@@ -3141,9 +3629,9 @@ function M.showManageAccountsDialog(plugin_dir, on_back_cb)
             local row_frame = FrameContainer:new{
                 padding = row_padding,
                 radius = theme.radius_btn or sc(4),
-                bordersize = row_border,
-                color = theme.color_bg_dim or Blitbuffer.COLOR_LIGHT_GRAY,
-                background = theme.color_bg or Blitbuffer.COLOR_WHITE,
+                bordersize = is_btn_focused and (theme.border_focus or sc(2)) or row_border,
+                color = Blitbuffer.COLOR_BLACK,
+                background = is_btn_focused and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or (theme.color_bg or Blitbuffer.COLOR_WHITE),
                 width = inner_w,
                 HorizontalGroup:new(row_elements),
             }
@@ -3152,22 +3640,29 @@ function M.showManageAccountsDialog(plugin_dir, on_back_cb)
             table.insert(content_vg, VerticalSpan:new{ width = sc(6) })
         end
 
+        local back_cb = function()
+            if overlay then
+                local ov = overlay
+                overlay = nil
+                UIManager:close(ov, "ui")
+            end
+            if on_back_cb then on_back_cb() end
+        end
+
+        local back_btn_idx = #interactive_items + 1
+        table.insert(interactive_items, { callback = back_cb })
+        local is_back_focused = (focus_visible and focused_row_idx == back_btn_idx)
+
         local back_btn = createButton{
             text = _("‹ Back"),
             text_font_size = ui_font_size,
             bold = true,
-            bordersize = theme.border_btn or sc(1),
+            is_focused = is_back_focused,
+            bordersize = is_back_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
             radius = theme.radius_btn or sc(4),
             width = inner_w,
             height = sc(36),
-            callback = function()
-                if overlay then
-                    local ov = overlay
-                    overlay = nil
-                    UIManager:close(ov, "ui")
-                end
-                if on_back_cb then on_back_cb() end
-            end,
+            callback = back_cb,
         }
 
         table.insert(content_vg, VerticalSpan:new{ width = sc(4) })
@@ -3188,13 +3683,58 @@ function M.showManageAccountsDialog(plugin_dir, on_back_cb)
             content_vg,
         }
 
+        local sub_key_events = {
+            Close = { { "Back" }, { "Escape" } },
+            Up = { { "Up" }, { "Left" } },
+            Down = { { "Down" }, { "Right" } },
+            Press = { { "Press" }, { "Enter" }, { "Return" }, { "Select" } },
+        }
+        if Device and Device.input and Device.input.group then
+            if Device.input.group.Back then table.insert(sub_key_events.Close, { Device.input.group.Back }) end
+            if Device.input.group.Up then table.insert(sub_key_events.Up, { Device.input.group.Up }) end
+            if Device.input.group.Down then table.insert(sub_key_events.Down, { Device.input.group.Down }) end
+            if Device.input.group.Left then table.insert(sub_key_events.Up, { Device.input.group.Left }) end
+            if Device.input.group.Right then table.insert(sub_key_events.Down, { Device.input.group.Right }) end
+            if Device.input.group.Press then table.insert(sub_key_events.Press, { Device.input.group.Press }) end
+            if Device.input.group.Enter then table.insert(sub_key_events.Press, { Device.input.group.Enter }) end
+        end
+
         overlay = InputContainer:new{
             align = "center",
             vertical_align = "center",
             dimen = Geom:new{ w = sw, h = sh },
-            key_events = { Close = { { "Back" } } },
+            key_events = sub_key_events,
             card,
         }
+
+        overlay.onUp = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx > 1) and (focused_row_idx - 1) or #interactive_items
+            end
+            refresh_manage()
+            return true
+        end
+
+        overlay.onDown = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx < #interactive_items) and (focused_row_idx + 1) or 1
+            end
+            refresh_manage()
+            return true
+        end
+
+        overlay.onPress = function()
+            if interactive_items[focused_row_idx] and interactive_items[focused_row_idx].callback then
+                interactive_items[focused_row_idx].callback()
+                return true
+            end
+        end
 
         overlay.onClose = function()
             if overlay then
@@ -3228,15 +3768,20 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
     local inner_w = dialog_w - (card_padding * 2) - (card_border * 2)
     local ui_font_size = theme.face_label_size or 16
     local title_font_size = theme.title_font_size or 20
+    local is_touch_device = isTouchDevice()
+    local focus_visible = not is_touch_device
 
     local overlay
     local refresh
+    local focused_row_idx = focus_visible and 1 or nil
+    local interactive_items = {}
 
     refresh = function()
         if overlay then
             UIManager:close(overlay, "ui")
             overlay = nil
         end
+        interactive_items = {}
 
         local drm_info = LibbeeDRM.getAccountInfo()
 
@@ -3284,24 +3829,51 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
             local max_left_w = avail_w - right_w - sc(8)
             if max_left_w < sc(60) then max_left_w = sc(60) end
 
-            local txt = TextBoxWidget:new{
-                text = left_text,
-                face = Font:getFace("cfont", ui_font_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                width = max_left_w,
-                alignment = "left",
-            }
+            local left_w
+            if left_text:find("\n") then
+                local vg_items = {}
+                for line in left_text:gmatch("[^\r\n]+") do
+                    if #vg_items > 0 then
+                        table.insert(vg_items, VerticalSpan:new{ width = sc(1) })
+                    end
+                    table.insert(vg_items, TextWidget:new{
+                        text = line,
+                        face = Font:getFace("cfont", #vg_items == 0 and ui_font_size or (theme.subtext_font_size or 13)),
+                        fgcolor = #vg_items == 0 and Blitbuffer.COLOR_BLACK or (theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY),
+                        max_width = max_left_w,
+                    })
+                end
+                left_w = VerticalGroup:new{ align = "left", unpack(vg_items) }
+            else
+                left_w = TextWidget:new{
+                    text = left_text,
+                    face = Font:getFace("cfont", ui_font_size),
+                    fgcolor = Blitbuffer.COLOR_BLACK,
+                    max_width = max_left_w,
+                }
+            end
 
-            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
+            local left_used_w = (left_w.getSize and left_w:getSize().w) or max_left_w
             local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
 
-            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
+            local row_elements = { left_w, HorizontalSpan:new{ width = spacer_w } }
             if right_widget then
                 table.insert(row_elements, right_widget)
             end
 
+            local is_focused = false
+            local item_idx = nil
+            if callback then
+                item_idx = #interactive_items + 1
+                table.insert(interactive_items, { callback = callback })
+                is_focused = (focus_visible and focused_row_idx == item_idx)
+            end
+
             local frame = FrameContainer:new{
-                bordersize = 0,
+                bordersize = is_focused and (theme.border_focus or sc(2)) or 0,
+                color = Blitbuffer.COLOR_BLACK,
+                background = is_focused and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or nil,
+                radius = is_focused and (theme.radius_focus or sc(4)) or 0,
                 padding = frame_padding,
                 width = inner_w,
                 HorizontalGroup:new{
@@ -3332,6 +3904,8 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
                 }
             }
             item.onTap = function()
+                if item_idx then focused_row_idx = item_idx end
+                if is_touch_device then focus_visible = false end
                 callback()
                 return true
             end
@@ -3425,21 +3999,28 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
             end))
         end
 
+        local back_cb = function()
+            if overlay then
+                UIManager:close(overlay, "ui")
+                overlay = nil
+            end
+            if on_back_cb then on_back_cb() end
+        end
+
+        local back_btn_idx = #interactive_items + 1
+        table.insert(interactive_items, { callback = back_cb })
+        local is_back_focused = (focus_visible and focused_row_idx == back_btn_idx)
+
         local back_btn = createButton{
             text = _("‹ Back to Settings"),
             text_font_size = ui_font_size,
             bold = true,
-            bordersize = theme.border_btn or sc(1),
+            is_focused = is_back_focused,
+            bordersize = is_back_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
             radius = theme.radius_btn or sc(4),
             width = inner_w,
             height = sc(36),
-            callback = function()
-                if overlay then
-                    UIManager:close(overlay, "ui")
-                    overlay = nil
-                end
-                if on_back_cb then on_back_cb() end
-            end,
+            callback = back_cb,
         }
 
         local back_frame = FrameContainer:new{
@@ -3472,13 +4053,58 @@ function M.showByteBooksDRMSubmenu(plugin_dir, on_back_cb)
             }
         }
 
+        local sub_key_events = {
+            Close = { { "Back" }, { "Escape" } },
+            Up = { { "Up" }, { "Left" } },
+            Down = { { "Down" }, { "Right" } },
+            Press = { { "Press" }, { "Enter" }, { "Return" }, { "Select" } },
+        }
+        if Device and Device.input and Device.input.group then
+            if Device.input.group.Back then table.insert(sub_key_events.Close, { Device.input.group.Back }) end
+            if Device.input.group.Up then table.insert(sub_key_events.Up, { Device.input.group.Up }) end
+            if Device.input.group.Down then table.insert(sub_key_events.Down, { Device.input.group.Down }) end
+            if Device.input.group.Left then table.insert(sub_key_events.Up, { Device.input.group.Left }) end
+            if Device.input.group.Right then table.insert(sub_key_events.Down, { Device.input.group.Right }) end
+            if Device.input.group.Press then table.insert(sub_key_events.Press, { Device.input.group.Press }) end
+            if Device.input.group.Enter then table.insert(sub_key_events.Press, { Device.input.group.Enter }) end
+        end
+
         overlay = InputContainer:new{
             align = "center",
             vertical_align = "center",
             dimen = Geom:new{ w = sw, h = sh },
-            key_events = { Close = { { "Back" } } },
+            key_events = sub_key_events,
             card
         }
+
+        overlay.onUp = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx > 1) and (focused_row_idx - 1) or #interactive_items
+            end
+            refresh()
+            return true
+        end
+
+        overlay.onDown = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx < #interactive_items) and (focused_row_idx + 1) or 1
+            end
+            refresh()
+            return true
+        end
+
+        overlay.onPress = function()
+            if interactive_items[focused_row_idx] and interactive_items[focused_row_idx].callback then
+                interactive_items[focused_row_idx].callback()
+                return true
+            end
+        end
 
         overlay.onClose = function()
             if overlay then
@@ -3513,15 +4139,20 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
     local inner_w = dialog_w - (card_padding * 2) - (card_border * 2)
     local ui_font_size = theme.face_label_size or 16
     local title_font_size = theme.title_font_size or 20
+    local is_touch_device = isTouchDevice()
+    local focus_visible = not is_touch_device
 
     local overlay
     local refresh
+    local focused_row_idx = focus_visible and 1 or nil
+    local interactive_items = {}
 
     refresh = function()
         if overlay then
             UIManager:close(overlay, "ui")
             overlay = nil
         end
+        interactive_items = {}
 
         local title_label = TextWidget:new{
             text = _("Maintenance & Logs"),
@@ -3567,24 +4198,51 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             local max_left_w = avail_w - right_w - sc(8)
             if max_left_w < sc(60) then max_left_w = sc(60) end
 
-            local txt = TextBoxWidget:new{
-                text = left_text,
-                face = Font:getFace("cfont", ui_font_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                width = max_left_w,
-                alignment = "left",
-            }
+            local left_w
+            if left_text:find("\n") then
+                local vg_items = {}
+                for line in left_text:gmatch("[^\r\n]+") do
+                    if #vg_items > 0 then
+                        table.insert(vg_items, VerticalSpan:new{ width = sc(1) })
+                    end
+                    table.insert(vg_items, TextWidget:new{
+                        text = line,
+                        face = Font:getFace("cfont", #vg_items == 0 and ui_font_size or (theme.subtext_font_size or 13)),
+                        fgcolor = #vg_items == 0 and Blitbuffer.COLOR_BLACK or (theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY),
+                        max_width = max_left_w,
+                    })
+                end
+                left_w = VerticalGroup:new{ align = "left", unpack(vg_items) }
+            else
+                left_w = TextWidget:new{
+                    text = left_text,
+                    face = Font:getFace("cfont", ui_font_size),
+                    fgcolor = Blitbuffer.COLOR_BLACK,
+                    max_width = max_left_w,
+                }
+            end
 
-            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
+            local left_used_w = (left_w.getSize and left_w:getSize().w) or max_left_w
             local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
 
-            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
+            local row_elements = { left_w, HorizontalSpan:new{ width = spacer_w } }
             if right_widget then
                 table.insert(row_elements, right_widget)
             end
 
+            local is_focused = false
+            local item_idx = nil
+            if callback then
+                item_idx = #interactive_items + 1
+                table.insert(interactive_items, { callback = callback })
+                is_focused = (focus_visible and focused_row_idx == item_idx)
+            end
+
             local frame = FrameContainer:new{
-                bordersize = 0,
+                bordersize = is_focused and (theme.border_focus or sc(2)) or 0,
+                color = Blitbuffer.COLOR_BLACK,
+                background = is_focused and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or nil,
+                radius = is_focused and (theme.radius_focus or sc(4)) or 0,
                 padding = frame_padding,
                 width = inner_w,
                 HorizontalGroup:new{
@@ -3615,6 +4273,8 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
                 }
             }
             item.onTap = function()
+                if item_idx then focused_row_idx = item_idx end
+                if is_touch_device then focus_visible = false end
                 callback()
                 return true
             end
@@ -3650,21 +4310,28 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             _toast(_("Local shelf cache cleared"), 3)
         end))
 
+        local back_cb = function()
+            if overlay then
+                UIManager:close(overlay, "ui")
+                overlay = nil
+            end
+            if on_back_cb then on_back_cb() end
+        end
+
+        local back_btn_idx = #interactive_items + 1
+        table.insert(interactive_items, { callback = back_cb })
+        local is_back_focused = (focus_visible and focused_row_idx == back_btn_idx)
+
         local back_btn = createButton{
             text = _("‹ Back to Settings"),
             text_font_size = ui_font_size,
             bold = true,
-            bordersize = theme.border_btn or sc(1),
+            is_focused = is_back_focused,
+            bordersize = is_back_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
             radius = theme.radius_btn or sc(4),
             width = inner_w,
             height = sc(36),
-            callback = function()
-                if overlay then
-                    UIManager:close(overlay, "ui")
-                    overlay = nil
-                end
-                if on_back_cb then on_back_cb() end
-            end,
+            callback = back_cb,
         }
 
         local back_frame = FrameContainer:new{
@@ -3697,13 +4364,58 @@ function M.showMaintenanceSubmenu(plugin_dir, on_back_cb)
             }
         }
 
+        local sub_key_events = {
+            Close = { { "Back" }, { "Escape" } },
+            Up = { { "Up" }, { "Left" } },
+            Down = { { "Down" }, { "Right" } },
+            Press = { { "Press" }, { "Enter" }, { "Return" }, { "Select" } },
+        }
+        if Device and Device.input and Device.input.group then
+            if Device.input.group.Back then table.insert(sub_key_events.Close, { Device.input.group.Back }) end
+            if Device.input.group.Up then table.insert(sub_key_events.Up, { Device.input.group.Up }) end
+            if Device.input.group.Down then table.insert(sub_key_events.Down, { Device.input.group.Down }) end
+            if Device.input.group.Left then table.insert(sub_key_events.Up, { Device.input.group.Left }) end
+            if Device.input.group.Right then table.insert(sub_key_events.Down, { Device.input.group.Right }) end
+            if Device.input.group.Press then table.insert(sub_key_events.Press, { Device.input.group.Press }) end
+            if Device.input.group.Enter then table.insert(sub_key_events.Press, { Device.input.group.Enter }) end
+        end
+
         overlay = InputContainer:new{
             align = "center",
             vertical_align = "center",
             dimen = Geom:new{ w = sw, h = sh },
-            key_events = { Close = { { "Back" } } },
+            key_events = sub_key_events,
             card
         }
+
+        overlay.onUp = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx > 1) and (focused_row_idx - 1) or #interactive_items
+            end
+            refresh()
+            return true
+        end
+
+        overlay.onDown = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx < #interactive_items) and (focused_row_idx + 1) or 1
+            end
+            refresh()
+            return true
+        end
+
+        overlay.onPress = function()
+            if interactive_items[focused_row_idx] and interactive_items[focused_row_idx].callback then
+                interactive_items[focused_row_idx].callback()
+                return true
+            end
+        end
 
         overlay.onClose = function()
             if overlay then
@@ -3746,15 +4458,20 @@ function M.showAbout(plugin_dir, on_close_cb, on_change_cb)
 
     local ui_font_size = theme.face_label_size or 16
     local title_font_size = theme.title_font_size or 20
+    local is_touch_device = isTouchDevice()
+    local focus_visible = not is_touch_device
 
     local overlay
     local refresh
+    local focused_row_idx = focus_visible and 1 or nil
+    local interactive_items = {}
 
     refresh = function()
         if overlay then
             UIManager:close(overlay, "ui")
             overlay = nil
         end
+        interactive_items = {}
 
         if on_change_cb then
             on_change_cb()
@@ -3805,22 +4522,49 @@ function M.showAbout(plugin_dir, on_close_cb, on_change_cb)
             local max_left_w = avail_w - right_w - sc(8)
             if max_left_w < sc(60) then max_left_w = sc(60) end
 
-            local txt = TextBoxWidget:new{
-                text = left_text,
-                face = Font:getFace("cfont", ui_font_size),
-                fgcolor = Blitbuffer.COLOR_BLACK,
-                width = max_left_w,
-                alignment = "left",
-            }
+            local left_w
+            if left_text:find("\n") then
+                local vg_items = {}
+                for line in left_text:gmatch("[^\r\n]+") do
+                    if #vg_items > 0 then
+                        table.insert(vg_items, VerticalSpan:new{ width = sc(1) })
+                    end
+                    table.insert(vg_items, TextWidget:new{
+                        text = line,
+                        face = Font:getFace("cfont", #vg_items == 0 and ui_font_size or (theme.subtext_font_size or 13)),
+                        fgcolor = #vg_items == 0 and Blitbuffer.COLOR_BLACK or (theme.color_label_dim or Blitbuffer.COLOR_DARK_GRAY),
+                        max_width = max_left_w,
+                    })
+                end
+                left_w = VerticalGroup:new{ align = "left", unpack(vg_items) }
+            else
+                left_w = TextWidget:new{
+                    text = left_text,
+                    face = Font:getFace("cfont", ui_font_size),
+                    fgcolor = Blitbuffer.COLOR_BLACK,
+                    max_width = max_left_w,
+                }
+            end
 
-            local left_used_w = (txt.getSize and txt:getSize().w) or max_left_w
+            local left_used_w = (left_w.getSize and left_w:getSize().w) or max_left_w
             local spacer_w = math.max(sc(8), avail_w - left_used_w - right_w)
 
-            local row_elements = { txt, HorizontalSpan:new{ width = spacer_w } }
+            local row_elements = { left_w, HorizontalSpan:new{ width = spacer_w } }
             if right_widget then table.insert(row_elements, right_widget) end
 
+            local is_focused = false
+            local item_idx = nil
+            if callback then
+                item_idx = #interactive_items + 1
+                table.insert(interactive_items, { callback = callback })
+                is_focused = (focus_visible and focused_row_idx == item_idx)
+            end
+
             local frame = FrameContainer:new{
-                bordersize = 0,
+                bordersize = is_focused and (theme.border_focus or sc(2)) or 0,
+                color = Blitbuffer.COLOR_BLACK,
+                background = is_focused and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or nil,
+                radius = is_focused and (theme.radius_focus or sc(4)) or 0,
                 padding = frame_padding,
                 width = inner_w,
                 HorizontalGroup:new(row_elements),
@@ -3848,6 +4592,8 @@ function M.showAbout(plugin_dir, on_close_cb, on_change_cb)
                 }
             }
             item.onTap = function()
+                if item_idx then focused_row_idx = item_idx end
+                if is_touch_device then focus_visible = false end
                 callback()
                 return true
             end
@@ -4027,21 +4773,28 @@ function M.showAbout(plugin_dir, on_close_cb, on_change_cb)
         end))
 
         -- Bottom Section: Close Button
+        local close_cb = function()
+            if overlay then
+                UIManager:close(overlay, "ui")
+                overlay = nil
+            end
+            if on_close_cb then on_close_cb() end
+        end
+
+        local close_btn_idx = #interactive_items + 1
+        table.insert(interactive_items, { callback = close_cb })
+        local is_close_focused = (focus_visible and focused_row_idx == close_btn_idx)
+
         local close_btn = createButton{
             text = _("Close"),
             text_font_size = ui_font_size,
             bold = true,
-            bordersize = theme.border_btn or sc(1),
+            is_focused = is_close_focused,
+            bordersize = is_close_focused and (theme.border_focus or sc(3)) or (theme.border_btn or sc(1)),
             radius = theme.radius_btn or sc(4),
             width = inner_w,
             height = sc(38),
-            callback = function()
-                if overlay then
-                    UIManager:close(overlay, "ui")
-                    overlay = nil
-                end
-                if on_close_cb then on_close_cb() end
-            end,
+            callback = close_cb,
         }
 
         -- Build bounded modal card
@@ -4065,13 +4818,58 @@ function M.showAbout(plugin_dir, on_close_cb, on_change_cb)
             }
         }
 
+        local sub_key_events = {
+            Close = { { "Back" }, { "Escape" } },
+            Up = { { "Up" }, { "Left" } },
+            Down = { { "Down" }, { "Right" } },
+            Press = { { "Press" }, { "Enter" }, { "Return" }, { "Select" } },
+        }
+        if Device and Device.input and Device.input.group then
+            if Device.input.group.Back then table.insert(sub_key_events.Close, { Device.input.group.Back }) end
+            if Device.input.group.Up then table.insert(sub_key_events.Up, { Device.input.group.Up }) end
+            if Device.input.group.Down then table.insert(sub_key_events.Down, { Device.input.group.Down }) end
+            if Device.input.group.Left then table.insert(sub_key_events.Up, { Device.input.group.Left }) end
+            if Device.input.group.Right then table.insert(sub_key_events.Down, { Device.input.group.Right }) end
+            if Device.input.group.Press then table.insert(sub_key_events.Press, { Device.input.group.Press }) end
+            if Device.input.group.Enter then table.insert(sub_key_events.Press, { Device.input.group.Enter }) end
+        end
+
         overlay = InputContainer:new{
             align = "center",
             vertical_align = "center",
             dimen = Geom:new{ w = sw, h = sh },
-            key_events = { Close = { { "Back" } } },
+            key_events = sub_key_events,
             card
         }
+
+        overlay.onUp = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx > 1) and (focused_row_idx - 1) or #interactive_items
+            end
+            refresh()
+            return true
+        end
+
+        overlay.onDown = function()
+            focus_visible = true
+            if not focused_row_idx then
+                focused_row_idx = 1
+            elseif #interactive_items > 1 then
+                focused_row_idx = (focused_row_idx < #interactive_items) and (focused_row_idx + 1) or 1
+            end
+            refresh()
+            return true
+        end
+
+        overlay.onPress = function()
+            if interactive_items[focused_row_idx] and interactive_items[focused_row_idx].callback then
+                interactive_items[focused_row_idx].callback()
+                return true
+            end
+        end
 
         overlay.onClose = function()
             if overlay then
