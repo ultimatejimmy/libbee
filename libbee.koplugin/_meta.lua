@@ -13,7 +13,7 @@ return {
     name        = "libbee",
     fullname    = _("menu_libbee"),
     description = _("menu_libbee_desc"),
-    version = "26.8.31-beta",
+    version = "26.9.1-beta",
     author      = "ultimatejimmy",
 }
 
