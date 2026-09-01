@@ -49,6 +49,38 @@ local function int_value(x)
     return 0
 end
 
+local function newStringReader(str)
+    local pos = 0
+    return {
+        seek = function(_, whence, offset)
+            offset = offset or 0
+            whence = whence or "cur"
+            if whence == "set" then
+                pos = offset
+            elseif whence == "cur" then
+                pos = pos + offset
+            elseif whence == "end" then
+                pos = #str + offset
+            end
+            if pos < 0 then pos = 0 end
+            if pos > #str then pos = #str end
+            return pos
+        end,
+        read = function(_, n)
+            if n == "*a" or not n then
+                local s = str:sub(pos + 1)
+                pos = #str
+                return s
+            end
+            if pos >= #str then return nil end
+            local s = str:sub(pos + 1, pos + n)
+            pos = pos + #s
+            return s
+        end,
+        close = function() end,
+    }
+end
+
 --- Apply PNG Up predictor decoding (Predictor 12).
 -- Strips filter bytes and reconstructs rows.
 -- @param data string compressed data with filter bytes
@@ -510,6 +542,7 @@ function PDFDocument:open(filepath)
     if not f then
         return nil, "Cannot open file: " .. err
     end
+    pcall(function() f:setvbuf("full", 65536) end)
     self.file = f
 
     -- Read header
@@ -1072,32 +1105,19 @@ function PDFDocument:_expandObjStm(stmid)
 
             if objStart < objEnd and objStart <= #data then
                 local childData = data:sub(objStart, objEnd - 1)
-                -- Parse through a tempfile (parser needs real file)
-                local tmpname = os.tmpname and os.tmpname()
-                if tmpname then
-                    local tmpf = io.open(tmpname, "wb")
-                    if tmpf then
-                        tmpf:write(childData)
-                        tmpf:close()
-                        local fh = io.open(tmpname, "rb")
-                        if fh then
-                            local tmpp = pdfparser.new(fh)
-                            local result = tmpp:nextobject()
-                            if result and result[2] then
-                                local child = result[2]
-                                if type(child) == "table" and child.dic ~= nil and child.rawdata ~= nil then
-                                    setmetatable(child, PDFStream)
-                                    child:set_objid(pair.objid, 0)
-                                    if self.decipher then
-                                        child.decipher = self.decipher
-                                    end
-                                end
-                                self.objs[pair.objid] = child
-                            end
-                            fh:close()
+                local reader = newStringReader(childData)
+                local tmpp = pdfparser.new(reader)
+                local result = tmpp:nextobject()
+                if result and result[2] then
+                    local child = result[2]
+                    if type(child) == "table" and child.dic ~= nil and child.rawdata ~= nil then
+                        setmetatable(child, PDFStream)
+                        child:set_objid(pair.objid, 0)
+                        if self.decipher then
+                            child.decipher = self.decipher
                         end
-                        os.remove(tmpname)
                     end
+                    self.objs[pair.objid] = child
                 end
             end
         end

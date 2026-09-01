@@ -201,4 +201,49 @@ describe("PDF DRM and Decryption", function()
             assert.are_equal("urn:uuid:test-book-123", bookid)
         end)
     end)
+
+    describe("ACSM parsing and namespace tolerance", function()
+        local LibbeeDRM = require("libbee_drm")
+
+        it("parses namespaced ACSM tokens (<adept:fulfillmentToken>)", function()
+            local acsmXml = table.concat({
+                '<?xml version="1.0"?>',
+                '<adept:fulfillmentToken xmlns:adept="http://ns.adobe.com/adept">',
+                '  <adept:distributor>urn:uuid:0001</adept:distributor>',
+                '  <adept:operatorURL>https://acs.contentreserve.com/fulfillment</adept:operatorURL>',
+                '  <adept:resourceItemInfo>',
+                '    <adept:resource>urn:uuid:book-123</adept:resource>',
+                '    <adept:metadata>',
+                '      <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">Book of Evil</dc:title>',
+                '      <dc:format xmlns:dc="http://purl.org/dc/elements/1.1/">application/pdf</dc:format>',
+                '    </adept:metadata>',
+                '  </adept:resourceItemInfo>',
+                '</adept:fulfillmentToken>',
+            }, "\n")
+
+            local meta = LibbeeDRM.parseAcsmMetadata(acsmXml)
+            assert.is_not_nil(meta)
+            assert.are_equal("Book of Evil", meta.title)
+            assert.are_equal("application/pdf", meta.format)
+            assert.are_equal("urn:uuid:book-123", meta.resourceId)
+        end)
+
+        it("derives PDF path for namespaced PDF ACSM", function()
+            local acsmXml = table.concat({
+                '<adept:fulfillmentToken xmlns:adept="http://ns.adobe.com/adept">',
+                '  <adept:resourceItemInfo>',
+                '    <adept:metadata>',
+                '      <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">Venom Lethal Protector</dc:title>',
+                '      <dc:format xmlns:dc="http://purl.org/dc/elements/1.1/">application/pdf</dc:format>',
+                '    </adept:metadata>',
+                '  </adept:resourceItemInfo>',
+                '</adept:fulfillmentToken>',
+            }, "\n")
+
+            local meta = LibbeeDRM.parseAcsmMetadata(acsmXml)
+            assert.is_not_nil(meta)
+            local finalPath = LibbeeDRM.deriveFinalBookPath("/mnt/us/Home/Libby", { title = "Venom" }, meta)
+            assert.is_true(finalPath:find("%.pdf$") ~= nil)
+        end)
+    end)
 end)

@@ -73,34 +73,21 @@ end
 -- Escapes all characters required by PDF spec §7.3.4.2:
 -- backslash, parens, and the named escapes (\n, \r, \t, \b, \f).
 -- Also escapes other control chars (< 32) as octal.
--- More thorough than ineptpdf.py but fully spec-compliant.
+local ESCAPES = {
+    ["\\"] = "\\\\",
+    ["("] = "\\(",
+    [")"] = "\\)",
+    ["\n"] = "\\n",
+    ["\r"] = "\\r",
+    ["\t"] = "\\t",
+    ["\b"] = "\\b",
+    ["\f"] = "\\f",
+}
+
 function PDFSerializer:escape_string(s)
-    local parts = {}
-    for i = 1, #s do
-        local c = s:byte(i)
-        if c == 92 then -- backslash
-            parts[#parts + 1] = "\\\\"
-        elseif c == 40 then -- (
-            parts[#parts + 1] = "\\("
-        elseif c == 41 then -- )
-            parts[#parts + 1] = "\\)"
-        elseif c == 10 then -- LF
-            parts[#parts + 1] = "\\n"
-        elseif c == 13 then -- CR
-            parts[#parts + 1] = "\\r"
-        elseif c == 9 then -- HT
-            parts[#parts + 1] = "\\t"
-        elseif c == 8 then -- BS
-            parts[#parts + 1] = "\\b"
-        elseif c == 12 then -- FF
-            parts[#parts + 1] = "\\f"
-        elseif c < 32 then -- other control
-            parts[#parts + 1] = string.format("\\%03o", c)
-        else
-            parts[#parts + 1] = string.char(c)
-        end
-    end
-    return table.concat(parts)
+    return (s:gsub("([\\%(%)\n\r\t\b\f%z\1-\31])", function(c)
+        return ESCAPES[c] or string.format("\\%03o", c:byte(1))
+    end))
 end
 
 --- Check if last byte is alphanumeric.
@@ -315,6 +302,7 @@ function PdfWriter.new(outputPath, opts)
     if not out then
         return nil, "Cannot open output file: " .. outputPath .. ": " .. tostring(err)
     end
+    pcall(function() out:setvbuf("full", 65536) end)
 
     local ser = PDFSerializer.new(out)
 

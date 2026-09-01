@@ -172,7 +172,15 @@ end
 
 local function _firstMetadataValue(meta, key)
     if type(meta) ~= "table" then return nil end
-    local raw = meta[key]
+    local raw = meta[key] or meta[key:gsub("^.-:", "")] or meta["adept:" .. key]
+    if raw == nil then
+        for k, v in pairs(meta) do
+            if type(k) == "string" and (k == key or k:match(":" .. key:gsub("^.-:", "") .. "$")) then
+                raw = v
+                break
+            end
+        end
+    end
     if type(raw) == "table" then return raw[1] end
     if type(raw) == "string" then return raw end
     return nil
@@ -191,16 +199,36 @@ function M.parseAcsmMetadata(acsm_path_or_content)
     local ok, parsed = pcall(xml.deserialize, raw_data)
     if not ok or type(parsed) ~= "table" then return nil end
 
-    local token = parsed.fulfillmentToken
-    if not token then return nil end
+    local token = parsed.fulfillmentToken or parsed["adept:fulfillmentToken"]
+    if not token then
+        for k, v in pairs(parsed) do
+            if type(k) == "string" and (k:match("fulfillmentToken$") or k:match("licenseToken$")) then
+                token = v
+                break
+            end
+        end
+    end
+    if not token or type(token) ~= "table" then return nil end
 
-    local rii = token.resourceItemInfo
+    local function getField(t, name)
+        if type(t) ~= "table" then return nil end
+        local d = t[name] or t["adept:" .. name]
+        if d ~= nil then return d end
+        for k, v in pairs(t) do
+            if type(k) == "string" and (k == name or k:match(":" .. name .. "$")) then
+                return v
+            end
+        end
+        return nil
+    end
+
+    local rii = getField(token, "resourceItemInfo")
     if not rii then return nil end
 
-    local resource = rii.resource
-    local meta = rii.metadata
-    local resource_item = rii.resourceItem
-    local asset = resource_item and resource_item.asset
+    local resource = getField(rii, "resource")
+    local meta = getField(rii, "metadata")
+    local resource_item = getField(rii, "resourceItem")
+    local asset = resource_item and getField(resource_item, "asset")
 
     return {
         title = _firstMetadataValue(meta, "dc:title"),
@@ -210,8 +238,8 @@ function M.parseAcsmMetadata(acsm_path_or_content)
         language = _firstMetadataValue(meta, "dc:language"),
         subject = _firstMetadataValue(meta, "dc:subject"),
         description = _firstMetadataValue(meta, "dc:description"),
-        resourceId = resource,
-        format = _firstMetadataValue(meta, "dc:format") or (asset and asset.assetType),
+        resourceId = type(resource) == "table" and resource[1] or resource,
+        format = _firstMetadataValue(meta, "dc:format") or (asset and (asset.assetType or getField(asset, "assetType"))),
     }
 end
 

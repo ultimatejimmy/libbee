@@ -86,14 +86,72 @@ local function deserializeXml(body, context)
 end
 
 local function xmlError(parsed, fallback)
-    local err = parsed and parsed.error
+    local err = parsed and (parsed.error or parsed["adept:error"])
+    if not err and type(parsed) == "table" then
+        for k, v in pairs(parsed) do
+            if type(k) == "string" and k:match("error$") then
+                err = v
+                break
+            end
+        end
+    end
     if type(err) == "table" and err._attr and err._attr.data then
         return err._attr.data
+    end
+    if type(err) == "table" and (err.data or err[1]) then
+        return err.data or err[1]
     end
     if type(err) == "string" then
         return err
     end
     return fallback
+end
+
+local function findTokenOrError(parsed, context)
+    if type(parsed) ~= "table" then
+        return nil, (context or "XML") .. " returned an invalid document"
+    end
+
+    local serverErr = xmlError(parsed, nil)
+    if serverErr then
+        return nil, tostring(serverErr)
+    end
+
+    local token = parsed.fulfillmentToken or parsed["adept:fulfillmentToken"]
+    if not token then
+        for k, v in pairs(parsed) do
+            if type(k) == "string" and (k:match("fulfillmentToken$") or k:match("licenseToken$")) then
+                token = v
+                break
+            end
+        end
+    end
+
+    if type(token) ~= "table" then
+        return nil, "No fulfillmentToken in ACSM"
+    end
+
+    return token
+end
+
+local function getTokenField(tokenTable, fieldName)
+    if type(tokenTable) ~= "table" then return nil end
+    local direct = tokenTable[fieldName] or tokenTable["adept:" .. fieldName]
+    if direct ~= nil then
+        if type(direct) == "table" and #direct > 0 and type(direct[1]) == "string" then
+            return direct[1]
+        end
+        return direct
+    end
+    for k, v in pairs(tokenTable) do
+        if type(k) == "string" and (k == fieldName or k:match(":" .. fieldName .. "$")) then
+            if type(v) == "table" and #v > 0 and type(v[1]) == "string" then
+                return v[1]
+            end
+            return v
+        end
+    end
+    return nil
 end
 
 local function collectNotifyUrls(node, nsMap, urls)
@@ -221,12 +279,12 @@ function fulfillment.fulfill(acsmPath, userUUID, deviceUUID, fingerprint, signin
     if not acsmParsed then
         return nil, parseErr
     end
-    local token = acsmParsed.fulfillmentToken
+    local token, tokenErr = findTokenOrError(acsmParsed, "ACSM")
     if not token then
-        return nil, "No fulfillmentToken in ACSM"
+        return nil, tokenErr
     end
 
-    local operatorURL = token.operatorURL
+    local operatorURL = getTokenField(token, "operatorURL")
     if type(operatorURL) == "table" then
         operatorURL = operatorURL[1]
     end
@@ -403,11 +461,11 @@ function fulfillment.process(acsmPath, outputPath, creds, deviceUUID, fingerprin
     if not acsmParsed then
         return nil, acsmParseErr
     end
-    local token = acsmParsed.fulfillmentToken
-    if type(token) ~= "table" then
-        return nil, "No fulfillmentToken in ACSM"
+    local token, tokenErr = findTokenOrError(acsmParsed, "ACSM")
+    if not token then
+        return nil, tokenErr
     end
-    local operatorURL = token.operatorURL
+    local operatorURL = getTokenField(token, "operatorURL")
     if type(operatorURL) == "table" then
         operatorURL = operatorURL[1]
     end

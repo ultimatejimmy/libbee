@@ -302,7 +302,8 @@ local function _runNetwork(work_fn, on_done)
                 elseif completed then
                     on_done(nil, _("Operation cancelled"))
                 else
-                    on_done(nil, _("Operation cancelled"))
+                    log.err("libbee ui: background task was interrupted or killed by OS (possible memory limit)")
+                    on_done(nil, _("Operation cancelled or interrupted"))
                 end
             end)
         else

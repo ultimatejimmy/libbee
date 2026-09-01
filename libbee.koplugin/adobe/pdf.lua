@@ -505,6 +505,7 @@ function pdf.decryptAdobePdf(inputPath, outputPath, bookKey, licenseKey, fulfill
                 -- Release from document cache so Lua can reclaim the memory.
                 -- The writer has already serialized everything to disk.
                 doc.objs[objid] = nil
+                collectgarbage("step", 200)
             end
         end
     end
