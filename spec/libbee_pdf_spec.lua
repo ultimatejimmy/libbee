@@ -1,4 +1,4 @@
-﻿local helper = require("spec/spec_helper")
+local helper = require("spec/spec_helper")
 local pdf = require("adobe.pdf")
 local pdfdoc = require("adobe.pdf.pdfdoc")
 local pdfparser = require("adobe.pdf.parser")
