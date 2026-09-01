@@ -527,8 +527,21 @@ function epub.decryptAdobeEpub(inputPath, outputPath, bookKey)
     local encryptionPath = workDir .. "/META-INF/encryption.xml"
     local encryptionXml = koutil.readFromFile(encryptionPath, "rb")
     if not encryptionXml then
+        logger.info("[ACSM] decryptAdobeEpub: no encryption.xml found — EPUB is not encrypted")
+        os.remove(workDir .. "/META-INF/rights.xml")
+        local watermarkFiles = stripAdeptWatermarks(workDir) or 0
+        local repackOk, repackErr = repackEpub(workDir, outputPath)
         removeTree(workDir)
-        return nil, "Missing META-INF/encryption.xml"
+        if not repackOk then
+            return nil, repackErr
+        end
+        return {
+            outputPath = outputPath,
+            decryptedEntries = 0,
+            remainingEncryptionXml = false,
+            strippedWatermarkFiles = watermarkFiles,
+            unencrypted = true,
+        }
     end
 
     local parsed = parseEncryptionXml(encryptionXml)

@@ -414,7 +414,7 @@ end
 
 local function createIconButton(opts)
     opts = opts or {}
-    local icon_size = opts.size or sc(22)
+    local icon_size = opts.size or sc(32)
     local is_focused = (opts.is_focused == true)
     local icon_widget = ImageWidget:new{
         file = getAssetPath(opts.icon),
@@ -1117,8 +1117,8 @@ function M.showShelfBrowser(plugin_dir)
 
         local lib_order = group_order
 
-        -- Header Action Buttons using Feather SVGs (Storefront style, stroke-width 1.5)
-        local btn_size = sc(24)
+        -- Header Action Buttons using Feather SVGs (Storefront style, stroke-width 1.2)
+        local btn_size = sc(32)
         local btn_pad = sc(4)
 
         local is_hdr = (focus_zone == "header")
@@ -1206,11 +1206,11 @@ function M.showShelfBrowser(plugin_dir)
 
         local header_actions = HorizontalGroup:new{
             view_toggle_btn,
-            HorizontalSpan:new{ width = sc(10) },
+            HorizontalSpan:new{ width = sc(12) },
             refresh_btn,
-            HorizontalSpan:new{ width = sc(10) },
+            HorizontalSpan:new{ width = sc(12) },
             menu_btn,
-            HorizontalSpan:new{ width = sc(10) },
+            HorizontalSpan:new{ width = sc(12) },
             close_btn,
         }
 

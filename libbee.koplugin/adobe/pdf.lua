@@ -30,6 +30,32 @@ local pdf = {}
 
 local removeHardeningFromRights
 
+local function copyFile(src, dst)
+    local inF, inErr = io.open(src, "rb")
+    if not inF then
+        return nil, "Cannot open source file: " .. tostring(inErr)
+    end
+    local outF, outErr = io.open(dst, "wb")
+    if not outF then
+        inF:close()
+        return nil, "Cannot open destination file: " .. tostring(outErr)
+    end
+    local CHUNK = 65536
+    while true do
+        local chunk = inF:read(CHUNK)
+        if not chunk then break end
+        local ok, writeErr = outF:write(chunk)
+        if not ok then
+            inF:close()
+            outF:close()
+            return nil, "Failed to write data: " .. tostring(writeErr)
+        end
+    end
+    inF:close()
+    outF:close()
+    return true
+end
+
 ------------------------------------------------------------------------
 -- Rights XML helpers
 ------------------------------------------------------------------------
@@ -364,6 +390,21 @@ function pdf.decryptAdobePdf(inputPath, outputPath, bookKey, licenseKey, fulfill
     end
 
     -- 2. Check encryption type
+    if not doc.encryption then
+        logger.info("[ACSM] pdf: no /Encrypt dict found — PDF is not encrypted, copying directly to output")
+        doc:close()
+        local copyOk, copyErr = copyFile(inputPath, outputPath)
+        if not copyOk then
+            return nil, "Failed to copy unencrypted PDF: " .. tostring(copyErr)
+        end
+        return {
+            outputPath = outputPath,
+            decryptedObjects = 0,
+            decryptedStreams = 0,
+            unencrypted = true,
+        }
+    end
+
     local encFilter = doc:getEncryptionFilter()
     if encFilter and encFilter ~= "EBX_HANDLER" then
         doc:close()
@@ -371,10 +412,6 @@ function pdf.decryptAdobePdf(inputPath, outputPath, bookKey, licenseKey, fulfill
     end
     if encFilter == "EBX_HANDLER" then
         logger.info("[ACSM] pdf: encryption filter is EBX_HANDLER")
-    else
-        if not doc.encryption then
-            logger.warn("[ACSM] pdf: no /Encrypt dict found — PDF may not be encrypted")
-        end
     end
 
     -- 3. Extract or use the book key
@@ -495,5 +532,6 @@ pdf._extractEncryptedKey = extractEncryptedKey
 pdf._extractBookKey = extractBookKey
 pdf._make_rc4_decipher = make_rc4_decipher
 pdf._make_aes_decipher = make_aes_decipher
+pdf._copyFile = copyFile
 
 return pdf

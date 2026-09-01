@@ -526,12 +526,16 @@ function PDFDocument:open(filepath)
     -- Find xref
     self.xrefs = self:_read_xref()
 
-    -- Collect trailer info
+    -- Collect trailer info across all xref sections
     for _, xref in ipairs(self.xrefs) do
         local trailer = xref.trailer
         if trailer then
-            -- Extract encryption info
-            if trailer.Encrypt or trailer["Encrypt"] then
+            if not self.trailer then
+                self.trailer = trailer
+            end
+
+            -- Extract encryption info (if not already found in a later trailer)
+            if not self.encryption and (trailer.Encrypt or trailer["Encrypt"]) then
                 local encryptRef = trailer.Encrypt or trailer["Encrypt"]
                 if type(encryptRef) == "table" and encryptRef.ref then
                     self.encrypt_objid = encryptRef.ref.objid
@@ -558,10 +562,9 @@ function PDFDocument:open(filepath)
                 }
             end
 
-            -- Extract root
-            if trailer.Root or trailer["Root"] then
+            -- Extract root (newest trailer takes precedence)
+            if not self.root and (trailer.Root or trailer["Root"]) then
                 self.root = trailer.Root or trailer["Root"]
-                break
             end
         end
     end
@@ -579,10 +582,15 @@ end
 --- Find the startxref offset by scanning backwards from EOF.
 function PDFDocument:_find_xref()
     local f = self.file
-    f:seek("end", -1024) -- search last 1KB
-    local chunk = f:read(1024) or ""
-    -- Find "startxref" followed by a number
-    local startxref_pos = chunk:match("startxref%s+(%d+)")
+    local size = f:seek("end") or 0
+    if size == 0 then
+        return nil, "Empty file"
+    end
+    local read_size = math.min(size, 65536)
+    f:seek("set", size - read_size)
+    local chunk = f:read(read_size) or ""
+    -- Find the last "startxref" followed by a number
+    local startxref_pos = chunk:match(".*startxref%s+(%d+)")
     if startxref_pos then
         return tonumber(startxref_pos)
     end
@@ -1128,7 +1136,8 @@ function PDFDocument:getEncryptionFilter()
         return nil
     end
     local param = self.encryption.param
-    local filter = param.Filter or param["filter"]
+    local d = (type(param) == "table" and param.dic) or param or {}
+    local filter = d.Filter or d["filter"] or (type(param) == "table" and (param.Filter or param["filter"]))
     if type(filter) == "table" and getmetatable(filter) == pdfparser.PSLiteral then
         return filter.name
     elseif type(filter) == "string" then
@@ -1144,11 +1153,15 @@ function PDFDocument:extractAdeptLicense()
         return nil
     end
     local param = self.encryption.param
-    local adept_license = param.ADEPT_LICENSE or param["adept_license"]
+    local d = (type(param) == "table" and param.dic) or param or {}
+    local adept_license = d.ADEPT_LICENSE or d["adept_license"] or (type(param) == "table" and (param.ADEPT_LICENSE or param["adept_license"]))
+    if (type(adept_license) ~= "string" or #adept_license == 0) and type(param) == "table" and param.rawdata then
+        adept_license = param.rawdata
+    end
     if type(adept_license) ~= "string" or #adept_license == 0 then
         return nil
     end
-    local ebx_bookid = param.EBX_BOOKID or param["ebx_bookid"]
+    local ebx_bookid = d.EBX_BOOKID or d["ebx_bookid"] or (type(param) == "table" and (param.EBX_BOOKID or param["ebx_bookid"]))
     if type(ebx_bookid) == "string" then
         ebx_bookid = ebx_bookid
     else

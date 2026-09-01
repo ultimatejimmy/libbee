@@ -498,14 +498,18 @@ function fulfillment.process(acsmPath, outputPath, creds, deviceUUID, fingerprin
         -- that don't embed ADEPT_LICENSE in the PDF.
         decryptedInfo, decryptErr = pdf.decryptAdobePdf(tmpFile, outputPath, nil, creds.licenseKey, result.encryptedKey)
     else
-        logger.info("[ACSM] fulfillment.process: decrypting book key...")
-        local bookKeyErr
-        bookKey, bookKeyErr = fulfillment.decryptBookKey(result.encryptedKey, creds.licenseKey)
-        if not bookKey then
-            os.remove(tmpFile)
-            return nil, "Failed to decrypt book key: " .. bookKeyErr
+        if result.encryptedKey and result.encryptedKey ~= "" then
+            logger.info("[ACSM] fulfillment.process: decrypting book key...")
+            local bookKeyErr
+            bookKey, bookKeyErr = fulfillment.decryptBookKey(result.encryptedKey, creds.licenseKey)
+            if not bookKey then
+                os.remove(tmpFile)
+                return nil, "Failed to decrypt book key: " .. bookKeyErr
+            end
+            logger.info("[ACSM] fulfillment.process: book key decrypted")
+        else
+            logger.info("[ACSM] fulfillment.process: no encryptedKey in fulfillment response")
         end
-        logger.info("[ACSM] fulfillment.process: book key decrypted")
 
         logger.info("[ACSM] fulfillment.process: decrypting EPUB...")
         decryptedInfo, decryptErr = epub.decryptAdobeEpub(tmpFile, outputPath, bookKey)

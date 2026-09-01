@@ -83,6 +83,27 @@ package.loaded["ffi.archiver"] = package.loaded["ffi/archiver"]
 package.loaded["ffi/posix_h"] = {}
 package.loaded["ffi.posix_h"] = {}
 
+local mock_sha2 = {
+    hex2bin = function(hex)
+        return (hex:gsub("..", function(cc) return string.char(tonumber(cc, 16) or 0) end))
+    end,
+    bin2hex = function(bin)
+        return (bin:gsub(".", function(c) return string.format("%02x", string.byte(c)) end))
+    end,
+    md5 = function(s) return string.rep("a", 32) end,
+    sha256 = function(s) return string.rep("b", 64) end,
+    base642bin = function(s) return s end,
+    bin2base64 = function(s) return s end,
+}
+package.loaded["ffi/sha2"] = mock_sha2
+package.loaded["ffi.sha2"] = mock_sha2
+
+local mock_ffi_util = {
+    orderedPairs = function(t) return pairs(t) end,
+}
+package.loaded["ffi/util"] = mock_ffi_util
+package.loaded["ffi.util"] = mock_ffi_util
+
 package.loaded["ffi"] = _G.ffi or {
     cdef = function() end,
     load = function() return {} end,
