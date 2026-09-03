@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Language-Team: Simplified Chinese\n"
+"Language-Team: Zh_cn\n"
 "Language: zh_CN\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -9,9 +9,13 @@ msgstr ""
 msgid "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
 msgstr "《%s》\n\n已保存至：\n%s\n\n可以开始阅读了。"
 
-# en-hash: 9e74f4d19312ede861911b38ff4406c0
-msgid "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
-msgstr "《%s》已下载：\n\n%s\n\n现在打开它？"
+# en-hash: 4826eb9bd2f89af56e7a97a115da51d3
+msgid "%d accounts linked"
+msgstr "已关联 %d 个账户"
+
+# en-hash: f22c02b5ce23177d18a46af4311b39a2
+msgid "%d active loans"
+msgstr "%d 个借阅中"
 
 # en-hash: 7a65032593f4ee141a1bb6af19528e5a
 msgid "%d books found in this folder"
@@ -21,9 +25,9 @@ msgstr "在此文件夹中找到 %d 本书"
 msgid "%d days left"
 msgstr "剩余 %d 天"
 
-# en-hash: 585dc4ca1840d70d261ca0fb85defb14
-msgid "%d libraries"
-msgstr "%d 个图书馆"
+# en-hash: 0cb1e4059d14ba4b01f2bc81cfab4f6f
+msgid "%d library cards"
+msgstr "%d 张读者卡"
 
 # en-hash: fed3b58ade678c6cccb2787ef13d86f6
 msgid "(cached)"
@@ -33,9 +37,21 @@ msgstr "(已缓存)"
 msgid "+ New"
 msgstr "+ 新建"
 
+# en-hash: 806e810f7f4f00e9c047945f357030bc
+msgid "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
+msgstr "-- Libbee 调试日志（最新优先，显示最后 %d 条记录）--\n\n"
+
 # en-hash: d28fdd75f93893891fb2d7e3b40683de
 msgid ".. (Parent Folder)"
 msgstr ".. (上级文件夹)"
+
+# en-hash: c8c398660be4b7f001f5ade9e4cb715d
+msgid "1 account linked"
+msgstr "已关联 1 个账户"
+
+# en-hash: 5abe3cd2db530152e749fc5823ded113
+msgid "1 active loan"
+msgstr "1 个借阅中"
 
 # en-hash: f1a9ffba029332c15ee4a50d7dec57a3
 msgid "1 day left"
@@ -65,17 +81,17 @@ msgstr "ACSM 获取失败"
 msgid "About"
 msgstr "关于"
 
-# en-hash: bc00c85091c5353809f37cc54f8df9a9
-msgid "About ByteBook"
-msgstr "关于 ByteBook"
-
 # en-hash: 4272d0a0d2f92239063b0f5e74297644
 msgid "About ByteBooks"
 msgstr "关于 ByteBooks"
 
-# en-hash: 0abf29253505eda680fc9518d8ee74a1
-msgid "Account & Keys"
-msgstr "账号与密钥"
+# en-hash: a0721cf478be58b45f240618cdbb64c6
+msgid "Account Status"
+msgstr "账户状态"
+
+# en-hash: b9125e3b8bab8806f5eddbc452cc7e1b
+msgid "Account disconnected"
+msgstr "账户已断开连接"
 
 # en-hash: 26e1484950dcc5ba28e9dc97a24ff9ce
 msgid "Accounts & DRM"
@@ -93,17 +109,21 @@ msgstr "激活状态"
 msgid "Active"
 msgstr "有效"
 
-# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
-msgid "All"
-msgstr "全部"
+# en-hash: 4479067e0875750e0abdd852db6b40a1
+msgid "Add another Libby card"
+msgstr "添加另一张 Libby 卡"
+
+# en-hash: b4b315f7552422ccac6375f29b9253ad
+msgid "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
+msgstr "Adobe / ByteBooks DRM 允许每个账户最多激活 6 台设备。\n\n您的账户已达到 Adobe 激活服务器上的 6 台设备上限。\n\n要解决此问题：\n• 联系 Adobe 支持实时聊天以重置您的激活次数（他们通常在 1 分钟内即可重置）。\n• 或者在此设备上继续以“匿名模式”使用 Libbee（无需 ByteBooks 账户即可借阅和阅读图书馆图书！）。"
+
+# en-hash: a86a401b70835517b24429aaa622a921
+msgid "All accounts disconnected"
+msgstr "所有账户已断开连接"
 
 # en-hash: 894bf223f655fcd20eb70039bc62ca12
 msgid "Already Fulfilled on Another Device"
 msgstr "已在其他设备上下载"
-
-# en-hash: 9ee472f90625d1c24d379203d9d45781
-msgid "Anonymous (Device only)"
-msgstr "匿名 (仅限此设备)"
 
 # en-hash: 0071fc15aed596b342505d9b8d315774
 msgid "Anonymous ›"
@@ -137,9 +157,17 @@ msgstr "正在授权 ByteBooks 账号…"
 msgid "Auto on download"
 msgstr "下载时自动处理"
 
-# en-hash: 9bd1606c367713265008a2d24b589cad
-msgid "Auto-activates on download"
-msgstr "下载时自动激活"
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "Auto-delete Expired"
+msgstr "自动删除过期"
+
+# en-hash: bab5d7d538a3a533edd5ca9deb23f586
+msgid "Auto-deleted \"%s\" (loan ended)."
+msgstr "已自动删除 \"%s\"（借阅已到期）。"
+
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "Auto-deleted %d expired/returned loan(s)."
+msgstr "已自动删除 %d 个到期/已归还的借阅。"
 
 # en-hash: 30aa633ceca3224e6de6cdc62d7e3307
 msgid "Available Format"
@@ -148,14 +176,6 @@ msgstr "可用格式"
 # en-hash: 2b1f94ef23b79bf90eb891cae1df7a90
 msgid "Book"
 msgstr "书籍"
-
-# en-hash: b41178dec7c52dd70fb71a5a29480e8d
-msgid "Book Already Downloaded"
-msgstr "书籍已下载"
-
-# en-hash: 899a89322bff5471f9a250d71ff876b5
-msgid "ByteBook"
-msgstr "ByteBook"
 
 # en-hash: 68701363a5d5cf7bbc1eea4208259cf6
 msgid "ByteBooks"
@@ -181,9 +201,13 @@ msgstr "ByteBooks 密码"
 msgid "Cancel"
 msgstr "取消"
 
-# en-hash: a149e85a44aeec9140e92733d9ed694e
-msgid "Cancelled"
-msgstr "已取消"
+# en-hash: f6471e01cc01715f9814ba5589ec87cb
+msgid "Cancel Download"
+msgstr "取消下载"
+
+# en-hash: 9714e513c7579a8c8933902a76782c8b
+msgid "Cards & Libraries"
+msgstr "卡片与图书馆"
 
 # en-hash: eb1b4bb3667dd670210c7822badc2f1d
 msgid "Check for updates"
@@ -209,17 +233,13 @@ msgstr "代码已过期。点击新代码重试。"
 msgid "Connect with Libby code"
 msgstr "使用 Libby 代码连接"
 
-# en-hash: 2ec0d16e4ca169baedb9b2d50ec5c6d7
-msgid "Connected"
-msgstr "已连接"
-
-# en-hash: 265725f5f895c4f418183f9cba48fda4
-msgid "Connected Libraries"
-msgstr "已连接的图书馆"
-
 # en-hash: 60b7a58e56e8e2665e64fb9f42ec183c
 msgid "Connected ›"
 msgstr "已连接 ›"
+
+# en-hash: d7c80fd06fd5acad7f1c2d6331d0e632
+msgid "Connecting & requesting license…"
+msgstr "正在连接并请求许可…"
 
 # en-hash: 4ff77e16703baf1a986734403aa04151
 msgid "Connecting to Libby…"
@@ -227,23 +247,11 @@ msgstr "正在连接到 Libby…"
 
 # en-hash: a95bcca04282197a9949388b819897d7
 msgid "Connecting to Libby…\n\nLoading your active loans…"
-msgstr "正在连接到 Libby…\n\n正在加载借阅列表…"
-
-# en-hash: f3ea2226bfd87c77f77fd5e33575b71d
-msgid "Connection Status"
-msgstr "连接状态"
-
-# en-hash: d6ab5be3edab5ac285b19816029d7547
-msgid "Could Not Load Shelf"
-msgstr "无法加载书架"
+msgstr "正在连接至 Libby…\n\n正在加载您的当前借阅…"
 
 # en-hash: 50c59941ad78ae04b529b9f589902aaa
 msgid "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
 msgstr "无法授权 ByteBooks 账号：\n\n%s\n\n请确保您的邮箱和密码正确。"
-
-# en-hash: 0edfcafcbdb5045ab9f536cb3b3c8675
-msgid "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
-msgstr "无法连接到 Libby：\n%s\n\n请检查 Wi-Fi 连接。"
 
 # en-hash: 183b4a6dda12a0b685721cafd8e8edd0
 msgid "Could not create download folder:\n%s"
@@ -257,9 +265,9 @@ msgstr "无法获取借阅文件：\n\n%s"
 msgid "Could not request setup code."
 msgstr "无法请求配对设置代码。"
 
-# en-hash: 163dd2076f005559c44b9453e5477c99
-msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
-msgstr "无法请求设置代码：\n%s\n\n请确保设备已连接到 Wi-Fi。"
+# en-hash: 5d52fd5e9185cd8915fd819c8daab0ca
+msgid "Could not return loan:\n%s"
+msgstr "无法归还借阅：\n%s"
 
 # en-hash: 686e697538050e4664636337cc3b834f
 msgid "Create"
@@ -273,10 +281,6 @@ msgstr "在“%s”中创建子文件夹："
 msgid "Created '%s'"
 msgstr "已创建“%s”"
 
-# en-hash: 56ab89bac0b1bab13d01fae2271fc13e
-msgid "Current Mode"
-msgstr "当前模式"
-
 # en-hash: 254264d04d17c89ee53c7808fe00c0eb
 msgid "Custom folder ›"
 msgstr "自定义文件夹 ›"
@@ -285,9 +289,17 @@ msgstr "自定义文件夹 ›"
 msgid "DRM activation keys reset"
 msgstr "DRM 激活密钥已重置"
 
+# en-hash: 4f5be46ff93ccc626e77648e002df6ef
+msgid "Decrypting book…"
+msgstr "正在解密图书…"
+
 # en-hash: fd84ab7970c656c94596f0080c1b4e8c
 msgid "Default folder ›"
 msgstr "默认文件夹 ›"
+
+# en-hash: bb0e9460e6b047d3967b0a040d2900bd
+msgid "Device Activation Limit Reached"
+msgstr "已达到设备激活上限"
 
 # en-hash: d4045ad6ac3b251a37c226fba6499def
 msgid "Device DRM"
@@ -297,21 +309,37 @@ msgstr "设备 DRM"
 msgid "Diagnostics & Cache"
 msgstr "诊断与缓存"
 
+# en-hash: e5f1ef27f1a4a4dea4d1d6314e5408b9
+msgid "Disabled ›"
+msgstr "已禁用 ›"
+
 # en-hash: 42ae25231906c83927831e0ef7c317ac
 msgid "Disconnect"
 msgstr "断开连接"
 
-# en-hash: fd456a63260bc8f43e73094f0d826863
-msgid "Disconnect Account"
-msgstr "断开账号"
+# en-hash: ed933c72dcbc58baca63d3f36074c254
+msgid "Disconnect Account?"
+msgstr "断开账户连接？"
 
-# en-hash: 513a57621b57cca0eb03a4ceb37a97a1
-msgid "Disconnect Libby account"
-msgstr "断开 Libby 账号"
+# en-hash: 1dca4ea3608cf5dff42f2e5f902af6ae
+msgid "Disconnect All"
+msgstr "断开所有"
 
-# en-hash: f9cd62554bc3a60867c3fb15640e1d50
-msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
-msgstr "断开您的 Libby 账号？\n\n保存的会话和书架缓存将被清除。"
+# en-hash: 37dabb8f6b09b1c09b8b1ac70e7a7ec7
+msgid "Disconnect All?"
+msgstr "断开所有？"
+
+# en-hash: 1933ad632ff0726a0b8cbe6dcd3d5b11
+msgid "Disconnect all Libby accounts and remove stored cards from this device?"
+msgstr "断开所有 Libby 账户连接并从此设备中删除已保存的卡片？"
+
+# en-hash: 2d7f0e5473f5090882175bec10e32749
+msgid "Disconnect all accounts"
+msgstr "断开所有账户连接"
+
+# en-hash: 5c132a8af23f3829264863e295429dd6
+msgid "Disconnect this Libby account and remove its library cards?\n\n%s"
+msgstr "断开此 Libby 账户连接并删除其图书卡？\n\n%s"
 
 # en-hash: f92965e2c8a7afb3c1b9a5c09a263636
 msgid "Done"
@@ -337,6 +365,14 @@ msgstr "下载借阅书籍"
 msgid "Download and install now?"
 msgstr "现在下载并安装？"
 
+# en-hash: 013ba726c842150ec33822c5a6fc6196
+msgid "Download cancelled"
+msgstr "下载已取消"
+
+# en-hash: 255cab4412ab57cd80daf9583400c221
+msgid "Download cancelled."
+msgstr "下载已取消。"
+
 # en-hash: 2ae89fbb5548c5c979cdca7a76cc9f1b
 msgid "Download failed: %s"
 msgstr "下载失败：%s"
@@ -345,17 +381,33 @@ msgstr "下载失败：%s"
 msgid "Download folder set to '%s'"
 msgstr "下载文件夹已设置为“%s”"
 
+# en-hash: ffb8e2b534d49249461adaa8657fb6cc
+msgid "Download interrupted (possible device memory limit)"
+msgstr "下载中断（可能设备内存不足）"
+
+# en-hash: 9e2d2af4d1cacf871dbd366a553e27e2
+msgid "Download timed out"
+msgstr "下载超时"
+
 # en-hash: c4c81bbfc4574ec8b1dbb31d7d2c9fb6
 msgid "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
 msgstr "下载/授权失败：\n%s\n\n如果显示授权错误，请检查 Wi-Fi 或 DRM 设置。"
 
-# en-hash: 5d3a7d9261c4c23d70edc994065ba958
-msgid "Downloading & fulfilling \"%s\"…"
-msgstr "正在下载并授权《%s》…"
+# en-hash: 6f4ae97857f62d9269358fd71663be7c
+msgid "Downloading Book"
+msgstr "正在下载图书"
 
 # en-hash: e222f73accf9df22206b9c38f61e26c5
 msgid "Downloading Libbee v%s…"
 msgstr "正在下载 Libbee v%s…"
+
+# en-hash: 65967fb03692e83fdf30dd06cf0cde40
+msgid "Downloading book…"
+msgstr "正在下载图书…"
+
+# en-hash: 6c8e88ae50e2ed7c26760d6556b80888
+msgid "Downloading book… (%.1f MB)"
+msgstr "正在下载图书… (%.1f MB)"
 
 # en-hash: c20c35ef53bf1b70789ce94e66800147
 msgid "Downloads"
@@ -364,6 +416,10 @@ msgstr "下载"
 # en-hash: 61600f254d88c842a689e3869b20d442
 msgid "Email cannot be blank"
 msgstr "邮箱不能为空"
+
+# en-hash: 4a21023900c05e1d4da55380522f5cc9
+msgid "Enabled ›"
+msgstr "已启用 ›"
 
 # en-hash: d88c31f3a550c44386a7c29f6be13c5f
 msgid "Enter password for %s:\n(Used in memory only, not stored)"
@@ -397,10 +453,6 @@ msgstr "正在使用 Libbee 处理 ACSM 借阅…"
 msgid "Group by Library Card"
 msgstr "按借书证分组"
 
-# en-hash: c60da36641d760351933ace6a9927b41
-msgid "Holds"
-msgstr "预约"
-
 # en-hash: 2c62e1568e73336b5cc68211f0c643a1
 msgid "Install failed (unzip): %s"
 msgstr "安装失败 (解压)：%s"
@@ -424,10 +476,6 @@ msgstr "仅 Kindle"
 # en-hash: 61057a0c84605444201929bdd72014f0
 msgid "Later"
 msgstr "稍后"
-
-# en-hash: 76374a506e6c678f472608fc19a34615
-msgid "Learn about ByteBook"
-msgstr "了解 ByteBook"
 
 # en-hash: c61c67ed568a6d5aa71932f92b67d806
 msgid "Libbee"
@@ -491,19 +539,11 @@ msgstr "仅限 Libby 应用"
 
 # en-hash: a94c6e1b2275b57db9ab336e4cf5fb31
 msgid "Libby Read"
-msgstr "Libby Read"
-
-# en-hash: c0418b07b48e7490fb6b4b37e7209631
-msgid "Libby account disconnected"
-msgstr "Libby 账号已断开"
+msgstr "Libby 阅读"
 
 # en-hash: ce5ce7e1b50a83e70111ecbd2e5dfd52
 msgid "Libby only"
 msgstr "仅 Libby"
-
-# en-hash: 4d70254b3a8e2bc38b6147fa6ee813be
-msgid "Library"
-msgstr "图书馆"
 
 # en-hash: af91e48bf33d040da890c0ceebe1e9f5
 msgid "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
@@ -513,21 +553,17 @@ msgstr "图书馆：%s\n\n您的设备现已注册。您可以浏览并下载您
 msgid "Link Libby Account"
 msgstr "关联 Libby 账号"
 
-# en-hash: d59189e032a45a99e26263968bd115cf
-msgid "Link another Libby device"
-msgstr "关联其他 Libby 设备"
-
-# en-hash: 4f8712dc31820990e8cdaf0735906eb4
-msgid "Loading your Libby shelf…"
-msgstr "正在加载您的 Libby 书架…"
+# en-hash: 06d7e3b06a54e241eba1c1650b6c0d85
+msgid "Linked Accounts"
+msgstr "已关联账户"
 
 # en-hash: 9ad81a8f8a5c7a6ce9e1ba9bb4759391
 msgid "Loan"
 msgstr "借阅"
 
-# en-hash: 64e109fb6dde9d711f1b7cba6ce2e279
-msgid "Loans"
-msgstr "借阅"
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "Loan Details"
+msgstr "借阅详情"
 
 # en-hash: 6ed59fc0ac82c133ae65d8c7c058c947
 msgid "Local shelf cache cleared"
@@ -549,6 +585,10 @@ msgstr "维护与日志"
 msgid "Make sure your device is connected to Wi-Fi."
 msgstr "请确保您的设备已连接到 Wi-Fi。"
 
+# en-hash: de905377f7fd22f4b015dc36ca1feffa
+msgid "Manage Linked Accounts"
+msgstr "管理已关联账户"
+
 # en-hash: 5148905edb46ca87df979cbb369c403d
 msgid "New Folder"
 msgstr "新建文件夹"
@@ -560,6 +600,10 @@ msgstr "下一步"
 # en-hash: 2d688f4d101a8d1fcb5672e879ffed68
 msgid "Next ›"
 msgstr "下一页 ›"
+
+# en-hash: 093b3147e8ac2ecbf6d357ca6577c652
+msgid "No active loans"
+msgstr "无借阅"
 
 # en-hash: 4f394eff7519830c096186129664be0f
 msgid "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
@@ -603,7 +647,7 @@ msgstr "打开书架"
 
 # en-hash: d26c52f54f262a9c0848b86807f0824a
 msgid "Opening \"%s\"…"
-msgstr "正在打开“%s”…"
+msgstr "正在打开 \"%s\"…"
 
 # en-hash: b8065ad2628f1f82f3167af0947b3e43
 msgid "Page %d of %d"
@@ -625,22 +669,6 @@ msgstr "请输入您的 ByteBooks 密码"
 msgid "Re-authenticate"
 msgstr "重新验证"
 
-# en-hash: 5641109a265d20644270193e2eeaaf39
-msgid "Re-authenticate account"
-msgstr "重新验证账号"
-
-# en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
-msgid "Read"
-msgstr "阅读"
-
-# en-hash: e42ab5e8243c1882cc7eeb878c75920c
-msgid "Redownload"
-msgstr "重新下载"
-
-# en-hash: 63a6a88c066880c5ac42394a22803ca6
-msgid "Refresh"
-msgstr "刷新"
-
 # en-hash: 4307fc3d8df05d5834a98d34e953e720
 msgid "Refresh failed: %s"
 msgstr "刷新失败：%s"
@@ -652,14 +680,6 @@ msgstr "正在从 Libby 刷新书架…"
 # en-hash: 4fc47d4da89f3021f6ad13893afb1a8c
 msgid "Regenerating setup code…"
 msgstr "正在重新生成设置代码…"
-
-# en-hash: 0b9feba3fbb861d2f822c42a07fc9a04
-msgid "Renew"
-msgstr "续借"
-
-# en-hash: b535360116e57509156ca416fb6ba5a6
-msgid "Reset DRM Activation Keys"
-msgstr "重置 DRM 激活密钥"
 
 # en-hash: 3a44a6ce49c866e543a8680c261387ab
 msgid "Reset DRM Keys"
@@ -681,10 +701,6 @@ msgstr "重置保存的 Adobe / ByteBooks 设备激活密钥？\n\n下次下载�
 msgid "Reset to Default"
 msgstr "恢复默认"
 
-# en-hash: fe92ba749089513e672e06313e8ee44e
-msgid "Reset to default download folder"
-msgstr "恢复默认下载文件夹"
-
 # en-hash: 6fa05091a7c5300a39f821188bc2da41
 msgid "Reset ›"
 msgstr "重置 ›"
@@ -697,13 +713,25 @@ msgstr "立即重启"
 msgid "Retry"
 msgstr "重试"
 
-# en-hash: 988fd738de9c6d177440c5dcf69e73ce
-msgid "Return"
-msgstr "归还"
+# en-hash: e936f924825f1f1d14866f53c5e9d26e
+msgid "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
+msgstr "确定要提前归还 \"%s\" 给图书馆吗？\n\n这会将借阅归还至 Libby，并从此设备中删除已下载的图书。阅读历史和书签将被保留。"
 
-# en-hash: c9cc8cce247e49bae79f15173ce97354
-msgid "Save"
-msgstr "保存"
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "Return Early"
+msgstr "提前归还"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "Return Failed"
+msgstr "归还失败"
+
+# en-hash: 38e36f9abaa17225e15b23cb14f0324e
+msgid "Returned \"%s\" to the library."
+msgstr "已归还 \"%s\" 至图书馆。"
+
+# en-hash: 178672dd9879003d55a91e11a3ad9966
+msgid "Returning \"%s\" to library…"
+msgstr "正在归还 \"%s\" 至图书馆…"
 
 # en-hash: 20b4f5bde44dfe7ae815d68bede8b8f9
 msgid "Saved to:\n%s\n\nOpen it from the file browser."
@@ -724,14 +752,6 @@ msgstr "选择文件夹"
 # en-hash: 86180348ed3fa372f89e00d4279cba3c
 msgid "Session Expired"
 msgstr "会话已过期"
-
-# en-hash: bc38cd7cdcb62a99dce1538c5df06d4a
-msgid "Session Status"
-msgstr "会话状态"
-
-# en-hash: f4f70727dc34561dfde1a3c529b6205c
-msgid "Settings"
-msgstr "设置"
 
 # en-hash: aca44fd7c349941d557035e53b1c9d3f
 msgid "Setup Failed"
@@ -757,9 +777,13 @@ msgstr "使用 ByteBooks ID 登录"
 msgid "Status"
 msgstr "状态"
 
-# en-hash: 841037f081328cdc5308528f585512dc
-msgid "Status & Libraries"
-msgstr "状态与图书馆"
+# en-hash: 728480219c44f3ec1bd03847f9cfe4fe
+msgid "Storage Space Full"
+msgstr "存储空间已满"
+
+# en-hash: ed22117be31bb1228408206e15f2ad94
+msgid "Storage Space Low"
+msgstr "存储空间不足"
 
 # en-hash: bbc155fb2b111bf61c4f5ff892915e6b
 msgid "Switch"
@@ -781,45 +805,49 @@ msgstr "切换到匿名 DRM"
 msgid "Switched to anonymous DRM"
 msgstr "已切换到匿名 DRM"
 
+# en-hash: 371a1fa0be014cb9ce302d30991820e9
+msgid "Sync account changes now"
+msgstr "立即同步账户更改"
+
+# en-hash: 45fd23929597c5957b6aad1b71d966db
+msgid "Sync failed: %s"
+msgstr "同步失败：%s"
+
+# en-hash: 5addd3ba663f8d6cf886e6d45105d006
+msgid "Syncing account details…"
+msgstr "正在同步账户详情…"
+
 # en-hash: a45da96d0bf6575970f2d27af22be28a
 msgid "System"
 msgstr "系统"
 
-# en-hash: 189f63f277cd73395561651753563065
-msgid "Tags"
-msgstr "标签"
-
 # en-hash: 02dda5d92b66f09e2004c3357668fdae
 msgid "This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com."
-msgstr "此书只能在 Libby 应用中或 Kindle 设备上打开。\n\n出版商未提供适用于 KOReader 的可下载 EPUB 或 PDF 文件。\n\n要阅读此书，请在手机/平板/电脑上的 Libby 应用中打开，或在 libbyapp.com 上选择“Read with Kindle”。"
+msgstr "此书只能在 Libby 应用或 Kindle 设备上打开。\n\n出版商不为 KOReader 提供可下载的 EPUB 或 PDF 文件。\n\n要阅读此书，请在手机/平板电脑/电脑上的 Libby 应用中打开它，或在 libbyapp.com 上选择“使用 Kindle 阅读”。"
 
 # en-hash: ffc5ef236f6ce51e868c4caf9b93c39c
 msgid "This book can only be read directly in the Libby app or browser reader (OverDrive Read).\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader."
-msgstr "此书只能直接在 Libby 应用或网页阅读器 (OverDrive Read) 中阅读。\n\n出版商未提供适用于 KOReader 的可下载 EPUB 或 PDF 文件。"
+msgstr "此书只能直接在 Libby 应用或浏览器阅读器 (OverDrive Read) 中阅读。\n\n出版商不为 KOReader 提供可下载的 EPUB 或 PDF 文件。"
 
 # en-hash: 85d9b790cf92db1259c444be28a178bc
 msgid "This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."
-msgstr "无法将此书下载到 KOReader。\n\nLibby 仅提供适用于 Libby 应用或 Kindle 设备格式的内容，图书馆不提供可下载的 EPUB/PDF 文件。"
-
-# en-hash: 0e40609ebe02b804db237adad5384dd5
-msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "此书已在其他设备上下载。Libby 仅允许每个 Adobe ID 兑换一次借阅。\n\n如果您使用多个电子阅读器，ByteBook 可让您在所有设备间无缝同步借阅。"
+msgstr "此图书无法下载到 KOReader。\n\nLibby 仅提供适用于 Libby 应用或 Kindle 设备的格式。图书馆未为此借阅提供可下载的 EPUB/PDF 文件。"
 
 # en-hash: a45f5711eda70d5a863d9ebd09f245a6
 msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "此书已在其他设备上下载。Libby 仅允许每个 Adobe ID 兑换一次借阅。\n\n如果您使用多个电子阅读器，ByteBooks 可让您在所有设备间无缝同步借阅。"
+msgstr "此图书已在其他设备上下载。Libby 仅允许每个 Adobe ID 对每次借阅进行一次兑现下载。\n\n如果您使用多个电子阅读器，ByteBooks 可以帮您在所有设备间无缝同步并兑现借阅。"
 
 # en-hash: d0f6b124e23f760507539e55502296a4
 msgid "This book is only available in Amazon Kindle format.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, choose 'Read with Kindle' from the Libby app or website."
-msgstr "此书仅提供 Amazon Kindle 格式。\n\n出版商未提供适用于 KOReader 的可下载 EPUB 或 PDF 文件。\n\n请在 Libby 应用或网站中选择“Read with Kindle”。"
+msgstr "此书仅提供亚马逊 Kindle 格式。\n\n出版商不为 KOReader 提供可下载的 EPUB 或 PDF 文件。\n\n要阅读此书，请从 Libby 应用或网站中选择“使用 Kindle 阅读”。"
 
 # en-hash: aeba2da5f8dcbe55e7c5695a4ce064ee
 msgid "This magazine is not available as a downloadable EPUB or PDF file for KOReader.\n\nPlease read it in the Libby app."
-msgstr "此杂志不支持以可下载的 EPUB/PDF 格式在 KOReader 中打开。\n\n请在 Libby 应用中阅读。"
+msgstr "此杂志不提供适用于 KOReader 的可下载 EPUB 或 PDF 文件。\n\n请在 Libby 应用中阅读。"
 
 # en-hash: cc7bfbfb0977ec05533f82734fb76b41
 msgid "This title is an audiobook and cannot be played in KOReader.\n\nPlease listen to it in the Libby app."
-msgstr "此内容为有声书，无法在 KOReader 中播放。\n\n请在 Libby 应用中收听。"
+msgstr "此项目为有声书，无法在 KOReader 中播放。\n\n请在 Libby 应用中收听。"
 
 # en-hash: 26ddfc6b71bdcf8d76f7d3e9ebb74c05
 msgid "This title is not available in a downloadable format supported by KOReader."
@@ -909,6 +937,14 @@ msgstr "更新日志："
 msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
 msgstr "您的 Libby 授权已过期。\n\n请重新验证以继续下载。"
 
+# en-hash: 6ee87e7a60767e37b48c5030faf22448
+msgid "Your device does not have enough storage space to complete this download.\n\nPlease delete some files or finished books from your device to free up space, and try again."
+msgstr "您的设备没有足够的存储空间来完成此次下载。\n\n请删除一些文件或已读图书以释放空间，然后重试。"
+
+# en-hash: 397fbc429d01695ace947dfe8b61023e
+msgid "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
+msgstr "您的设备剩余存储空间不足 20 MB（剩余 %s MB）。\n\n请在下载前删除一些文件以释放空间。"
+
 # en-hash: 6d22c897874db492fb050da174bf189f
 msgid "badge_audiobook"
 msgstr "有声书"
@@ -961,6 +997,10 @@ msgstr "安装更新"
 msgid "btn_ok"
 msgstr "确定"
 
+# en-hash: f5ac36a6d8af47f34aeedf97baf66fed
+msgid "btn_open_book"
+msgstr "打开图书"
+
 # en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
 msgid "btn_read"
 msgstr "阅读"
@@ -985,6 +1025,10 @@ msgstr "重试"
 msgid "btn_return"
 msgstr "归还"
 
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "btn_return_early"
+msgstr "提前归还"
+
 # en-hash: c9cc8cce247e49bae79f15173ce97354
 msgid "btn_save"
 msgstr "保存"
@@ -997,9 +1041,17 @@ msgstr "设置密码密钥"
 msgid "btn_unlink"
 msgstr "解绑账号"
 
-# en-hash: 4684cddc2fdd1f00234aca819c872304
-msgid "ebook"
-msgstr "电子书"
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "dialog_loan_details"
+msgstr "借阅详情"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "dialog_return_failed"
+msgstr "归还失败"
+
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "dialog_return_loan"
+msgstr "提前归还"
 
 # en-hash: cb5e100e5a9a3e7f6d1fd97512215282
 msgid "error"
@@ -1045,6 +1097,14 @@ msgstr "Libbee 设置"
 msgid "menu_sync"
 msgstr "同步书架"
 
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "msg_auto_delete_multiple"
+msgstr "已自动删除 %d 个到期/已归还的借阅。"
+
+# en-hash: bab5d7d538a3a533edd5ca9deb23f586
+msgid "msg_auto_delete_single"
+msgstr "已自动删除 \"%s\"（借阅已到期）。"
+
 # en-hash: 3c2681ea85407c2c0d252e05a8eaf6aa
 msgid "msg_download_complete"
 msgstr "下载完成。"
@@ -1061,9 +1121,25 @@ msgstr "您的书架上目前没有借阅的书籍。"
 msgid "msg_restart_prompt"
 msgstr "更新已安装。立即重启 KOReader？"
 
-# en-hash: 904e8905680c0c4e3076536e54b12770
+# en-hash: c0db988878d961083858c27ec92c6586
 msgid "msg_return_confirm"
 msgstr "提前将《%s》归还给图书馆？"
+
+# en-hash: e936f924825f1f1d14866f53c5e9d26e
+msgid "msg_return_confirm_details"
+msgstr "确定要提前归还 \"%s\" 给图书馆吗？\n\n这会将借阅归还至 Libby，并从此设备中删除已下载的图书。阅读历史和书签将被保留。"
+
+# en-hash: 5d52fd5e9185cd8915fd819c8daab0ca
+msgid "msg_return_failed"
+msgstr "无法归还借阅：\n%s"
+
+# en-hash: 38e36f9abaa17225e15b23cb14f0324e
+msgid "msg_return_success"
+msgstr "已归还 \"%s\" 至图书馆。"
+
+# en-hash: 178672dd9879003d55a91e11a3ad9966
+msgid "msg_returning_progress"
+msgstr "正在归还 \"%s\" 至图书馆…"
 
 # en-hash: 1ae31fe9e8e36bf2fdf26f08994a77b5
 msgid "msg_sync_complete"
@@ -1080,6 +1156,18 @@ msgstr "从此设备解除绑定 Libby 账号？"
 # en-hash: 25e8f2fd2871c8423bbe4e254066cd98
 msgid "progress_please_wait"
 msgstr "请稍候..."
+
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "setting_auto_delete"
+msgstr "自动删除到期项目"
+
+# en-hash: a9c186d7e7b37e434c9077d4e6cc1bd0
+msgid "setting_auto_delete_desc"
+msgstr "自动删除已启用（将在到期日后 1 天删除借阅）"
+
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "setting_group_by_card"
+msgstr "按读者卡分组"
 
 # en-hash: 96c4d7265c89a6e0ed70ffec22fb1afe
 msgid "status_downloading"
@@ -1109,6 +1197,10 @@ msgstr "借阅"
 msgid "tab_tags"
 msgstr "标签"
 
+# en-hash: afd56f0093199e72136ae4d8d434a79e
+msgid "this book"
+msgstr "这本书"
+
 # en-hash: 0db2ad3bff4478b8f7402e6eeb0fe895
 msgid "view_grid"
 msgstr "封面网格"
@@ -1116,6 +1208,10 @@ msgstr "封面网格"
 # en-hash: 806db08b8d5ab2af924f8401224a9176
 msgid "view_list"
 msgstr "列表视图"
+
+# en-hash: dc106d31a4c7c59d085f09ecd0572570
+msgid "‹ Back"
+msgstr "‹ 返回"
 
 # en-hash: 781881956a4383935c3239bc4ff7e1be
 msgid "‹ Back to Settings"
@@ -1125,9 +1221,9 @@ msgstr "‹ 返回设置"
 msgid "‹ Prev"
 msgstr "‹ 上一页"
 
-# en-hash: 158fe160015b2b6aa9e10a959bfe03fd
-msgid "⏳ %d days remaining on this loan.\n\n"
-msgstr "⏳ 本次借阅还剩 %d 天。\n\n"
+# en-hash: 13e1667c1eaf81308b494833b78485aa
+msgid "✓ Account synced successfully"
+msgstr "✓ 账户同步成功"
 
 # en-hash: 57f4d25b2ed89c3ff4eda491b0544bbe
 msgid "✓ Active"
@@ -1141,10 +1237,6 @@ msgstr "✓ 匿名激活有效"
 msgid "✓ ByteBooks authorized successfully!"
 msgstr "✓ ByteBooks 授权成功！"
 
-# en-hash: 17e80751a7223bf83dc6127a2670f98f
-msgid "✓ Connected"
-msgstr "✓ 已连接"
-
 # en-hash: 5409903c4f0d9ff97744f7efde928e46
 msgid "✓ Download Complete!"
 msgstr "✓ 下载完成！"
@@ -1152,8 +1244,4 @@ msgstr "✓ 下载完成！"
 # en-hash: 339e5ff0141bb9d29554609fadf4d52b
 msgid "✓ Libbee Connected!"
 msgstr "✓ Libbee 已连接！"
-
-# en-hash: 25c78c5528381192b859a353be7fa609
-msgid "✗ Not Connected"
-msgstr "✗ 未连接"
 

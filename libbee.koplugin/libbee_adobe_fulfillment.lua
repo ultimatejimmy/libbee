@@ -9,14 +9,14 @@ local socket = require("socket")
 local socketutil = require("socketutil")
 local koutil = require("util")
 
-local adobe = require("adobe.adobe")
-local adobehash = require("adobe.util.adobehash")
-local crypto = require("adobe.util.crypto")
-local dom = require("adobe.util.dom")
-local epub = require("adobe.epub")
-local nativecrypto = require("adobe.util.nativecrypto")
-local util = require("adobe.util.util")
-local xml = require("adobe.util.xml")
+local adobe = require("libbee_adobe_core")
+local adobehash = require("libbee_adobe_adobehash")
+local crypto = require("libbee_adobe_crypto")
+local dom = require("libbee_adobe_dom")
+local epub = require("libbee_adobe_epub")
+local nativecrypto = require("libbee_adobe_nativecrypto")
+local util = require("libbee_adobe_util")
+local xml = require("libbee_adobe_xml")
 
 local ADEPT = adobehash.ADEPT
 
@@ -363,7 +363,7 @@ function fulfillment.fulfill(acsmPath, userUUID, deviceUUID, fingerprint, signin
     }
 end
 
-function fulfillment.downloadBook(srcUrl, outputPath)
+function fulfillment.downloadBook(srcUrl, outputPath, progress_fn)
     local handle, err = io.open(outputPath, "wb")
     if not handle then
         return nil, err
@@ -371,28 +371,69 @@ function fulfillment.downloadBook(srcUrl, outputPath)
 
     local sink, sinkErr = socketutil.file_sink(handle)
     if not sink then
+        handle:close()
         return nil, sinkErr
     end
 
-    socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
-    local ok, code = pcall(function()
-        return socket.skip(
-            1,
-            http.request({
-                url = srcUrl,
-                sink = sink,
-                headers = { ["User-Agent"] = socketutil.USER_AGENT },
-            })
-        )
+    local total_bytes = 0
+    local last_report = 0
+    local tracking_sink = function(chunk, src_err)
+        if chunk and #chunk > 0 then
+            total_bytes = total_bytes + #chunk
+            -- Report every 64KB (was 512KB) so the stall detector sees frequent activity
+            if progress_fn and (total_bytes - last_report >= 65536) then
+                last_report = total_bytes
+                pcall(progress_fn, total_bytes)
+            end
+        end
+        return sink(chunk, src_err)
+    end
+
+    -- Disable total timeout for file downloads: only enforce per-block timeout (30s inactivity)
+    -- In KOReader, total_timeout < 0 (i.e. -1) disables total timeout entirely. Passing 0 enforces a 0s timeout!
+    socketutil:set_timeout(30, -1)
+    local ok, res, code, headers, status = pcall(function()
+        return http.request({
+            url = srcUrl,
+            sink = tracking_sink,
+            headers = { ["User-Agent"] = socketutil.USER_AGENT },
+        })
     end)
     socketutil:reset_timeout()
+    pcall(function() handle:close() end)
+
+    if progress_fn then
+        pcall(progress_fn, total_bytes)
+    end
     if not ok then
-        return nil, code
+        os.remove(outputPath)
+        return nil, "Download network error: " .. tostring(res)
+    end
+
+    -- res is 1 on success. If timeout or socket error occurred, res is nil and code is "timeout" or error message
+    if res ~= 1 then
+        os.remove(outputPath)
+        return nil, "Download aborted: " .. tostring(code or "connection closed prematurely")
+    end
+    if type(code) == "number" and (code < 200 or code >= 300) then
+        os.remove(outputPath)
+        return nil, "Download HTTP error: " .. tostring(code)
+    end
+
+    -- Verify we received the full file per Content-Length header
+    local clen = headers and (tonumber(headers["content-length"]) or tonumber(headers["Content-Length"]))
+    if clen and clen > 0 and total_bytes < clen then
+        local msg = string.format("Download incomplete: received %d of %d bytes (%.1f MB of %.1f MB)",
+            total_bytes, clen, total_bytes / 1048576, clen / 1048576)
+        logger.warn("[ACSM] " .. msg)
+        os.remove(outputPath)
+        return nil, msg
     end
 
     local attr = lfs.attributes(outputPath)
     if not attr or attr.size == 0 then
-        return nil, "Book download failed: " .. tostring(code)
+        os.remove(outputPath)
+        return nil, "Book download failed: empty file"
     end
     return true
 end
@@ -436,7 +477,15 @@ function fulfillment.notify(notifyURL, userUUID, deviceUUID, signingKey)
     return true
 end
 
-function fulfillment.process(acsmPath, outputPath, creds, deviceUUID, fingerprint, authCert)
+function fulfillment.process(acsmPath, outputPath, creds, deviceUUID, fingerprint, authCert, options_or_fn)
+    local progress_fn
+    local options
+    if type(options_or_fn) == "function" then
+        progress_fn = options_or_fn
+    elseif type(options_or_fn) == "table" then
+        options = options_or_fn
+        progress_fn = options.progress_fn
+    end
     outputPath = outputPath or acsmPath:gsub("%.acsm$", ".epub")
     logger.info("[ACSM] fulfillment.process: acsmPath=", acsmPath, "outputPath=", outputPath)
 
@@ -526,12 +575,15 @@ function fulfillment.process(acsmPath, outputPath, creds, deviceUUID, fingerprin
     -- Download the book (detect format from magic bytes)
     local tmpFile = uniqueCachePath("fulfillment", ".bin")
     logger.info("[ACSM] fulfillment.process: downloading book to", tmpFile)
-    local _, downloadErr = fulfillment.downloadBook(result.src, tmpFile)
+    local _, downloadErr = fulfillment.downloadBook(result.src, tmpFile, progress_fn)
     if downloadErr then
         os.remove(tmpFile)
         return nil, downloadErr
     end
     logger.info("[ACSM] fulfillment.process: download complete")
+    if progress_fn then
+        pcall(progress_fn, "decrypt")
+    end
 
     -- Detect format from magic bytes
     local magicF = io.open(tmpFile, "rb")
@@ -545,11 +597,25 @@ function fulfillment.process(acsmPath, outputPath, creds, deviceUUID, fingerprin
 
     logger.info("[ACSM] fulfillment.process: format detected: ", isPdf and "PDF" or (isEpub and "EPUB" or "unknown"))
 
+    if options and type(options.resolve_output_path) == "function" then
+        local resolvedPath, resolveErr = options.resolve_output_path(tmpFile, {
+            is_epub = isEpub,
+            is_pdf = isPdf,
+            extension = isPdf and "pdf" or (isEpub and "epub" or nil),
+        })
+        if not resolvedPath then
+            os.remove(tmpFile)
+            return nil, "Could not resolve book destination: " .. tostring(resolveErr or "unknown error")
+        end
+        outputPath = resolvedPath
+        logger.info("[ACSM] fulfillment.process: resolved outputPath=", outputPath)
+    end
+
     local decryptedInfo, decryptErr
     local bookKey -- may be nil for PDF (extracted internally)
     if isPdf then
         logger.info("[ACSM] fulfillment.process: decrypting PDF...")
-        local pdf = require("adobe.pdf")
+        local pdf = require("libbee_adobe_pdf")
         -- PDF path: let decryptAdobePdf extract the book key from the PDF's
         -- ADEPT_LICENSE, handling hardening removal automatically.
         -- Pass fulfillment encrypted key as fallback for older ADEPT schemes

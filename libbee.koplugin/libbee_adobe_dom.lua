@@ -1,7 +1,7 @@
 local dom = {}
 
-local xml2lua = require("xml2lua")
-local domhandler = require("xmlhandler.dom")
+local xml2lua = require("libbee_xml2lua")
+local domhandler = require("libbee_xmlhandler_dom")
 
 function dom.parse(xml_string)
     local handler = domhandler:new()

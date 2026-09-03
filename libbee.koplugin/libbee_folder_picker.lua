@@ -21,9 +21,9 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local plugin_path = ((...) or ""):match("(.-)[^%.]+$") or ""
-local ok_loc, Localization = pcall(require, plugin_path .. "localization_libbee")
+local ok_loc, Localization = pcall(require, plugin_path .. "libbee_localization")
 if not ok_loc or not Localization then
-    ok_loc, Localization = pcall(require, "localization_libbee")
+    ok_loc, Localization = pcall(require, "libbee_localization")
 end
 local _ = function(key, ...)
     if ok_loc and Localization then

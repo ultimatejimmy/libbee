@@ -17,14 +17,14 @@
 
 local logger = require("logger")
 
-local pdfdoc = require("adobe.pdf.pdfdoc")
-local pdfcrypt = require("adobe.pdf.pdfcrypt")
-local writer = require("adobe.pdf.writer")
-local rc4 = require("adobe.pdf.rc4")
-local nativecrypto = require("adobe.util.nativecrypto")
-local zlib = require("adobe.util.zlib")
-local xml = require("adobe.util.xml")
-local util = require("adobe.util.util")
+local pdfdoc = require("libbee_adobe_pdf_doc")
+local pdfcrypt = require("libbee_adobe_pdf_crypt")
+local writer = require("libbee_adobe_pdf_writer")
+local rc4 = require("libbee_adobe_pdf_rc4")
+local nativecrypto = require("libbee_adobe_nativecrypto")
+local zlib = require("libbee_adobe_zlib")
+local xml = require("libbee_adobe_xml")
+local util = require("libbee_adobe_util")
 
 local pdf = {}
 
@@ -493,13 +493,25 @@ function pdf.decryptAdobePdf(inputPath, outputPath, bookKey, licenseKey, fulfill
         if objid ~= doc.encrypt_objid then
             local obj = doc:getobj(objid)
             if obj then
-                -- Write immediately — after this call, `obj` can be GC'd
-                w:writeObject(objid, obj)
-                decryptCount = decryptCount + 1
+                -- Skip obsolete /Type /XRef streams and /Type /ObjStm containers
+                local skip = false
+                if type(obj) == "table" and obj.dic then
+                    local t = obj.dic.Type or obj.dic["type"] or obj.dic["Type"]
+                    local type_name = (type(t) == "table" and (t.name or t.keyword)) or tostring(t or "")
+                    if type_name == "XRef" or type_name == "ObjStm" then
+                        skip = true
+                    end
+                end
 
-                -- Count streams for diagnostics
-                if type(obj) == "table" and obj.dic ~= nil then
-                    streamCount = streamCount + 1
+                if not skip then
+                    -- Write immediately — after this call, `obj` can be GC'd
+                    w:writeObject(objid, obj)
+                    decryptCount = decryptCount + 1
+
+                    -- Count streams for diagnostics
+                    if type(obj) == "table" and obj.dic ~= nil then
+                        streamCount = streamCount + 1
+                    end
                 end
 
                 -- Release from document cache so Lua can reclaim the memory.

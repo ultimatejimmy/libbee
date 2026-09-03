@@ -8,10 +8,10 @@ local socket = require("socket")
 local socketutil = require("socketutil")
 local url = require("socket.url")
 
-local util = require("adobe.util.util")
-local crypto = require("adobe.util.crypto")
-local xml = require("adobe.util.xml")
-local base64 = require("adobe.util.util").base64
+local util = require("libbee_adobe_util")
+local crypto = require("libbee_adobe_crypto")
+local xml = require("libbee_adobe_xml")
+local base64 = require("libbee_adobe_util").base64
 
 -- Eden2 activation service
 adobe.EDEN_URL = url.parse("https://adeactivate.adobe.com/adept")

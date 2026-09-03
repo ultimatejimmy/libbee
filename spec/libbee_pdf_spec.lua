@@ -1,7 +1,7 @@
 local helper = require("spec/spec_helper")
-local pdf = require("adobe.pdf")
-local pdfdoc = require("adobe.pdf.pdfdoc")
-local pdfparser = require("adobe.pdf.parser")
+local pdf = require("libbee_adobe_pdf")
+local pdfdoc = require("libbee_adobe_pdf_doc")
+local pdfparser = require("libbee_adobe_pdf_parser")
 
 describe("PDF DRM and Decryption", function()
     local testDir = "spec/tmp_pdf"
@@ -244,6 +244,144 @@ describe("PDF DRM and Decryption", function()
             assert.is_not_nil(meta)
             local finalPath = LibbeeDRM.deriveFinalBookPath("/mnt/us/Home/Libby", { title = "Venom" }, meta)
             assert.is_true(finalPath:find("%.pdf$") ~= nil)
+        end)
+    end)
+
+    describe("Stream parsing with indirect /Length and fallback endstream scanning", function()
+        it("resolves indirect /Length reference via document", function()
+            local rawContent = "10 0 obj\n<< /Length 15 0 R >>\nstream\nHELLO_INDIRECT_WORLD\nendstream\nendobj\n"
+            local f = io.tmpfile()
+            f:write(rawContent)
+            f:seek("set", 0)
+
+            local mockDoc = {
+                getobj = function(self, id)
+                    if id == 15 then return 20 end -- #("HELLO_INDIRECT_WORLD") == 20
+                    return nil
+                end
+            }
+
+            local p = pdfparser.new(f, mockDoc)
+            p:seek(0)
+            p:nexttoken() -- 10
+            p:nexttoken() -- 0
+            p:nexttoken() -- obj
+            local res = p:nextobject()
+            f:close()
+
+            assert.is_table(res)
+            local stream_obj = res[2]
+            assert.is_table(stream_obj)
+            assert.are_equal("HELLO_INDIRECT_WORLD", stream_obj.rawdata)
+        end)
+
+        it("scans forward to endstream when /Length is not specified", function()
+            local rawContent = "10 0 obj\n<< /Filter /FlateDecode >>\nstream\nFALLBACK_STREAM_DATA_HERE\nendstream\nendobj\n"
+            local f = io.tmpfile()
+            f:write(rawContent)
+            f:seek("set", 0)
+
+            local p = pdfparser.new(f)
+            p:seek(0)
+            p:nexttoken() -- 10
+            p:nexttoken() -- 0
+            p:nexttoken() -- obj
+            local res = p:nextobject()
+            f:close()
+
+            assert.is_table(res)
+            local stream_obj = res[2]
+            assert.is_table(stream_obj)
+            assert.are_equal("FALLBACK_STREAM_DATA_HERE", stream_obj.rawdata)
+        end)
+    end)
+
+    describe("Clean trailer generation and XRefStream stripping", function()
+        it("strips Type, Filter, W, Index from XRefStream trailers and preserves Root", function()
+            local doc = pdfdoc.PDFDocument:new()
+            doc.root = { ref = { objid = 1, genno = 0 } }
+            local xrefStream = {
+                trailer = {
+                    Type = "XRef",
+                    Filter = "FlateDecode",
+                    W = { 1, 2, 1 },
+                    Index = { 0, 100 },
+                    Size = 100,
+                    Length = 450,
+                    Root = { ref = { objid = 1, genno = 0 } },
+                    Info = { ref = { objid = 2, genno = 0 } },
+                    ID = { "id1", "id2" },
+                    Prev = 12345,
+                    XRefStm = 6789,
+                }
+            }
+            doc.xrefs = { xrefStream }
+
+            local clean = doc:getCleanTrailer()
+            assert.is_table(clean)
+            assert.is_nil(clean.Type)
+            assert.is_nil(clean.Filter)
+            assert.is_nil(clean.W)
+            assert.is_nil(clean.Index)
+            assert.is_nil(clean.Length)
+            assert.is_nil(clean.Prev)
+            assert.is_nil(clean.XRefStm)
+            assert.is_nil(clean.Encrypt)
+
+            assert.are_equal(100, clean.Size)
+            assert.is_table(clean.Root)
+            assert.are_equal(1, clean.Root.ref.objid)
+            assert.is_table(clean.Info)
+            assert.are_equal(2, clean.Info.ref.objid)
+        end)
+
+        it("merges trailers from oldest to newest so newest revision overrides older values", function()
+            local doc = pdfdoc.PDFDocument:new()
+            local oldTrailer = {
+                trailer = {
+                    Root = { ref = { objid = 1, genno = 0 } },
+                    Info = { ref = { objid = 2, genno = 0 } },
+                    Size = 50,
+                }
+            }
+            local newTrailer = {
+                trailer = {
+                    Root = { ref = { objid = 5, genno = 0 } },
+                    Size = 75,
+                }
+            }
+            -- doc.xrefs has newest first (index 1) and oldest last (index 2)
+            doc.xrefs = { newTrailer, oldTrailer }
+
+            local clean = doc:getCleanTrailer()
+            assert.are_equal(5, clean.Root.ref.objid)
+            assert.are_equal(2, clean.Info.ref.objid)
+            assert.are_equal(75, clean.Size)
+        end)
+    end)
+
+    describe("Skipping obsolete stream objects", function()
+        it("identifies /Type /XRef and /Type /ObjStm stream objects to skip", function()
+            local function should_skip(obj)
+                if type(obj) == "table" and obj.dic then
+                    local t = obj.dic.Type or obj.dic["type"] or obj.dic["Type"]
+                    local type_name = (type(t) == "table" and (t.name or t.keyword)) or tostring(t or "")
+                    if type_name == "XRef" or type_name == "ObjStm" then
+                        return true
+                    end
+                end
+                return false
+            end
+
+            local xrefObj = { dic = { Type = pdfparser.literal("XRef") } }
+            local objstmObj = { dic = { Type = "ObjStm" } }
+            local pageObj = { dic = { Type = pdfparser.literal("Page") } }
+            local rawObj = { dic = { Length = 100 } }
+
+            assert.is_true(should_skip(xrefObj))
+            assert.is_true(should_skip(objstmObj))
+            assert.is_false(should_skip(pageObj))
+            assert.is_false(should_skip(rawObj))
         end)
     end)
 end)

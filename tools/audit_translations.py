@@ -48,26 +48,46 @@ ENCODING_SENSITIVE_KEYS = {
     'progress_please_wait',
 }
 
+def decode_po_string(s):
+    if hasattr(sync_translations, 'decode_po_string'):
+        return sync_translations.decode_po_string(s)
+    return s.replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\') if s else ""
+
+def encode_po_string(s):
+    if hasattr(sync_translations, 'encode_po_string'):
+        return sync_translations.encode_po_string(s)
+    return s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') if s else ""
+
+def format_specifiers(s):
+    if hasattr(sync_translations, 'format_specifiers'):
+        return sync_translations.format_specifiers(s)
+    return re.findall(r'%[0-9]*\$?[a-zA-Z]', s) if s else []
+
 def scan_unwrapped_ui_strings():
     unwrapped = []
     for root, _, files in os.walk(SOURCE_DIR):
         if 'languages' in root or 'tools' in root or 'spec' in root: continue
         for file in files:
-            if file.endswith('.lua') and file != 'localization_libbee.lua':
+            if file.endswith('.lua') and file != 'localization_libbee.lua' and file != 'libbee_localization.lua':
                 file_path = os.path.join(root, file)
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
                     for pat in UI_WIDGET_PATTERNS:
                         for m in re.finditer(pat, content):
                             val = m.group(1)
-                            # Ignore icon strings, font files, numbers, single chars, format templates
-                            if len(val) > 2 and not val.endswith('.svg') and not val.endswith('.png') and not val.endswith('.ttf') and not val.startswith('%'):
+                            # Ignore icon strings, font files, numbers, single chars, format templates, URLs
+                            if (len(val) > 2 and not val.endswith('.svg') and not val.endswith('.png')
+                                    and not val.endswith('.ttf') and not val.startswith('%')
+                                    and not val.startswith('http://') and not val.startswith('https://')
+                                    and not val.startswith('www.')):
                                 unwrapped.append((file, val))
     return unwrapped
 
 def extract_keys_from_lua():
-    keys, fallback_map = sync_translations.extract_keys_from_lua()
-    return keys
+    res = sync_translations.extract_keys_from_lua()
+    if isinstance(res, tuple):
+        return res[0]
+    return res
 
 def parse_po(file_path):
     entries = {}
@@ -92,19 +112,19 @@ def parse_po(file_path):
                 if current_msgid is not None and current_msgstr is not None:
                     entries[current_msgid] = current_msgstr
                 m = re.match(r'^msgid "(.*)"$', line_str)
-                current_msgid = sync_translations.decode_po_string(m.group(1)) if m else ''
+                current_msgid = decode_po_string(m.group(1)) if m else ''
                 current_msgstr = None
                 in_msgid = True
                 in_msgstr = False
             elif line_str.startswith('msgstr '):
                 m = re.match(r'^msgstr "(.*)"$', line_str)
-                current_msgstr = sync_translations.decode_po_string(m.group(1)) if m else ''
+                current_msgstr = decode_po_string(m.group(1)) if m else ''
                 in_msgid = False
                 in_msgstr = True
             elif line_str.startswith('"'):
                 m = re.match(r'^"(.*)"$', line_str)
                 if m:
-                    val = sync_translations.decode_po_string(m.group(1))
+                    val = decode_po_string(m.group(1))
                     if in_msgid and current_msgid is not None:
                         current_msgid += val
                     elif in_msgstr and current_msgstr is not None:
@@ -120,8 +140,8 @@ def save_po(file_path, lang_name, lang_code, entries):
         for key in sorted(entries.keys()):
             if not key: continue
             val = entries[key]
-            escaped_key = sync_translations.encode_po_string(key)
-            escaped_val = sync_translations.encode_po_string(val)
+            escaped_key = encode_po_string(key)
+            escaped_val = encode_po_string(val)
             f.write(f'msgid "{escaped_key}"\nmsgstr "{escaped_val}"\n\n')
 
 def run_audit():
@@ -181,7 +201,7 @@ def run_audit():
                 empty.append(key)
             elif key in ENCODING_SENSITIVE_KEYS and "?" in val:
                 empty.append(key)
-            elif sync_translations.format_specifiers(val) != sync_translations.format_specifiers(en_val):
+            elif format_specifiers(val) != format_specifiers(en_val):
                 spec_mismatch.append(key)
 
             max_length = TRANSLATION_MAX_LENGTHS.get(key)

@@ -41,8 +41,6 @@ local plugin_root = (info and info.source and info.source:match("^@(.*[/\\])")) 
 plugin_root = plugin_root:gsub("[/\\]+$", "")
 local extra_paths = {
     plugin_root .. "/?.lua",
-    plugin_root .. "/dependencies/?.lua",
-    plugin_root .. "/dependencies/xmlhandler/?.lua",
 }
 for _, ep in ipairs(extra_paths) do
     if not package.path:find(ep, 1, true) then
@@ -50,9 +48,9 @@ for _, ep in ipairs(extra_paths) do
     end
 end
 
-local ok_loc, Localization = pcall(require, plugin_path .. "localization_libbee")
+local ok_loc, Localization = pcall(require, plugin_path .. "libbee_localization")
 if not ok_loc or not Localization then
-    ok_loc, Localization = pcall(require, "localization_libbee")
+    ok_loc, Localization = pcall(require, "libbee_localization")
 end
 local _ = function(key, ...)
     if ok_loc and Localization then
@@ -274,7 +272,7 @@ local function _close(w)
     end
 end
 
-local function _runNetwork(work_fn, on_done)
+local function _runNetwork(work_fn, on_done, trap_widget)
     local execute = function()
         local is_android = pcall(require, "android")
         local ok_dev, Device = pcall(require, "device")
@@ -285,6 +283,7 @@ local function _runNetwork(work_fn, on_done)
         local ok_trapper, Trapper = pcall(require, "ui/trapper")
         if not is_android and ok_trapper and Trapper and type(Trapper.wrap) == "function" and type(Trapper.dismissableRunInSubprocess) == "function" then
             Trapper:wrap(function()
+                local trap_target = (trap_widget ~= nil) and trap_widget or false
                 local completed, wrapped_res = Trapper:dismissableRunInSubprocess(function()
                     local ok, r1, r2 = pcall(work_fn)
                     if ok then
@@ -292,18 +291,26 @@ local function _runNetwork(work_fn, on_done)
                     else
                         return { success = false, err = tostring(r1 or _("Unknown error")) }
                     end
-                end, false)
+                end, trap_target)
                 if completed and type(wrapped_res) == "table" then
                     if wrapped_res.success then
                         on_done(wrapped_res.r1, wrapped_res.r2)
                     else
+                        log.err("libbee ui: download task failed: " .. tostring(wrapped_res.err))
                         on_done(nil, wrapped_res.err)
                     end
-                elseif completed then
-                    on_done(nil, _("Operation cancelled"))
+                elseif trap_target and trap_target.was_user_cancelled then
+                    log.info("libbee ui: download was cancelled by user")
+                    on_done(nil, _("Download cancelled"))
+                elseif trap_target and trap_target.was_timed_out then
+                    log.warn("libbee ui: download timed out (stalled)")
+                    on_done(nil, _("Download timed out"))
+                elseif not completed then
+                    log.info("libbee ui: download was cancelled by user")
+                    on_done(nil, _("Download cancelled"))
                 else
-                    log.err("libbee ui: background task was interrupted or killed by OS (possible memory limit)")
-                    on_done(nil, _("Operation cancelled or interrupted"))
+                    log.err("libbee ui: background process was killed by OS or crashed (possible memory limit)")
+                    on_done(nil, _("Download interrupted (possible device memory limit)"))
                 end
             end)
         else
@@ -327,7 +334,7 @@ local function _runNetwork(work_fn, on_done)
 end
 
 local function _runAsync(work_fn, spinner_text, on_done)
-    local spinner = _toast(spinner_text, 120)
+    local spinner = _toast(spinner_text, 180)
     _runNetwork(work_fn, function(r1, r2)
         _close(spinner)
         on_done(r1, r2)
@@ -435,6 +442,271 @@ local function createIconButton(opts)
         icon_widget,
     }
     return makeTapItem(frame, opts.callback)
+end
+
+-- ---------------------------------------------------------------------------
+-- Download Progress Dialog with Cancel Button
+-- ---------------------------------------------------------------------------
+
+local function createProgressBar(width, initial_pct)
+    local bar_h = sc(12)
+    local border_sz = sc(1)
+    local max_fill_w = width - (border_sz * 2)
+    local fill_w = math.max(sc(2), math.min(max_fill_w, math.floor(max_fill_w * math.min(1, math.max(0, initial_pct or 0)))))
+    local fill_line = LineWidget:new{
+        dimen = Geom:new{ w = fill_w, h = bar_h - (border_sz * 2) },
+        background = theme.color_accent or Blitbuffer.COLOR_BLACK,
+    }
+    local bar = FrameContainer:new{
+        padding = 0,
+        padding_top = 0,
+        padding_right = 0,
+        padding_bottom = 0,
+        padding_left = 0,
+        margin = 0,
+        bordersize = border_sz,
+        radius = theme.radius_btn or sc(2),
+        color = Blitbuffer.COLOR_BLACK,
+        background = theme.color_focus_bg or Blitbuffer.COLOR_WHITE,
+        width = width,
+        height = bar_h,
+        fill_line,
+    }
+    bar._padding_top = 0
+    bar._padding_right = 0
+    bar._padding_bottom = 0
+    bar._padding_left = 0
+    function bar:getSize()
+        self._padding_top = 0
+        self._padding_right = 0
+        self._padding_bottom = 0
+        self._padding_left = 0
+        return Geom:new{ w = width, h = bar_h }
+    end
+    function bar:setPercentage(pct)
+        local w = math.max(0, math.min(max_fill_w, math.floor(max_fill_w * math.min(1, math.max(0, pct)))))
+        if fill_line then
+            if fill_line.dimen then
+                fill_line.dimen.w = w
+            elseif fill_line.args and fill_line.args.dimen then
+                fill_line.args.dimen.w = w
+            end
+        end
+    end
+    return bar
+end
+
+local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
+    _dismissActiveToast()
+    local sw = Screen:getWidth()
+    local sh = Screen:getHeight()
+    local card_padding = sc(16)
+    local card_border = theme.border_window or sc(2)
+    local dialog_w = math.min(sw - sc(24), sc(420))
+    local inner_w = dialog_w - (card_padding * 2) - (card_border * 2)
+
+    local overlay
+    local tick_token
+    local is_closed = false
+
+    local function closeDialog()
+        if is_closed then return end
+        is_closed = true
+        if tick_token then
+            UIManager:unschedule(tick_token)
+            tick_token = nil
+        end
+        if overlay then
+            local ov = overlay
+            overlay = nil
+            ov.dismiss_callback = nil
+            UIManager:close(ov, "ui")
+        end
+    end
+
+    local title_text = (loan and loan.title) and loan.title or _("Book")
+    local status_label = TextBoxWidget:new{
+        text = _("Connecting & requesting license…"),
+        face = Font:getFace("cfont", theme.face_label_size or 15),
+        bold = true,
+        fgcolor = Blitbuffer.COLOR_BLACK,
+        width = inner_w,
+        alignment = "center",
+    }
+
+    local progress_bar = createProgressBar(inner_w, 0.1)
+
+    local btn_w = inner_w
+    local btn_h = sc(36)
+    local cancel_btn = createButton{
+        text = _("Cancel Download"),
+        text_font_size = theme.subtext_font_size or 15,
+        bold = false,
+        bordersize = sc(1),
+        radius = theme.radius_btn or sc(4),
+        width = btn_w,
+        height = btn_h,
+        callback = function()
+            if overlay then
+                overlay.was_user_cancelled = true
+            end
+            if overlay and overlay.dismiss_callback then
+                overlay.dismiss_callback()
+            else
+                closeDialog()
+                log.info("libbee ui: download was cancelled by user")
+                on_done(nil, _("Download cancelled"))
+            end
+        end,
+    }
+
+    local card = FrameContainer:new{
+        padding = card_padding,
+        radius = theme.radius_window or sc(4),
+        bordersize = card_border,
+        color = Blitbuffer.COLOR_BLACK,
+        background = theme.color_bg or Blitbuffer.COLOR_WHITE,
+        width = dialog_w,
+        VerticalGroup:new{
+            align = "center",
+            TextBoxWidget:new{
+                text = _("Downloading Book"),
+                face = Font:getFace("NotoSerif-Regular.ttf", theme.title_font_size or 20),
+                bold = true,
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                width = inner_w,
+                alignment = "center",
+            },
+            VerticalSpan:new{ width = sc(6) },
+            LineWidget:new{
+                dimen = Geom:new{ w = inner_w, h = sc(1) },
+                background = theme.color_section_rule or Blitbuffer.COLOR_DARK_GRAY,
+            },
+            VerticalSpan:new{ width = sc(12) },
+            TextBoxWidget:new{
+                text = title_text,
+                face = Font:getFace("NotoSerif-Regular.ttf", theme.face_label_size or 16),
+                bold = true,
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                width = inner_w,
+                alignment = "center",
+            },
+            VerticalSpan:new{ width = sc(14) },
+            status_label,
+            VerticalSpan:new{ width = sc(12) },
+            progress_bar,
+            VerticalSpan:new{ width = sc(18) },
+            cancel_btn,
+        }
+    }
+
+    overlay = InputContainer:new{
+        dimen = Geom:new{ w = sw, h = sh },
+        CenterContainer:new{
+            dimen = Geom:new{ w = sw, h = sh },
+            card,
+        }
+    }
+    overlay.label_widget = { text = "Downloading & fulfilling " .. title_text }
+
+    -- Consume touches outside the cancel button so accidental taps do not cancel
+    overlay.ges_events = {
+        Tap = {
+            GestureRange:new{
+                range = Geom:new{ w = sw, h = sh },
+            }
+        }
+    }
+    overlay.onTap = function(self, arg, ges)
+        return true
+    end
+
+    UIManager:show(overlay, "ui")
+
+    -- Phase timer: smoothly updates status and progress bar based on actual download progress
+    -- Phase timer: smoothly and monotonically updates status and progress bar based on actual download progress
+    local elapsed = 0
+    local max_bytes_seen = 0
+    local max_pct_seen = 0.15
+    local last_progress_time = 0
+    local current_phase = "acsm"
+
+    local function tick()
+        if is_closed then return end
+        elapsed = elapsed + 0.5
+
+        local pf = progress_path and io.open(progress_path, "r")
+        local progress_str = pf and pf:read("*l")
+        if pf then pf:close() end
+
+        if progress_str and progress_str ~= "" then
+            local phase, detail = progress_str:match("^([^:]+):?(.*)$")
+            if phase and phase ~= "" then
+                current_phase = phase
+            end
+
+            if phase == "download" then
+                local bytes = tonumber(detail or "")
+                if bytes and bytes > max_bytes_seen then
+                    max_bytes_seen = bytes
+                    last_progress_time = elapsed
+                end
+            elseif phase == "decrypt" then
+                last_progress_time = elapsed
+            elseif phase == "acsm" then
+                last_progress_time = elapsed
+            end
+        end
+
+        if current_phase == "decrypt" then
+            status_label:setText(_("Decrypting book…"))
+            max_pct_seen = math.max(max_pct_seen, 0.90)
+            progress_bar:setPercentage(max_pct_seen)
+        elseif current_phase == "download" or max_bytes_seen > 0 then
+            local mb = max_bytes_seen / 1048576
+            status_label:setText(string.format(_("Downloading book… (%.1f MB)"), mb))
+            -- Smooth monotonic curve that gracefully scales across all file sizes (1MB to 400MB+)
+            -- Guarantees the progress bar never jumps backward
+            local pct = 0.20 + 0.65 * (1 - (1 / (1 + (mb / 30)^0.75)))
+            max_pct_seen = math.max(max_pct_seen, math.min(0.85, pct))
+            progress_bar:setPercentage(max_pct_seen)
+        else
+            -- Connecting / ACSM phase
+            status_label:setText(_("Connecting & requesting license…"))
+            max_pct_seen = math.max(max_pct_seen, math.min(0.20, 0.10 + (elapsed / 4.0) * 0.10))
+            progress_bar:setPercentage(max_pct_seen)
+        end
+        UIManager:setDirty(overlay, "ui")
+
+        -- Timeout protection:
+        -- - Hard max: 3 hours (10800s) to handle 750MB+ comic PDFs
+        -- - Stall: 90s if no bytes have been received yet (connecting phase)
+        --          5 minutes (300s) if bytes are flowing (slow CDN/network)
+        local stalled = (elapsed - last_progress_time)
+        local stall_limit = (max_bytes_seen > 0) and 300 or 90
+        if elapsed >= 10800 or (elapsed > 30 and stalled >= stall_limit) then
+            if overlay then
+                overlay.was_timed_out = true
+            end
+            if overlay and overlay.dismiss_callback then
+                overlay.dismiss_callback()
+            else
+                closeDialog()
+                log.warn("libbee ui: download timed out (stalled)")
+                on_done(nil, _("Download timed out"))
+            end
+            return
+        end
+
+        tick_token = UIManager:scheduleIn(0.5, tick)
+    end
+    tick_token = UIManager:scheduleIn(0.5, tick)
+
+    -- Run download in subprocess with our dialog as the trap widget
+    _runNetwork(work_fn, function(r1, r2)
+        closeDialog()
+        on_done(r1, r2)
+    end, overlay)
 end
 
 -- ---------------------------------------------------------------------------
@@ -2367,9 +2639,9 @@ function M.findExistingBook(loan, base_dir)
     local title = loan.title or ""
     if title == "" then return nil end
 
-    local ok_naming, naming = pcall(require, plugin_path .. "adobe.util.naming")
+    local ok_naming, naming = pcall(require, plugin_path .. "libbee_adobe_naming")
     if not ok_naming or not naming then
-        ok_naming, naming = pcall(require, "adobe.util.naming")
+        ok_naming, naming = pcall(require, "libbee_adobe_naming")
     end
 
     local safe_title = (ok_naming and naming and naming.sanitizeTitle and naming.sanitizeTitle(title))
@@ -2687,11 +2959,43 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
         return
     end
 
-    local temp_acsm_path = base_dir .. "/.temp_" .. tostring(os.time()) .. "_" .. tostring(math.random(1000, 9999)) .. ".acsm"
+    local ok_ffi, ffiutil = pcall(require, "ffi/util")
+    if ok_ffi and ffiutil and type(ffiutil.df) == "function" then
+        local ok_df, _, free_bytes = pcall(ffiutil.df, base_dir)
+        if ok_df and free_bytes and free_bytes < 20 * 1048576 then
+            M.showCardDialog{
+                title = _("Storage Space Low"),
+                body_text = _("Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading.", string.format("%.1f", free_bytes / 1048576)),
+                buttons = {
+                    {
+                        text = _("OK"),
+                        is_primary = true,
+                    }
+                }
+            }
+            return
+        end
+    end
 
-    _runAsync(
+    local temp_acsm_path = base_dir .. "/.temp_" .. tostring(os.time()) .. "_" .. tostring(math.random(1000, 9999)) .. ".acsm"
+    local ok_tmp = pcall(function() return lfs.attributes("/tmp", "mode") == "directory" end)
+    local progress_path = (ok_tmp and "/tmp/.libbee_prog_" or (base_dir .. "/.temp_dl_prog_"))
+        .. tostring(os.time()) .. "_" .. tostring(math.random(1000, 9999))
+
+    local function writeProgress(str)
+        local tmp = progress_path .. ".tmp"
+        local f = io.open(tmp, "w")
+        if f then
+            f:write(str .. "\n")
+            f:close()
+            os.rename(tmp, progress_path)
+        end
+    end
+
+    _runDownloadWithProgress(
         function()
             -- Step 1: Download ACSM license token from Libby API
+            writeProgress("acsm")
             local dl_ok, dl_err = API.downloadACSM(loan, temp_acsm_path)
             if not dl_ok then
                 return nil, dl_err
@@ -2702,8 +3006,17 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
             local final_path = LibbeeDRM.deriveFinalBookPath(base_dir, loan, meta)
 
             -- Step 3: Fulfill and decrypt with embedded Adobe/ByteBooks DRM engine
-            local ful_ok, ful_err = LibbeeDRM.fulfillAcsm(temp_acsm_path, final_path)
+            local progress_cb = function(val)
+                if type(val) == "number" then
+                    writeProgress("download:" .. tostring(val))
+                else
+                    writeProgress(tostring(val))
+                end
+            end
+            local ful_ok, ful_err = LibbeeDRM.fulfillAcsm(temp_acsm_path, final_path, progress_cb)
             pcall(os.remove, temp_acsm_path)
+            pcall(os.remove, progress_path)
+            pcall(os.remove, progress_path .. ".tmp")
 
             if not ful_ok then
                 return nil, ful_err
@@ -2711,8 +3024,10 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
 
             return final_path
         end,
-        _("Downloading & fulfilling \"%s\"…", loan.title or _("ebook")),
+        loan,
         function(final_book_path, err)
+            pcall(os.remove, progress_path)
+            pcall(os.remove, progress_path .. ".tmp")
             if type(final_book_path) == "string" and final_book_path ~= "" then
                 local State = require(plugin_path .. "libbee_state")
                 State.clearShelfCache()
@@ -2741,6 +3056,8 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
                         }
                     }
                 }
+            elseif err and (err:find("cancelled") or err:find("Cancelled")) then
+                _toast(_("Download cancelled."), 3)
             elseif err == "ALREADY_FULFILLED" or (type(final_book_path) == "string" and final_book_path == "ALREADY_FULFILLED") then
                 local sw = Screen:getWidth()
                 M.showCardDialog{
@@ -2774,6 +3091,18 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
                         }
                     }
                 }
+            elseif (err and (err:find("No space left") or err:find("ENOSPC") or err:find("disk full") or err:find("storage full"))) or
+                   (type(final_book_path) == "string" and (final_book_path:find("No space left") or final_book_path:find("ENOSPC") or final_book_path:find("disk full"))) then
+                M.showCardDialog{
+                    title = _("Storage Space Full"),
+                    body_text = _("Your device does not have enough storage space to complete this download.\n\nPlease delete some files or finished books from your device to free up space, and try again."),
+                    buttons = {
+                        {
+                            text = _("OK"),
+                            is_primary = true,
+                        }
+                    }
+                }
             else
                 local err_str = err or tostring(final_book_path or "Unknown error")
                 M.showCardDialog{
@@ -2793,7 +3122,8 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
                     }
                 }
             end
-        end
+        end,
+        progress_path
     )
 end
 

@@ -6,7 +6,7 @@
 
 local logger = require("logger")
 
-local pdfparser = require("adobe.pdf.parser")
+local pdfparser = require("libbee_adobe_pdf_parser")
 local ffi = require("ffi")
 
 local pdfdoc = {}
@@ -373,7 +373,7 @@ function PDFXRefStream:load(p)
     -- Decompress the stream data
     local rawdata = obj.rawdata or ""
     -- Try zlib decompress
-    local ok, zlib = pcall(require, "adobe.util.zlib")
+    local ok, zlib = pcall(require, "libbee_adobe_zlib")
     if ok and zlib and #rawdata > 0 then
         local inflater = zlib.inflater()
         local parts = {}
@@ -440,7 +440,7 @@ function PDFXRefStream:load_from_obj(obj, start)
     self.fl3 = int_value(w_val[3])
     self.entlen = self.fl1 + self.fl2 + self.fl3
     local rawdata = obj.rawdata or ""
-    local ok, zlib_mod = pcall(require, "adobe.util.zlib")
+    local ok, zlib_mod = pcall(require, "libbee_adobe_zlib")
     if ok and zlib_mod and #rawdata > 0 then
         local inflater = zlib_mod.inflater()
         local parts = {}
@@ -631,7 +631,12 @@ function PDFDocument:_find_xref()
 end
 
 --- Read xref tables starting from a given offset.
-function PDFDocument:_read_xref_from(start, xrefs)
+function PDFDocument:_read_xref_from(start, xrefs, seen)
+    seen = seen or {}
+    if seen[start] then
+        return
+    end
+    seen[start] = true
     local f = self.file
     local p = pdfparser.new(f)
     p:seek(start) -- parser.new() resets to 0, so we must seek
@@ -699,12 +704,13 @@ function PDFDocument:_read_xref_from(start, xrefs)
                                     local keyStart = pp
                                     while pp <= #raw do
                                         local b = raw:byte(pp)
-                                        if b == 32 or b == 10 or b == 13 or b == 9 or b == 12 or b == 47 or b == 60 or b == 62 then
+                                        if b == 32 or b == 10 or b == 13 or b == 9 or b == 12 or b == 47 or b == 60 or b == 62 or b == 91 or b == 93 then
                                             break
                                         end
                                         pp = pp + 1
                                     end
-                                    local key = raw:sub(keyStart, pp - 1):lower()
+                                    local orig_key = raw:sub(keyStart, pp - 1)
+                                    local lower_key = orig_key:lower()
                                     while pp <= #raw do
                                         local b = raw:byte(pp)
                                         if b ~= 32 and b ~= 10 and b ~= 13 and b ~= 9 and b ~= 12 then
@@ -712,6 +718,7 @@ function PDFDocument:_read_xref_from(start, xrefs)
                                         end
                                         pp = pp + 1
                                     end
+                                    local val
                                     local b = raw:byte(pp)
                                     if b >= 48 and b <= 57 or b == 45 then
                                         local valStart = pp
@@ -722,18 +729,18 @@ function PDFDocument:_read_xref_from(start, xrefs)
                                             end
                                             pp = pp + 1
                                         end
-                                        result[key] = tonumber(raw:sub(valStart, pp - 1)) or raw:sub(valStart, pp - 1)
+                                        val = tonumber(raw:sub(valStart, pp - 1)) or raw:sub(valStart, pp - 1)
                                     elseif b == 47 then
                                         pp = pp + 1
                                         local valStart = pp
                                         while pp <= #raw do
                                             b = raw:byte(pp)
-                                            if b == 32 or b == 10 or b == 13 or b == 9 or b == 12 or b == 47 or b == 60 or b == 62 then
+                                            if b == 32 or b == 10 or b == 13 or b == 9 or b == 12 or b == 47 or b == 60 or b == 62 or b == 91 or b == 93 then
                                                 break
                                             end
                                             pp = pp + 1
                                         end
-                                        result[key] = raw:sub(valStart, pp - 1)
+                                        val = raw:sub(valStart, pp - 1)
                                     elseif b == 91 then
                                         local arrStart = pp + 1
                                         local depth = 1
@@ -755,7 +762,7 @@ function PDFDocument:_read_xref_from(start, xrefs)
                                                 arr[#arr + 1] = v
                                             end
                                         end
-                                        result[key] = arr
+                                        val = arr
                                     else
                                         while pp <= #raw do
                                             b = raw:byte(pp)
@@ -764,6 +771,10 @@ function PDFDocument:_read_xref_from(start, xrefs)
                                             end
                                             pp = pp + 1
                                         end
+                                    end
+                                    result[orig_key] = val
+                                    if lower_key ~= orig_key then
+                                        result[lower_key] = val
                                     end
                                 else
                                     pp = pp + 1
@@ -796,13 +807,15 @@ function PDFDocument:_read_xref_from(start, xrefs)
         -- Follow Prev/XRefStm chains
         local trailer = xref.trailer
         if trailer then
-            if trailer.XRefStm or trailer["XRefStm"] then
-                local pos = int_value(trailer.XRefStm or trailer["XRefStm"])
-                self:_read_xref_from(pos, xrefs)
+            local xrefstm_val = trailer.XRefStm or trailer["XRefStm"] or trailer.xrefstm
+            if xrefstm_val then
+                local pos = int_value(xrefstm_val)
+                self:_read_xref_from(pos, xrefs, seen)
             end
-            if trailer.Prev or trailer["Prev"] then
-                local pos = int_value(trailer.Prev or trailer["Prev"])
-                self:_read_xref_from(pos, xrefs)
+            local prev_val = trailer.Prev or trailer["Prev"] or trailer.prev
+            if prev_val then
+                local pos = int_value(prev_val)
+                self:_read_xref_from(pos, xrefs, seen)
             end
         end
     elseif is_keyword(token, "xref") then
@@ -826,11 +839,11 @@ function PDFDocument:_read_xref_from(start, xrefs)
         if trailer then
             if trailer.XRefStm or trailer["XRefStm"] then
                 local pos = int_value(trailer.XRefStm or trailer["XRefStm"])
-                self:_read_xref_from(pos, xrefs)
+                self:_read_xref_from(pos, xrefs, seen)
             end
             if trailer.Prev or trailer["Prev"] then
                 local pos = int_value(trailer.Prev or trailer["Prev"])
-                self:_read_xref_from(pos, xrefs)
+                self:_read_xref_from(pos, xrefs, seen)
             end
         end
     else
@@ -921,8 +934,8 @@ function PDFDocument:getobj(objid)
         return nil -- object not found
     end
 
-    -- Parse the object at that offset
-    local p = pdfparser.new(self.file)
+    -- Parse the object at that offset (pass self so parser can resolve indirect /Length)
+    local p = pdfparser.new(self.file, self)
     p:seek(offset)
 
     -- Read objid genno obj tokens
@@ -1023,7 +1036,7 @@ function PDFDocument:_expandObjStm(stmid)
         return
     end
 
-    local ok, zlib_mod = pcall(require, "adobe.util.zlib")
+    local ok, zlib_mod = pcall(require, "libbee_adobe_zlib")
     if ok and zlib_mod then
         local inflater = zlib_mod.inflater()
         local parts = {}
@@ -1080,12 +1093,12 @@ function PDFDocument:_expandObjStm(stmid)
         pairs_list[i] = { objid = oid, offset = off }
     end
 
-    -- The remaining data (after the header) contains the serialized objects
-    -- at offsets specified in the header pairs.
-    -- Build a memory-backed file for the parser by using a tempfile
-    -- (Lua PDF parser requires a real file handle).
+    -- PDF 1.5 Spec §7.5.7: Each offset in the header is relative to the byte offset
+    -- given by the First entry in the stream dictionary.
+    -- Lua strings are 1-indexed, so byte offset First starts at index First + 1.
+    local first_offset = tonumber(stm.dic.First or stm.dic["first"] or stm.dic["First"])
     skipWhitespace()
-    local objectsBase = pos
+    local objectsBase = first_offset and (first_offset + 1) or pos
 
     if #pairs_list < n then
         logger.warn("[pdfdoc] _expandObjStm: only parsed ", #pairs_list, " of ", n, " header pairs")
@@ -1106,7 +1119,7 @@ function PDFDocument:_expandObjStm(stmid)
             if objStart < objEnd and objStart <= #data then
                 local childData = data:sub(objStart, objEnd - 1)
                 local reader = newStringReader(childData)
-                local tmpp = pdfparser.new(reader)
+                local tmpp = pdfparser.new(reader, self)
                 local result = tmpp:nextobject()
                 if result and result[2] then
                     local child = result[2]
@@ -1229,25 +1242,33 @@ function pdfdoc.decipher_all(decipher_fn, objid, genno, obj)
     return result
 end
 
---- Get the trailer with /Encrypt removed (for clean output).
+--- Get the trailer with /Encrypt and stream-specific keys removed (for clean classic output).
 function PDFDocument:getCleanTrailer()
-    local trailer = {}
-    local source = nil
-    for _, xref in ipairs(self.xrefs) do
-        if xref.trailer then
-            source = xref.trailer
+    local merged = {}
+    -- Merge from oldest to newest xref trailer so newest revision takes precedence
+    for i = #self.xrefs, 1, -1 do
+        local x = self.xrefs[i]
+        if x and x.trailer then
+            for k, v in pairs(x.trailer) do
+                merged[k] = v
+            end
         end
-    end
-    if not source then
-        return {}
     end
 
-    for k, v in pairs(source) do
-        if k ~= "Encrypt" and k ~= "Prev" and k ~= "XRefStm" then
-            trailer[k] = v
-        end
-    end
-    return trailer
+    local clean = {}
+    -- Classic PDF trailer: whitelist only valid entries (Root, Info, ID).
+    -- Size will be set by the writer based on total written objects.
+    local root = merged.Root or merged.root or self.root
+    if root then clean.Root = root end
+    local info = merged.Info or merged.info
+    if info then clean.Info = info end
+    local id = merged.ID or merged.id
+    if id then clean.ID = id end
+
+    local size = merged.Size or merged.size
+    if size then clean.Size = size end
+
+    return clean
 end
 
 --- Set the decipher function on the document.

@@ -3,10 +3,10 @@
 local xml = {}
 
 -- load required modules
-local xml2lua = require("xml2lua")
-local treehandler = require("xmlhandler.tree")
-local crypto = require("adobe.util.crypto")
-local util = require("adobe.util.util")
+local xml2lua = require("libbee_xml2lua")
+local treehandler = require("libbee_xmlhandler_tree")
+local crypto = require("libbee_adobe_crypto")
+local util = require("libbee_adobe_util")
 
 -- add an xml namespace to the table
 function xml.addNamespace(tb, prefix, namespace)

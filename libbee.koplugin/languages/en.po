@@ -8,8 +8,8 @@ msgstr ""
 msgid "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
 msgstr "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
 
-msgid "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
-msgstr "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
+msgid "%d accounts linked"
+msgstr "%d accounts linked"
 
 msgid "%d active loans"
 msgstr "%d active loans"
@@ -20,14 +20,8 @@ msgstr "%d books found in this folder"
 msgid "%d days left"
 msgstr "%d days left"
 
-msgid "%d libraries"
-msgstr "%d libraries"
-
 msgid "%d library cards"
 msgstr "%d library cards"
-
-msgid "%d loans"
-msgstr "%d loans"
 
 msgid "(cached)"
 msgstr "(cached)"
@@ -41,14 +35,14 @@ msgstr "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
 msgid ".. (Parent Folder)"
 msgstr ".. (Parent Folder)"
 
+msgid "1 account linked"
+msgstr "1 account linked"
+
 msgid "1 active loan"
 msgstr "1 active loan"
 
 msgid "1 day left"
 msgstr "1 day left"
-
-msgid "1 loan"
-msgstr "1 loan"
 
 msgid "1. Open the Libby app on your phone or computer.\n"
 msgstr "1. Open the Libby app on your phone or computer.\n"
@@ -68,14 +62,11 @@ msgstr "ACSM fulfillment failed"
 msgid "About"
 msgstr "About"
 
-msgid "About ByteBook"
-msgstr "About ByteBook"
-
 msgid "About ByteBooks"
 msgstr "About ByteBooks"
 
-msgid "Account & Keys"
-msgstr "Account & Keys"
+msgid "Account Status"
+msgstr "Account Status"
 
 msgid "Account disconnected"
 msgstr "Account disconnected"
@@ -92,17 +83,17 @@ msgstr "Activation Status"
 msgid "Active"
 msgstr "Active"
 
-msgid "All"
-msgstr "All"
+msgid "Add another Libby card"
+msgstr "Add another Libby card"
 
-msgid "All Libby accounts disconnected"
-msgstr "All Libby accounts disconnected"
+msgid "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
+msgstr "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
+
+msgid "All accounts disconnected"
+msgstr "All accounts disconnected"
 
 msgid "Already Fulfilled on Another Device"
 msgstr "Already Fulfilled on Another Device"
-
-msgid "Anonymous (Device only)"
-msgstr "Anonymous (Device only)"
 
 msgid "Anonymous ›"
 msgstr "Anonymous ›"
@@ -128,9 +119,6 @@ msgstr "Authorizing ByteBooks account…"
 msgid "Auto on download"
 msgstr "Auto on download"
 
-msgid "Auto-activates on download"
-msgstr "Auto-activates on download"
-
 msgid "Auto-delete Expired"
 msgstr "Auto-delete Expired"
 
@@ -145,12 +133,6 @@ msgstr "Available Format"
 
 msgid "Book"
 msgstr "Book"
-
-msgid "Book Already Downloaded"
-msgstr "Book Already Downloaded"
-
-msgid "ByteBook"
-msgstr "ByteBook"
 
 msgid "ByteBooks"
 msgstr "ByteBooks"
@@ -170,8 +152,11 @@ msgstr "ByteBooks Password"
 msgid "Cancel"
 msgstr "Cancel"
 
-msgid "Cancelled"
-msgstr "Cancelled"
+msgid "Cancel Download"
+msgstr "Cancel Download"
+
+msgid "Cards & Libraries"
+msgstr "Cards & Libraries"
 
 msgid "Check for updates"
 msgstr "Check for updates"
@@ -191,17 +176,11 @@ msgstr "Code expired. Tap New Code to retry."
 msgid "Connect with Libby code"
 msgstr "Connect with Libby code"
 
-msgid "Connected"
-msgstr "Connected"
-
-msgid "Connected Libraries"
-msgstr "Connected Libraries"
-
-msgid "Connected Libraries & Accounts"
-msgstr "Connected Libraries & Accounts"
-
 msgid "Connected ›"
 msgstr "Connected ›"
+
+msgid "Connecting & requesting license…"
+msgstr "Connecting & requesting license…"
 
 msgid "Connecting to Libby…"
 msgstr "Connecting to Libby…"
@@ -209,17 +188,8 @@ msgstr "Connecting to Libby…"
 msgid "Connecting to Libby…\n\nLoading your active loans…"
 msgstr "Connecting to Libby…\n\nLoading your active loans…"
 
-msgid "Connection Status"
-msgstr "Connection Status"
-
-msgid "Could Not Load Shelf"
-msgstr "Could Not Load Shelf"
-
 msgid "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
 msgstr "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
-
-msgid "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
-msgstr "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
 
 msgid "Could not create download folder:\n%s"
 msgstr "Could not create download folder:\n%s"
@@ -229,9 +199,6 @@ msgstr "Could not fulfill loan file:\n\n%s"
 
 msgid "Could not request setup code."
 msgstr "Could not request setup code."
-
-msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
-msgstr "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
 
 msgid "Could not return loan:\n%s"
 msgstr "Could not return loan:\n%s"
@@ -245,17 +212,20 @@ msgstr "Create subfolder in '%s':"
 msgid "Created '%s'"
 msgstr "Created '%s'"
 
-msgid "Current Mode"
-msgstr "Current Mode"
-
 msgid "Custom folder ›"
 msgstr "Custom folder ›"
 
 msgid "DRM activation keys reset"
 msgstr "DRM activation keys reset"
 
+msgid "Decrypting book…"
+msgstr "Decrypting book…"
+
 msgid "Default folder ›"
 msgstr "Default folder ›"
+
+msgid "Device Activation Limit Reached"
+msgstr "Device Activation Limit Reached"
 
 msgid "Device DRM"
 msgstr "Device DRM"
@@ -269,35 +239,23 @@ msgstr "Disabled ›"
 msgid "Disconnect"
 msgstr "Disconnect"
 
-msgid "Disconnect %s"
-msgstr "Disconnect %s"
-
-msgid "Disconnect Account"
-msgstr "Disconnect Account"
-
 msgid "Disconnect Account?"
 msgstr "Disconnect Account?"
 
 msgid "Disconnect All"
 msgstr "Disconnect All"
 
-msgid "Disconnect All Accounts"
-msgstr "Disconnect All Accounts"
+msgid "Disconnect All?"
+msgstr "Disconnect All?"
 
-msgid "Disconnect Libby account"
-msgstr "Disconnect Libby account"
+msgid "Disconnect all Libby accounts and remove stored cards from this device?"
+msgstr "Disconnect all Libby accounts and remove stored cards from this device?"
 
 msgid "Disconnect all accounts"
 msgstr "Disconnect all accounts"
 
-msgid "Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."
-msgstr "Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."
-
 msgid "Disconnect this Libby account and remove its library cards?\n\n%s"
 msgstr "Disconnect this Libby account and remove its library cards?\n\n%s"
-
-msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
-msgstr "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
 
 msgid "Done"
 msgstr "Done"
@@ -317,20 +275,38 @@ msgstr "Download Loan"
 msgid "Download and install now?"
 msgstr "Download and install now?"
 
+msgid "Download cancelled"
+msgstr "Download cancelled"
+
+msgid "Download cancelled."
+msgstr "Download cancelled."
+
 msgid "Download failed: %s"
 msgstr "Download failed: %s"
 
 msgid "Download folder set to '%s'"
 msgstr "Download folder set to '%s'"
 
+msgid "Download interrupted (possible device memory limit)"
+msgstr "Download interrupted (possible device memory limit)"
+
+msgid "Download timed out"
+msgstr "Download timed out"
+
 msgid "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
 msgstr "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
 
-msgid "Downloading & fulfilling \"%s\"…"
-msgstr "Downloading & fulfilling \"%s\"…"
+msgid "Downloading Book"
+msgstr "Downloading Book"
 
 msgid "Downloading Libbee v%s…"
 msgstr "Downloading Libbee v%s…"
+
+msgid "Downloading book…"
+msgstr "Downloading book…"
+
+msgid "Downloading book… (%.1f MB)"
+msgstr "Downloading book… (%.1f MB)"
 
 msgid "Downloads"
 msgstr "Downloads"
@@ -365,9 +341,6 @@ msgstr "Fulfilling ACSM loan with Libbee…"
 msgid "Group by Library Card"
 msgstr "Group by Library Card"
 
-msgid "Holds"
-msgstr "Holds"
-
 msgid "Install failed (unzip): %s"
 msgstr "Install failed (unzip): %s"
 
@@ -385,9 +358,6 @@ msgstr "Kindle only"
 
 msgid "Later"
 msgstr "Later"
-
-msgid "Learn about ByteBook"
-msgstr "Learn about ByteBook"
 
 msgid "Libbee"
 msgstr "Libbee"
@@ -437,14 +407,8 @@ msgstr "Libby App Only"
 msgid "Libby Read"
 msgstr "Libby Read"
 
-msgid "Libby account disconnected"
-msgstr "Libby account disconnected"
-
 msgid "Libby only"
 msgstr "Libby only"
-
-msgid "Library"
-msgstr "Library"
 
 msgid "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
 msgstr "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
@@ -452,23 +416,14 @@ msgstr "Library: %s\n\nYour device is now registered. You can browse and downloa
 msgid "Link Libby Account"
 msgstr "Link Libby Account"
 
-msgid "Link another Libby account"
-msgstr "Link another Libby account"
-
-msgid "Link another Libby device"
-msgstr "Link another Libby device"
-
-msgid "Loading your Libby shelf…"
-msgstr "Loading your Libby shelf…"
+msgid "Linked Accounts"
+msgstr "Linked Accounts"
 
 msgid "Loan"
 msgstr "Loan"
 
 msgid "Loan Details"
 msgstr "Loan Details"
-
-msgid "Loans"
-msgstr "Loans"
 
 msgid "Local shelf cache cleared"
 msgstr "Local shelf cache cleared"
@@ -487,9 +442,6 @@ msgstr "Make sure your device is connected to Wi-Fi."
 
 msgid "Manage Linked Accounts"
 msgstr "Manage Linked Accounts"
-
-msgid "Manage linked accounts (%d)"
-msgstr "Manage linked accounts (%d)"
 
 msgid "New Folder"
 msgstr "New Folder"
@@ -536,9 +488,6 @@ msgstr "Open Shelf"
 msgid "Opening \"%s\"…"
 msgstr "Opening \"%s\"…"
 
-msgid "Operation cancelled"
-msgstr "Operation cancelled"
-
 msgid "Page %d of %d"
 msgstr "Page %d of %d"
 
@@ -554,18 +503,6 @@ msgstr "Please enter your ByteBooks password"
 msgid "Re-authenticate"
 msgstr "Re-authenticate"
 
-msgid "Re-authenticate account"
-msgstr "Re-authenticate account"
-
-msgid "Read"
-msgstr "Read"
-
-msgid "Redownload"
-msgstr "Redownload"
-
-msgid "Refresh"
-msgstr "Refresh"
-
 msgid "Refresh failed: %s"
 msgstr "Refresh failed: %s"
 
@@ -574,12 +511,6 @@ msgstr "Refreshing shelf from Libby…"
 
 msgid "Regenerating setup code…"
 msgstr "Regenerating setup code…"
-
-msgid "Renew"
-msgstr "Renew"
-
-msgid "Reset DRM Activation Keys"
-msgstr "Reset DRM Activation Keys"
 
 msgid "Reset DRM Keys"
 msgstr "Reset DRM Keys"
@@ -596,9 +527,6 @@ msgstr "Reset saved Adobe / ByteBooks device activation keys?\n\nA fresh activat
 msgid "Reset to Default"
 msgstr "Reset to Default"
 
-msgid "Reset to default download folder"
-msgstr "Reset to default download folder"
-
 msgid "Reset ›"
 msgstr "Reset ›"
 
@@ -607,9 +535,6 @@ msgstr "Restart Now"
 
 msgid "Retry"
 msgstr "Retry"
-
-msgid "Return"
-msgstr "Return"
 
 msgid "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
 msgstr "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
@@ -626,9 +551,6 @@ msgstr "Returned \"%s\" to the library."
 msgid "Returning \"%s\" to library…"
 msgstr "Returning \"%s\" to library…"
 
-msgid "Save"
-msgstr "Save"
-
 msgid "Saved to:\n%s\n\nOpen it from the file browser."
 msgstr "Saved to:\n%s\n\nOpen it from the file browser."
 
@@ -641,17 +563,8 @@ msgstr "Select Download Folder"
 msgid "Select Folder"
 msgstr "Select Folder"
 
-msgid "Select an account to disconnect:"
-msgstr "Select an account to disconnect:"
-
 msgid "Session Expired"
 msgstr "Session Expired"
-
-msgid "Session Status"
-msgstr "Session Status"
-
-msgid "Settings"
-msgstr "Settings"
 
 msgid "Setup Failed"
 msgstr "Setup Failed"
@@ -671,8 +584,11 @@ msgstr "Sign in with ByteBooks ID"
 msgid "Status"
 msgstr "Status"
 
-msgid "Status & Libraries"
-msgstr "Status & Libraries"
+msgid "Storage Space Full"
+msgstr "Storage Space Full"
+
+msgid "Storage Space Low"
+msgstr "Storage Space Low"
 
 msgid "Switch"
 msgstr "Switch"
@@ -689,20 +605,17 @@ msgstr "Switch to Anonymous DRM"
 msgid "Switched to anonymous DRM"
 msgstr "Switched to anonymous DRM"
 
+msgid "Sync account changes now"
+msgstr "Sync account changes now"
+
 msgid "Sync failed: %s"
 msgstr "Sync failed: %s"
 
-msgid "Sync library cards & accounts"
-msgstr "Sync library cards & accounts"
-
-msgid "Syncing libraries from Libby…"
-msgstr "Syncing libraries from Libby…"
+msgid "Syncing account details…"
+msgstr "Syncing account details…"
 
 msgid "System"
 msgstr "System"
-
-msgid "Tags"
-msgstr "Tags"
 
 msgid "This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com."
 msgstr "This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com."
@@ -712,9 +625,6 @@ msgstr "This book can only be read directly in the Libby app or browser reader (
 
 msgid "This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."
 msgstr "This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."
-
-msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
 
 msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
 msgstr "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
@@ -793,6 +703,12 @@ msgstr "What's new:"
 
 msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
 msgstr "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
+
+msgid "Your device does not have enough storage space to complete this download.\n\nPlease delete some files or finished books from your device to free up space, and try again."
+msgstr "Your device does not have enough storage space to complete this download.\n\nPlease delete some files or finished books from your device to free up space, and try again."
+
+msgid "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
+msgstr "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
 
 msgid "badge_audiobook"
 msgstr "Audiobook"
@@ -875,9 +791,6 @@ msgstr "Return Failed"
 msgid "dialog_return_loan"
 msgstr "Return Early"
 
-msgid "ebook"
-msgstr "ebook"
-
 msgid "error"
 msgstr "error"
 
@@ -915,7 +828,7 @@ msgid "msg_auto_delete_multiple"
 msgstr "Auto-deleted %d expired/returned loan(s)."
 
 msgid "msg_auto_delete_single"
-msgstr "Auto-deleted \\\"%s\\\" (loan ended)."
+msgstr "Auto-deleted \"%s\" (loan ended)."
 
 msgid "msg_download_complete"
 msgstr "Download complete."
@@ -930,19 +843,19 @@ msgid "msg_restart_prompt"
 msgstr "Update installed. Restart KOReader now?"
 
 msgid "msg_return_confirm"
-msgstr "Return \\\"%s\\\" early to your library?"
+msgstr "Return \"%s\" early to your library?"
 
 msgid "msg_return_confirm_details"
-msgstr "Return \\\"%s\\\" early to your library?\\n\\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
+msgstr "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
 
 msgid "msg_return_failed"
-msgstr "Could not return loan:\\n%s"
+msgstr "Could not return loan:\n%s"
 
 msgid "msg_return_success"
-msgstr "Returned \\\"%s\\\" to the library."
+msgstr "Returned \"%s\" to the library."
 
 msgid "msg_returning_progress"
-msgstr "Returning \\\"%s\\\" to library…"
+msgstr "Returning \"%s\" to library…"
 
 msgid "msg_sync_complete"
 msgstr "Shelf synced successfully."
@@ -1004,8 +917,8 @@ msgstr "‹ Back to Settings"
 msgid "‹ Prev"
 msgstr "‹ Prev"
 
-msgid "⏳ %d days remaining on this loan.\n\n"
-msgstr "⏳ %d days remaining on this loan.\n\n"
+msgid "✓ Account synced successfully"
+msgstr "✓ Account synced successfully"
 
 msgid "✓ Active"
 msgstr "✓ Active"
@@ -1016,18 +929,9 @@ msgstr "✓ Anonymous Active"
 msgid "✓ ByteBooks authorized successfully!"
 msgstr "✓ ByteBooks authorized successfully!"
 
-msgid "✓ Connected"
-msgstr "✓ Connected"
-
 msgid "✓ Download Complete!"
 msgstr "✓ Download Complete!"
 
 msgid "✓ Libbee Connected!"
 msgstr "✓ Libbee Connected!"
-
-msgid "✓ Library cards & shelf synced"
-msgstr "✓ Library cards & shelf synced"
-
-msgid "✗ Not Connected"
-msgstr "✗ Not Connected"
 

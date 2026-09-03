@@ -7,10 +7,7 @@
 
 local writer = {}
 
-local ok, pdfparser = pcall(require, "adobe.pdf.parser")
-if not ok then
-    pdfparser = nil
-end
+local pdfparser = require("libbee_adobe_pdf_parser")
 
 ------------------------------------------------------------------------
 -- Internal helpers
@@ -354,13 +351,15 @@ function PdfWriter:finish(trailer)
         end
     end
 
-    -- Trailer
+    -- Trailer: strictly whitelist valid classic trailer keys (Root, Info, ID, Size).
+    -- Never leak XRef stream keys, Prev pointers, or Encrypt dicts into the classic trailer.
     local clean = {}
-    for k, v in pairs(trailer) do
-        if k ~= "Encrypt" then
-            clean[k] = v
-        end
-    end
+    local root = trailer.Root or trailer.root
+    if root then clean.Root = root end
+    local info = trailer.Info or trailer.info
+    if info then clean.Info = info end
+    local id = trailer.ID or trailer.id
+    if id then clean.ID = id end
     clean.Size = size
 
     out:write("trailer\n")

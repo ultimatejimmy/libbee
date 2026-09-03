@@ -14,10 +14,9 @@ describe("adobe.util.zlib FFI safety", function()
             end
         end
 
-        package.loaded["adobe/util/zlib"] = nil
-        package.loaded["adobe.util.zlib"] = nil
+        package.loaded["libbee_adobe_zlib"] = nil
 
-        local ok, zlib = pcall(require, "adobe.util.zlib")
+        local ok, zlib = pcall(require, "libbee_adobe_zlib")
         ffi.cdef = orig_cdef
 
         assert.is_truthy(ok)

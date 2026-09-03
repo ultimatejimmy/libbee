@@ -555,7 +555,7 @@ function M.getOrCreateDeviceSerial()
     if data.device_serial and type(data.device_serial) == "string" and #data.device_serial >= 32 then
         return data.device_serial
     end
-    local ok_nc, nativecrypto = pcall(require, "adobe.util.nativecrypto")
+    local ok_nc, nativecrypto = pcall(require, "libbee_adobe_nativecrypto")
     local serial = nil
     if ok_nc and nativecrypto and nativecrypto.rand_bytes then
         local rand = nativecrypto.rand_bytes(20)

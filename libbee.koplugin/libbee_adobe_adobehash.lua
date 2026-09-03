@@ -4,8 +4,8 @@
 --
 -- Extracted from fulfillment.lua for testability.
 
-local dom = require("adobe.util.dom")
-local nativecrypto = require("adobe.util.nativecrypto")
+local dom = require("libbee_adobe_dom")
+local nativecrypto = require("libbee_adobe_nativecrypto")
 
 local ADEPT = "http://ns.adobe.com/adept"
 

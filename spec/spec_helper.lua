@@ -70,6 +70,10 @@ local mock_crypto = {
     aesCbcEncrypt = function(k, iv, d) return d end,
     randomBytes = function(n) return string.rep("x", n) end,
 }
+package.loaded["libbee_adobe_nativecrypto"] = mock_crypto
+package.loaded["libbee_adobe_nativecrypto"] = mock_crypto
+package.preload["libbee_adobe_nativecrypto"] = function() return mock_crypto end
+package.preload["libbee_adobe_nativecrypto"] = function() return mock_crypto end
 package.loaded["adobe/util/nativecrypto"] = mock_crypto
 package.loaded["adobe.util.nativecrypto"] = mock_crypto
 package.preload["adobe/util/nativecrypto"] = function() return mock_crypto end

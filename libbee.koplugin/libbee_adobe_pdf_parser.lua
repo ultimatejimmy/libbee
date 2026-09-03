@@ -5,7 +5,7 @@
 -- parsing of PDF objects (dicts, arrays, indirect references, etc.).
 --
 -- Usage:
---   local pdfparser = require("adobe.pdf.parser")
+--   local pdfparser = require("libbee_adobe_pdf_parser")
 --   local p = pdfparser.new(file_handle)
 --   local obj = p:nextobject()
 
@@ -158,6 +158,84 @@ local ESC_TABLE = {
 }
 
 ------------------------------------------------------------------------
+-- Stream length resolution and robust rawdata reading
+------------------------------------------------------------------------
+
+local function resolve_stream_length(dic, doc)
+    if type(dic) ~= "table" then return nil end
+    local len = dic.Length
+    if len == nil then len = dic["length"] end
+    if type(len) == "number" then
+        return len
+    end
+    if type(len) == "table" and len.ref and doc and doc.getobj then
+        local ok, resolved = pcall(doc.getobj, doc, len.ref.objid)
+        if ok and type(resolved) == "number" then
+            return resolved
+        end
+    end
+    return nil
+end
+
+local function read_stream_rawdata(fp, data_start, objlen)
+    if objlen and objlen > 0 then
+        fp:seek("set", data_start)
+        local data = fp:read(objlen) or ""
+        local resume_pos = data_start + objlen
+        fp:seek("set", resume_pos)
+        local trailer_peek = fp:read(64) or ""
+        local endstream_pos = trailer_peek:find("endstream", 1, true)
+        if endstream_pos then
+            resume_pos = resume_pos + endstream_pos + 8
+            if trailer_peek:byte(endstream_pos + 9) == 13 and trailer_peek:byte(endstream_pos + 10) == 10 then
+                resume_pos = resume_pos + 2
+            elseif trailer_peek:byte(endstream_pos + 9) == 10 or trailer_peek:byte(endstream_pos + 9) == 13 then
+                resume_pos = resume_pos + 1
+            end
+        end
+        return data, resume_pos
+    end
+
+    -- Fallback: /Length was not specified or could not be resolved.
+    -- Scan forward for "endstream" keyword directly in binary chunks without tokenizing.
+    fp:seek("set", data_start)
+    local CHUNK_SIZE = 65536
+    local cur_pos = data_start
+    local parts = {}
+    while true do
+        local chunk = fp:read(CHUNK_SIZE)
+        if not chunk or #chunk == 0 then
+            break
+        end
+        local idx = chunk:find("endstream", 1, true)
+        if idx then
+            local before = chunk:sub(1, idx - 1)
+            before = before:gsub("[\r\n]+$", "")
+            parts[#parts + 1] = before
+            local resume_pos = cur_pos + idx + 8
+            local peek_tail = chunk:sub(idx + 9, idx + 12)
+            if peek_tail:byte(1) == 13 and peek_tail:byte(2) == 10 then
+                resume_pos = resume_pos + 2
+            elseif peek_tail:byte(1) == 10 or peek_tail:byte(1) == 13 then
+                resume_pos = resume_pos + 1
+            end
+            return table.concat(parts), resume_pos
+        else
+            if #chunk >= 9 then
+                parts[#parts + 1] = chunk:sub(1, -10)
+                cur_pos = cur_pos + #chunk - 9
+                fp:seek("set", cur_pos)
+            else
+                parts[#parts + 1] = chunk
+                cur_pos = cur_pos + #chunk
+            end
+        end
+    end
+
+    return table.concat(parts), cur_pos
+end
+
+------------------------------------------------------------------------
 -- Buffer size for file reads
 ------------------------------------------------------------------------
 local BUFSIZ = 4096
@@ -166,9 +244,10 @@ local BUFSIZ = 4096
 -- Main parser class
 ------------------------------------------------------------------------
 
-function parser.new(fp)
+function parser.new(fp, doc)
     local self = setmetatable({}, { __index = parser })
     self.fp = fp
+    self.doc = doc
     self:_do_seek(0)
     return self
 end
@@ -1019,11 +1098,8 @@ function parser:nextobject()
                         -- where the dict would otherwise be returned standalone.
                         local peek_pos, peek_tok = self:nexttoken()
                         if peek_pos and is_keyword(peek_tok) and peek_tok.name == "stream" then
-                            -- It's a stream! Read raw data per /Length.
-                            local objlen = 0
-                            if type(d.Length) == "number" then
-                                objlen = d.Length
-                            end
+                            -- It's a stream! Resolve /Length (including indirect refs) or scan to endstream
+                            local objlen = resolve_stream_length(d, self.doc)
 
                             -- Seek to the 'stream' keyword position and skip past EOL
                             self.fp:seek("set", peek_pos)
@@ -1040,8 +1116,7 @@ function parser:nextobject()
                                     after_eol = eol_offset + 1 -- \n
                                 end
                                 local data_start = peek_pos + after_eol - 1
-                                self.fp:seek("set", data_start)
-                                local data = self.fp:read(objlen) or ""
+                                local data, resume_pos = read_stream_rawdata(self.fp, data_start, objlen)
 
                                 local stream = {
                                     dic = d,
@@ -1053,8 +1128,7 @@ function parser:nextobject()
                                     genno = 0,
                                 }
 
-                                -- Reset parser state to after the stream data
-                                local resume_pos = data_start + objlen
+                                -- Reset parser state to after the stream data and endstream keyword
                                 self.bufpos = resume_pos
                                 self.buf = ""
                                 self.charpos = 0
@@ -1140,12 +1214,7 @@ function parser:_do_keyword(pos, token)
             if type(entry) == "table" and type(entry[2]) == "table" and is_dict_obj(entry[2]) then
                 stack[#stack] = nil -- pop the dict
                 local dic = entry[2]
-                local objlen = 0
-                if dic.Length ~= nil and type(dic.Length) == "number" then
-                    objlen = dic.Length
-                elseif dic["length"] ~= nil and type(dic["length"]) == "number" then
-                    objlen = dic["length"]
-                end
+                local objlen = resolve_stream_length(dic, self.doc)
 
                 -- Seek back to the 'stream' keyword position and read raw data
                 self.fp:seek("set", pos)
@@ -1165,39 +1234,34 @@ function parser:_do_keyword(pos, token)
                         after_eol = header_end + 1 -- \n
                     end
                     local data_start = pos + after_eol - 1
-                    self.fp:seek("set", data_start)
-                    local data = self.fp:read(objlen)
+                    local data, resume_pos = read_stream_rawdata(self.fp, data_start, objlen)
 
-                    -- Check for endstream after data
-                    if data then
-                        -- Create stream object
-                        local stream = {
-                            dic = dic,
-                            rawdata = data,
-                            data = nil,
-                            decdata = nil,
-                            decdic = nil,
-                            objid = 0,
-                            genno = 0,
-                        }
-                        -- Seek past endstream for parser continuity
-                        self.fp:seek("set", data_start + objlen)
-                        -- Re-initialize parser buffer state after manual fp:seek
-                        self.bufpos = data_start + objlen
-                        self.buf = ""
-                        self.charpos = 0
-                        self._parse_state = "main"
-                        self._tokens = {}
+                    -- Create stream object
+                    local stream = {
+                        dic = dic,
+                        rawdata = data,
+                        data = nil,
+                        decdata = nil,
+                        decdic = nil,
+                        objid = 0,
+                        genno = 0,
+                    }
+                    -- Reset parser buffer state past the stream data and endstream keyword
+                    self.fp:seek("set", resume_pos)
+                    self.bufpos = resume_pos
+                    self.buf = ""
+                    self.charpos = 0
+                    self._parse_state = "main"
+                    self._tokens = {}
 
-                        if #self._context == 0 then
-                            add_results(self, { pos, stream })
-                        else
-                            push(self, { pos, stream })
-                        end
-                        return
+                    if #self._context == 0 then
+                        add_results(self, { pos, stream })
+                    else
+                        push(self, { pos, stream })
                     end
+                    return
                 end
-                -- Failed to read stream data; fall through and push keyword
+                -- Failed to find stream header; fall through and push keyword
                 push(self, { pos, dic }) -- put dict back
             end
         end

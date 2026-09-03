@@ -6,7 +6,7 @@ package.path = script_dir .. "../libbee.koplugin/?.lua;" .. script_dir .. "?.lua
 require("spec_helper")
 
 describe("Libbee Localization System", function()
-    local Localization = require("localization_libbee")
+    local Localization = require("libbee_localization")
 
     it("initializes and discovers 18 languages", function()
         local path = script_dir .. "../libbee.koplugin"

@@ -7,9 +7,9 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local koutil = require("util")
 
-local dom = require("adobe.util.dom")
-local nativecrypto = require("adobe.util.nativecrypto")
-local zlib = require("adobe.util.zlib")
+local dom = require("libbee_adobe_dom")
+local nativecrypto = require("libbee_adobe_nativecrypto")
+local zlib = require("libbee_adobe_zlib")
 
 local XMLENC = "http://www.w3.org/2001/04/xmlenc#"
 local AES128_CBC = "http://www.w3.org/2001/04/xmlenc#aes128-cbc"

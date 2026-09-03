@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Language-Team: Portuguese (Brazil)\n"
+"Language-Team: Pt_br\n"
 "Language: pt_br\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -9,9 +9,13 @@ msgstr ""
 msgid "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
 msgstr "\"%s\"\n\nSalvo em:\n%s\n\nPronto para ler."
 
-# en-hash: 9e74f4d19312ede861911b38ff4406c0
-msgid "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
-msgstr "\"%s\" já foi baixado:\n\n%s\n\nAbrir agora?"
+# en-hash: 4826eb9bd2f89af56e7a97a115da51d3
+msgid "%d accounts linked"
+msgstr "%d contas vinculadas"
+
+# en-hash: f22c02b5ce23177d18a46af4311b39a2
+msgid "%d active loans"
+msgstr "%d empréstimos ativos"
 
 # en-hash: 7a65032593f4ee141a1bb6af19528e5a
 msgid "%d books found in this folder"
@@ -21,13 +25,9 @@ msgstr "%d livros encontrados nesta pasta"
 msgid "%d days left"
 msgstr "%d dias restantes"
 
-# en-hash: 585dc4ca1840d70d261ca0fb85defb14
-msgid "%d libraries"
-msgstr "%d bibliotecas"
-
-# en-hash: bd40e2574ad0ef5ed0c05049ce9b44cc
-msgid "%d loans"
-msgstr "%d empréstimos"
+# en-hash: 0cb1e4059d14ba4b01f2bc81cfab4f6f
+msgid "%d library cards"
+msgstr "%d cartões de biblioteca"
 
 # en-hash: fed3b58ade678c6cccb2787ef13d86f6
 msgid "(cached)"
@@ -39,19 +39,23 @@ msgstr "+ Nova"
 
 # en-hash: 806e810f7f4f00e9c047945f357030bc
 msgid "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
-msgstr "-- Log de Depuração do Libbee (Mais recentes primeiro, exibindo as últimas %d entradas) --\n\n"
+msgstr "-- Log de depuração do Libbee (Mais recentes primeiro, exibindo as últimas %d entradas) --\n\n"
 
 # en-hash: d28fdd75f93893891fb2d7e3b40683de
 msgid ".. (Parent Folder)"
 msgstr ".. (Pasta superior)"
 
+# en-hash: c8c398660be4b7f001f5ade9e4cb715d
+msgid "1 account linked"
+msgstr "1 conta vinculada"
+
+# en-hash: 5abe3cd2db530152e749fc5823ded113
+msgid "1 active loan"
+msgstr "1 empréstimo ativo"
+
 # en-hash: f1a9ffba029332c15ee4a50d7dec57a3
 msgid "1 day left"
 msgstr "1 dia restante"
-
-# en-hash: 0aa1113ea14a6b366f953eebe44a0359
-msgid "1 loan"
-msgstr "1 empréstimo"
 
 # en-hash: bb9ef8f07574430e20fd0d806b705e99
 msgid "1. Open the Libby app on your phone or computer.\n"
@@ -77,17 +81,13 @@ msgstr "Falha no cumprimento do ACSM"
 msgid "About"
 msgstr "Sobre"
 
-# en-hash: bc00c85091c5353809f37cc54f8df9a9
-msgid "About ByteBook"
-msgstr "Sobre o ByteBook"
-
 # en-hash: 4272d0a0d2f92239063b0f5e74297644
 msgid "About ByteBooks"
 msgstr "Sobre o ByteBooks"
 
-# en-hash: 0abf29253505eda680fc9518d8ee74a1
-msgid "Account & Keys"
-msgstr "Conta e chaves"
+# en-hash: a0721cf478be58b45f240618cdbb64c6
+msgid "Account Status"
+msgstr "Status da conta"
 
 # en-hash: b9125e3b8bab8806f5eddbc452cc7e1b
 msgid "Account disconnected"
@@ -109,21 +109,21 @@ msgstr "Status de ativação"
 msgid "Active"
 msgstr "Ativo"
 
-# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
-msgid "All"
-msgstr "Todos"
+# en-hash: 4479067e0875750e0abdd852db6b40a1
+msgid "Add another Libby card"
+msgstr "Adicionar outro cartão Libby"
 
-# en-hash: ac0cde1cc1a14c185fa04213c7afc0ce
-msgid "All Libby accounts disconnected"
-msgstr "Todas as contas Libby foram desconectadas"
+# en-hash: b4b315f7552422ccac6375f29b9253ad
+msgid "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
+msgstr "O DRM do Adobe / ByteBooks permite no máximo 6 dispositivos ativados por conta.\n\nSua conta atingiu o limite de 6 dispositivos no servidor de ativação da Adobe.\n\nPara resolver isso:\n• Entre em contato com o chat de suporte da Adobe para redefinir seu limite de ativações (eles redefinem em cerca de 1 minuto).\n• Ou continue usando o Libbee no Modo Anônimo neste dispositivo (nenhuma conta ByteBooks é necessária para pegar emprestado e ler livros da biblioteca!)."
+
+# en-hash: a86a401b70835517b24429aaa622a921
+msgid "All accounts disconnected"
+msgstr "Todas as contas desconectadas"
 
 # en-hash: 894bf223f655fcd20eb70039bc62ca12
 msgid "Already Fulfilled on Another Device"
 msgstr "Já baixado em outro dispositivo"
-
-# en-hash: 9ee472f90625d1c24d379203d9d45781
-msgid "Anonymous (Device only)"
-msgstr "Anônimo (Apenas neste dispositivo)"
 
 # en-hash: 0071fc15aed596b342505d9b8d315774
 msgid "Anonymous ›"
@@ -157,10 +157,6 @@ msgstr "Autorizando conta do ByteBooks…"
 msgid "Auto on download"
 msgstr "Automático ao baixar"
 
-# en-hash: 9bd1606c367713265008a2d24b589cad
-msgid "Auto-activates on download"
-msgstr "Ativa automaticamente ao baixar"
-
 # en-hash: e382e940faaeacdbfb834c814d11b612
 msgid "Auto-delete Expired"
 msgstr "Excluir expirados automaticamente"
@@ -180,14 +176,6 @@ msgstr "Formato disponível"
 # en-hash: 2b1f94ef23b79bf90eb891cae1df7a90
 msgid "Book"
 msgstr "Livro"
-
-# en-hash: b41178dec7c52dd70fb71a5a29480e8d
-msgid "Book Already Downloaded"
-msgstr "Livro já baixado"
-
-# en-hash: 899a89322bff5471f9a250d71ff876b5
-msgid "ByteBook"
-msgstr "ByteBook"
 
 # en-hash: 68701363a5d5cf7bbc1eea4208259cf6
 msgid "ByteBooks"
@@ -213,9 +201,13 @@ msgstr "Senha do ByteBooks"
 msgid "Cancel"
 msgstr "Cancelar"
 
-# en-hash: a149e85a44aeec9140e92733d9ed694e
-msgid "Cancelled"
-msgstr "Cancelado"
+# en-hash: f6471e01cc01715f9814ba5589ec87cb
+msgid "Cancel Download"
+msgstr "Cancelar download"
+
+# en-hash: 9714e513c7579a8c8933902a76782c8b
+msgid "Cards & Libraries"
+msgstr "Cartões e bibliotecas"
 
 # en-hash: eb1b4bb3667dd670210c7822badc2f1d
 msgid "Check for updates"
@@ -241,21 +233,13 @@ msgstr "Código expirado. Toque em Novo código para tentar novamente."
 msgid "Connect with Libby code"
 msgstr "Conectar com código do Libby"
 
-# en-hash: 2ec0d16e4ca169baedb9b2d50ec5c6d7
-msgid "Connected"
-msgstr "Conectado"
-
-# en-hash: 265725f5f895c4f418183f9cba48fda4
-msgid "Connected Libraries"
-msgstr "Bibliotecas conectadas"
-
-# en-hash: e155b7b85b5b179e1bd3197041fdb7e0
-msgid "Connected Libraries & Accounts"
-msgstr "Bibliotecas e Contas Conectadas"
-
 # en-hash: 60b7a58e56e8e2665e64fb9f42ec183c
 msgid "Connected ›"
 msgstr "Conectado ›"
+
+# en-hash: d7c80fd06fd5acad7f1c2d6331d0e632
+msgid "Connecting & requesting license…"
+msgstr "Conectando e solicitando licença…"
 
 # en-hash: 4ff77e16703baf1a986734403aa04151
 msgid "Connecting to Libby…"
@@ -263,23 +247,11 @@ msgstr "Conectando ao Libby…"
 
 # en-hash: a95bcca04282197a9949388b819897d7
 msgid "Connecting to Libby…\n\nLoading your active loans…"
-msgstr "Conectando ao Libby…\n\nCarregando empréstimos ativos…"
-
-# en-hash: f3ea2226bfd87c77f77fd5e33575b71d
-msgid "Connection Status"
-msgstr "Status da conexão"
-
-# en-hash: d6ab5be3edab5ac285b19816029d7547
-msgid "Could Not Load Shelf"
-msgstr "Não foi possível carregar a estante"
+msgstr "Conectando ao Libby…\n\nCarregando seus empréstimos ativos…"
 
 # en-hash: 50c59941ad78ae04b529b9f589902aaa
 msgid "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
 msgstr "Não foi possível autorizar a conta do ByteBooks:\n\n%s\n\nCertifique-se de que seu e-mail e senha estejam corretos."
-
-# en-hash: 0edfcafcbdb5045ab9f536cb3b3c8675
-msgid "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
-msgstr "Não foi possível conectar ao Libby:\n%s\n\nVerifique sua conexão Wi-Fi."
 
 # en-hash: 183b4a6dda12a0b685721cafd8e8edd0
 msgid "Could not create download folder:\n%s"
@@ -293,9 +265,9 @@ msgstr "Não foi possível cumprir o arquivo de empréstimo:\n\n%s"
 msgid "Could not request setup code."
 msgstr "Não foi possível solicitar o código de configuração."
 
-# en-hash: 163dd2076f005559c44b9453e5477c99
-msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
-msgstr "Não foi possível solicitar o código de configuração:\n%s\n\nCertifique-se de que seu dispositivo esteja conectado ao Wi-Fi."
+# en-hash: 5d52fd5e9185cd8915fd819c8daab0ca
+msgid "Could not return loan:\n%s"
+msgstr "Não foi possível devolver o empréstimo:\n%s"
 
 # en-hash: 686e697538050e4664636337cc3b834f
 msgid "Create"
@@ -309,10 +281,6 @@ msgstr "Criar subpasta em '%s':"
 msgid "Created '%s'"
 msgstr "'%s' criada"
 
-# en-hash: 56ab89bac0b1bab13d01fae2271fc13e
-msgid "Current Mode"
-msgstr "Modo atual"
-
 # en-hash: 254264d04d17c89ee53c7808fe00c0eb
 msgid "Custom folder ›"
 msgstr "Pasta personalizada ›"
@@ -321,9 +289,17 @@ msgstr "Pasta personalizada ›"
 msgid "DRM activation keys reset"
 msgstr "Chaves de ativação DRM redefinidas"
 
+# en-hash: 4f5be46ff93ccc626e77648e002df6ef
+msgid "Decrypting book…"
+msgstr "Descriptografando livro…"
+
 # en-hash: fd84ab7970c656c94596f0080c1b4e8c
 msgid "Default folder ›"
 msgstr "Pasta padrão ›"
+
+# en-hash: bb0e9460e6b047d3967b0a040d2900bd
+msgid "Device Activation Limit Reached"
+msgstr "Limite de ativação de dispositivo atingido"
 
 # en-hash: d4045ad6ac3b251a37c226fba6499def
 msgid "Device DRM"
@@ -341,37 +317,29 @@ msgstr "Desativado ›"
 msgid "Disconnect"
 msgstr "Desconectar"
 
-# en-hash: 01e4476182f21df0937bd370201744c5
-msgid "Disconnect %s"
-msgstr "Desconectar %s"
-
-# en-hash: fd456a63260bc8f43e73094f0d826863
-msgid "Disconnect Account"
-msgstr "Desconectar conta"
+# en-hash: ed933c72dcbc58baca63d3f36074c254
+msgid "Disconnect Account?"
+msgstr "Desconectar conta?"
 
 # en-hash: 1dca4ea3608cf5dff42f2e5f902af6ae
 msgid "Disconnect All"
 msgstr "Desconectar Tudo"
 
-# en-hash: 890588abcf602c3ed06bd5048103747e
-msgid "Disconnect All Accounts"
-msgstr "Desconectar Todas as Contas"
+# en-hash: 37dabb8f6b09b1c09b8b1ac70e7a7ec7
+msgid "Disconnect All?"
+msgstr "Desconectar tudo?"
 
-# en-hash: 513a57621b57cca0eb03a4ceb37a97a1
-msgid "Disconnect Libby account"
-msgstr "Desconectar conta do Libby"
+# en-hash: 1933ad632ff0726a0b8cbe6dcd3d5b11
+msgid "Disconnect all Libby accounts and remove stored cards from this device?"
+msgstr "Desconectar todas as contas Libby e remover os cartões salvos deste dispositivo?"
 
 # en-hash: 2d7f0e5473f5090882175bec10e32749
 msgid "Disconnect all accounts"
 msgstr "Desconectar todas as contas"
 
-# en-hash: 62f1df6c552bd0008e432039448bd1bd
-msgid "Disconnect all linked Libby accounts?\n\nYour saved sessions and cached shelf will be cleared."
-msgstr "Desconectar todas as contas Libby vinculadas?\n\nSuas sessões salvas e estante em cache serão limpas."
-
-# en-hash: f9cd62554bc3a60867c3fb15640e1d50
-msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
-msgstr "Desconectar sua conta do Libby?\n\nSua sessão salva e a estante em cache serão limpas."
+# en-hash: 5c132a8af23f3829264863e295429dd6
+msgid "Disconnect this Libby account and remove its library cards?\n\n%s"
+msgstr "Desconectar esta conta Libby e remover seus cartões de biblioteca?\n\n%s"
 
 # en-hash: f92965e2c8a7afb3c1b9a5c09a263636
 msgid "Done"
@@ -397,6 +365,14 @@ msgstr "Baixar empréstimo"
 msgid "Download and install now?"
 msgstr "Baixar e instalar agora?"
 
+# en-hash: 013ba726c842150ec33822c5a6fc6196
+msgid "Download cancelled"
+msgstr "Download cancelado"
+
+# en-hash: 255cab4412ab57cd80daf9583400c221
+msgid "Download cancelled."
+msgstr "Download cancelado."
+
 # en-hash: 2ae89fbb5548c5c979cdca7a76cc9f1b
 msgid "Download failed: %s"
 msgstr "Falha no download: %s"
@@ -405,17 +381,33 @@ msgstr "Falha no download: %s"
 msgid "Download folder set to '%s'"
 msgstr "Pasta de download definida para '%s'"
 
+# en-hash: ffb8e2b534d49249461adaa8657fb6cc
+msgid "Download interrupted (possible device memory limit)"
+msgstr "Download interrompido (possível limite de memória do dispositivo)"
+
+# en-hash: 9e2d2af4d1cacf871dbd366a553e27e2
+msgid "Download timed out"
+msgstr "Tempo limite de download esgotado"
+
 # en-hash: c4c81bbfc4574ec8b1dbb31d7d2c9fb6
 msgid "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
 msgstr "Falha no download/cumprimento:\n%s\n\nSe você vir um erro de autorização, verifique seu Wi-Fi ou configurações de DRM."
 
-# en-hash: 5d3a7d9261c4c23d70edc994065ba958
-msgid "Downloading & fulfilling \"%s\"…"
-msgstr "Baixando e cumprindo \"%s\"…"
+# en-hash: 6f4ae97857f62d9269358fd71663be7c
+msgid "Downloading Book"
+msgstr "Baixando livro"
 
 # en-hash: e222f73accf9df22206b9c38f61e26c5
 msgid "Downloading Libbee v%s…"
 msgstr "Baixando Libbee v%s…"
+
+# en-hash: 65967fb03692e83fdf30dd06cf0cde40
+msgid "Downloading book…"
+msgstr "Baixando livro…"
+
+# en-hash: 6c8e88ae50e2ed7c26760d6556b80888
+msgid "Downloading book… (%.1f MB)"
+msgstr "Baixando livro… (%.1f MB)"
 
 # en-hash: c20c35ef53bf1b70789ce94e66800147
 msgid "Downloads"
@@ -461,10 +453,6 @@ msgstr "Cumprindo empréstimo ACSM com Libbee…"
 msgid "Group by Library Card"
 msgstr "Agrupar por cartão de biblioteca"
 
-# en-hash: c60da36641d760351933ace6a9927b41
-msgid "Holds"
-msgstr "Reservas"
-
 # en-hash: 2c62e1568e73336b5cc68211f0c643a1
 msgid "Install failed (unzip): %s"
 msgstr "Falha na instalação (descompactação): %s"
@@ -488,10 +476,6 @@ msgstr "Apenas Kindle"
 # en-hash: 61057a0c84605444201929bdd72014f0
 msgid "Later"
 msgstr "Mais tarde"
-
-# en-hash: 76374a506e6c678f472608fc19a34615
-msgid "Learn about ByteBook"
-msgstr "Saiba mais sobre o ByteBook"
 
 # en-hash: c61c67ed568a6d5aa71932f92b67d806
 msgid "Libbee"
@@ -555,19 +539,11 @@ msgstr "Apenas no app Libby"
 
 # en-hash: a94c6e1b2275b57db9ab336e4cf5fb31
 msgid "Libby Read"
-msgstr "Libby Read"
-
-# en-hash: c0418b07b48e7490fb6b4b37e7209631
-msgid "Libby account disconnected"
-msgstr "Conta do Libby desconectada"
+msgstr "Leitura no Libby"
 
 # en-hash: ce5ce7e1b50a83e70111ecbd2e5dfd52
 msgid "Libby only"
 msgstr "Apenas Libby"
-
-# en-hash: 4d70254b3a8e2bc38b6147fa6ee813be
-msgid "Library"
-msgstr "Biblioteca"
 
 # en-hash: af91e48bf33d040da890c0ceebe1e9f5
 msgid "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
@@ -577,25 +553,17 @@ msgstr "Biblioteca: %s\n\nSeu dispositivo está registrado. Você pode navegar e
 msgid "Link Libby Account"
 msgstr "Vincular conta do Libby"
 
-# en-hash: 93a63494d18a5c1132e636ae1c802205
-msgid "Link another Libby account"
-msgstr "Vincular outra conta Libby"
-
-# en-hash: d59189e032a45a99e26263968bd115cf
-msgid "Link another Libby device"
-msgstr "Vincular outro dispositivo Libby"
-
-# en-hash: 4f8712dc31820990e8cdaf0735906eb4
-msgid "Loading your Libby shelf…"
-msgstr "Carregando sua estante do Libby…"
+# en-hash: 06d7e3b06a54e241eba1c1650b6c0d85
+msgid "Linked Accounts"
+msgstr "Contas vinculadas"
 
 # en-hash: 9ad81a8f8a5c7a6ce9e1ba9bb4759391
 msgid "Loan"
 msgstr "Empréstimo"
 
-# en-hash: 64e109fb6dde9d711f1b7cba6ce2e279
-msgid "Loans"
-msgstr "Empréstimos"
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "Loan Details"
+msgstr "Detalhes do empréstimo"
 
 # en-hash: 6ed59fc0ac82c133ae65d8c7c058c947
 msgid "Local shelf cache cleared"
@@ -621,10 +589,6 @@ msgstr "Certifique-se de que o dispositivo esteja conectado ao Wi-Fi."
 msgid "Manage Linked Accounts"
 msgstr "Gerenciar Contas Vinculadas"
 
-# en-hash: 279bdea3f4be8d935162b88de4974347
-msgid "Manage linked accounts (%d)"
-msgstr "Gerenciar contas vinculadas (%d)"
-
 # en-hash: 5148905edb46ca87df979cbb369c403d
 msgid "New Folder"
 msgstr "Nova pasta"
@@ -636,6 +600,10 @@ msgstr "Avançar"
 # en-hash: 2d688f4d101a8d1fcb5672e879ffed68
 msgid "Next ›"
 msgstr "Próximo ›"
+
+# en-hash: 093b3147e8ac2ecbf6d357ca6577c652
+msgid "No active loans"
+msgstr "Nenhum empréstimo ativo"
 
 # en-hash: 4f394eff7519830c096186129664be0f
 msgid "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
@@ -701,22 +669,6 @@ msgstr "Digite sua senha do ByteBooks"
 msgid "Re-authenticate"
 msgstr "Reautenticar"
 
-# en-hash: 5641109a265d20644270193e2eeaaf39
-msgid "Re-authenticate account"
-msgstr "Reautenticar conta"
-
-# en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
-msgid "Read"
-msgstr "Ler"
-
-# en-hash: e42ab5e8243c1882cc7eeb878c75920c
-msgid "Redownload"
-msgstr "Baixar novamente"
-
-# en-hash: 63a6a88c066880c5ac42394a22803ca6
-msgid "Refresh"
-msgstr "Atualizar"
-
 # en-hash: 4307fc3d8df05d5834a98d34e953e720
 msgid "Refresh failed: %s"
 msgstr "Falha ao atualizar: %s"
@@ -728,14 +680,6 @@ msgstr "Atualizando estante do Libby…"
 # en-hash: 4fc47d4da89f3021f6ad13893afb1a8c
 msgid "Regenerating setup code…"
 msgstr "Regenerando código de configuração…"
-
-# en-hash: 0b9feba3fbb861d2f822c42a07fc9a04
-msgid "Renew"
-msgstr "Renovar"
-
-# en-hash: b535360116e57509156ca416fb6ba5a6
-msgid "Reset DRM Activation Keys"
-msgstr "Redefinir chaves de ativação DRM"
 
 # en-hash: 3a44a6ce49c866e543a8680c261387ab
 msgid "Reset DRM Keys"
@@ -757,10 +701,6 @@ msgstr "Redefinir as chaves de ativação salvas de Adobe / ByteBooks?\n\nUma no
 msgid "Reset to Default"
 msgstr "Restaurar padrão"
 
-# en-hash: fe92ba749089513e672e06313e8ee44e
-msgid "Reset to default download folder"
-msgstr "Restaurar pasta de download padrão"
-
 # en-hash: 6fa05091a7c5300a39f821188bc2da41
 msgid "Reset ›"
 msgstr "Redefinir ›"
@@ -773,13 +713,25 @@ msgstr "Reiniciar agora"
 msgid "Retry"
 msgstr "Tentar novamente"
 
-# en-hash: 988fd738de9c6d177440c5dcf69e73ce
-msgid "Return"
-msgstr "Devolver"
+# en-hash: e936f924825f1f1d14866f53c5e9d26e
+msgid "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
+msgstr "Devolver \"%s\" antecipadamente para sua biblioteca?\n\nIsso devolve o empréstimo ao Libby e remove o livro baixado deste dispositivo. O histórico de leitura e os favoritos serão preservados."
 
-# en-hash: c9cc8cce247e49bae79f15173ce97354
-msgid "Save"
-msgstr "Salvar"
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "Return Early"
+msgstr "Devolver antecipadamente"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "Return Failed"
+msgstr "Falha na devolução"
+
+# en-hash: 38e36f9abaa17225e15b23cb14f0324e
+msgid "Returned \"%s\" to the library."
+msgstr "Devolvido \"%s\" para a biblioteca."
+
+# en-hash: 178672dd9879003d55a91e11a3ad9966
+msgid "Returning \"%s\" to library…"
+msgstr "Devolvendo \"%s\" para a biblioteca…"
 
 # en-hash: 20b4f5bde44dfe7ae815d68bede8b8f9
 msgid "Saved to:\n%s\n\nOpen it from the file browser."
@@ -797,21 +749,9 @@ msgstr "Selecionar pasta de download"
 msgid "Select Folder"
 msgstr "Selecionar pasta"
 
-# en-hash: e0f3ceab4f6c4e78f9d2eec932f48788
-msgid "Select an account to disconnect:"
-msgstr "Selecione uma conta para desconectar:"
-
 # en-hash: 86180348ed3fa372f89e00d4279cba3c
 msgid "Session Expired"
 msgstr "Sessão expirada"
-
-# en-hash: bc38cd7cdcb62a99dce1538c5df06d4a
-msgid "Session Status"
-msgstr "Status da sessão"
-
-# en-hash: f4f70727dc34561dfde1a3c529b6205c
-msgid "Settings"
-msgstr "Configurações"
 
 # en-hash: aca44fd7c349941d557035e53b1c9d3f
 msgid "Setup Failed"
@@ -837,9 +777,13 @@ msgstr "Entrar com ID do ByteBooks"
 msgid "Status"
 msgstr "Status"
 
-# en-hash: 841037f081328cdc5308528f585512dc
-msgid "Status & Libraries"
-msgstr "Status e bibliotecas"
+# en-hash: 728480219c44f3ec1bd03847f9cfe4fe
+msgid "Storage Space Full"
+msgstr "Armazenamento cheio"
+
+# en-hash: ed22117be31bb1228408206e15f2ad94
+msgid "Storage Space Low"
+msgstr "Pouco espaço de armazenamento"
 
 # en-hash: bbc155fb2b111bf61c4f5ff892915e6b
 msgid "Switch"
@@ -861,57 +805,49 @@ msgstr "Alternar para DRM anônimo"
 msgid "Switched to anonymous DRM"
 msgstr "Alternado para DRM anônimo"
 
+# en-hash: 371a1fa0be014cb9ce302d30991820e9
+msgid "Sync account changes now"
+msgstr "Sincronizar alterações da conta agora"
+
 # en-hash: 45fd23929597c5957b6aad1b71d966db
 msgid "Sync failed: %s"
 msgstr "Falha na sincronização: %s"
 
-# en-hash: 6f9735249c5e6bf3ecc263ca96586841
-msgid "Sync library cards & accounts"
-msgstr "Sincronizar cartões e contas"
-
-# en-hash: 4e4b6c1fefb00e47b2db10a8dfd56a9c
-msgid "Syncing libraries from Libby…"
-msgstr "Sincronizando bibliotecas do Libby…"
+# en-hash: 5addd3ba663f8d6cf886e6d45105d006
+msgid "Syncing account details…"
+msgstr "Sincronizando detalhes da conta…"
 
 # en-hash: a45da96d0bf6575970f2d27af22be28a
 msgid "System"
 msgstr "Sistema"
 
-# en-hash: 189f63f277cd73395561651753563065
-msgid "Tags"
-msgstr "Tags"
-
 # en-hash: 02dda5d92b66f09e2004c3357668fdae
 msgid "This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com."
-msgstr "Este livro só pode ser aberto no app Libby ou no Kindle.\n\nA editora não fornece arquivo EPUB ou PDF baixável para o KOReader.\n\nPara ler este livro, abra-o no app Libby ou escolha 'Read with Kindle' no libbyapp.com."
+msgstr "Este livro só pode ser aberto no aplicativo Libby ou em um dispositivo Kindle.\n\nO editor não fornece um arquivo EPUB ou PDF para download para o KOReader.\n\nPara ler este livro, abra-o no aplicativo Libby em seu celular/tablet/computador ou escolha 'Ler com Kindle' em libbyapp.com."
 
 # en-hash: ffc5ef236f6ce51e868c4caf9b93c39c
 msgid "This book can only be read directly in the Libby app or browser reader (OverDrive Read).\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader."
-msgstr "Este livro só pode ser lido no app Libby ou no leitor web (OverDrive Read).\n\nA editora não fornece arquivo EPUB ou PDF baixável para o KOReader."
+msgstr "Este livro só pode ser lido diretamente no aplicativo Libby ou no leitor de navegador (OverDrive Read).\n\nO editor não fornece um arquivo EPUB ou PDF para download para o KOReader."
 
 # en-hash: 85d9b790cf92db1259c444be28a178bc
 msgid "This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."
-msgstr "Este livro não pode ser baixado no KOReader.\n\nO Libby só fornece este título para o app Libby ou dispositivos Kindle. Arquivos EPUB/PDF baixáveis não estão disponíveis."
-
-# en-hash: 0e40609ebe02b804db237adad5384dd5
-msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "Este livro já foi baixado em outro dispositivo. O Libby permite resgatar cada empréstimo apenas uma vez por Adobe ID.\n\nO ByteBook permite sincronizar seus empréstimos em todos os seus e-readers."
+msgstr "Este livro não pode ser baixado para o KOReader.\n\nO Libby fornece este título apenas em formatos para o aplicativo Libby ou dispositivos Kindle. Arquivos EPUB/PDF para download não estão disponíveis para este empréstimo da biblioteca."
 
 # en-hash: a45f5711eda70d5a863d9ebd09f245a6
 msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "Este livro já foi baixado em outro dispositivo. O Libby permite resgatar cada empréstimo apenas uma vez por Adobe ID.\n\nO ByteBooks permite sincronizar seus empréstimos em todos os seus e-readers."
+msgstr "Este livro já foi baixado em outro dispositivo. O Libby só permite que cada empréstimo seja resgatado uma vez por ID Adobe.\n\nSe você usa vários e-readers, o ByteBooks permite sincronizar e resgatar empréstimos em todos os seus dispositivos de forma integrada."
 
 # en-hash: d0f6b124e23f760507539e55502296a4
 msgid "This book is only available in Amazon Kindle format.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, choose 'Read with Kindle' from the Libby app or website."
-msgstr "Este livro está disponível apenas no formato Amazon Kindle.\n\nA editora não fornece arquivo EPUB ou PDF baixável para o KOReader.\n\nEscolha 'Read with Kindle' no app ou site do Libby."
+msgstr "Este livro está disponível apenas no formato Amazon Kindle.\n\nO editor não fornece um arquivo EPUB ou PDF para download para o KOReader.\n\nPara ler este livro, escolha 'Ler com Kindle' no aplicativo ou site da Libby."
 
 # en-hash: aeba2da5f8dcbe55e7c5695a4ce064ee
 msgid "This magazine is not available as a downloadable EPUB or PDF file for KOReader.\n\nPlease read it in the Libby app."
-msgstr "Esta revista não está disponível para download no KOReader.\n\nLeia-a no aplicativo Libby."
+msgstr "Esta revista não está disponível como um arquivo EPUB ou PDF para download para o KOReader.\n\nPor favor, leia-a no aplicativo Libby."
 
 # en-hash: cc7bfbfb0977ec05533f82734fb76b41
 msgid "This title is an audiobook and cannot be played in KOReader.\n\nPlease listen to it in the Libby app."
-msgstr "Este título é um audiolivro e não pode ser reproduzido no KOReader.\n\nOuça-o no aplicativo Libby."
+msgstr "Este título é um audiolivro e não pode ser reproduzido no KOReader.\n\nPor favor, ouça-o no aplicativo Libby."
 
 # en-hash: 26ddfc6b71bdcf8d76f7d3e9ebb74c05
 msgid "This title is not available in a downloadable format supported by KOReader."
@@ -1001,6 +937,14 @@ msgstr "Novidades:"
 msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
 msgstr "Sua autorização do Libby expirou.\n\nAutentique-se novamente para continuar baixando."
 
+# en-hash: 6ee87e7a60767e37b48c5030faf22448
+msgid "Your device does not have enough storage space to complete this download.\n\nPlease delete some files or finished books from your device to free up space, and try again."
+msgstr "Seu dispositivo não tem espaço suficiente para concluir este download.\n\nExclua alguns arquivos ou livros lidos para liberar espaço e tente novamente."
+
+# en-hash: 397fbc429d01695ace947dfe8b61023e
+msgid "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
+msgstr "Seu dispositivo tem menos de 20 MB de espaço livre (%s MB livres).\n\nExclua alguns arquivos para liberar espaço antes de baixar."
+
 # en-hash: 6d22c897874db492fb050da174bf189f
 msgid "badge_audiobook"
 msgstr "Audiolivro"
@@ -1053,6 +997,10 @@ msgstr "Instalar atualização"
 msgid "btn_ok"
 msgstr "OK"
 
+# en-hash: f5ac36a6d8af47f34aeedf97baf66fed
+msgid "btn_open_book"
+msgstr "Abrir livro"
+
 # en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
 msgid "btn_read"
 msgstr "Ler"
@@ -1077,6 +1025,10 @@ msgstr "Tentar novamente"
 msgid "btn_return"
 msgstr "Devolver"
 
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "btn_return_early"
+msgstr "Devolver antecipadamente"
+
 # en-hash: c9cc8cce247e49bae79f15173ce97354
 msgid "btn_save"
 msgstr "Salvar"
@@ -1089,9 +1041,17 @@ msgstr "Configurar chave"
 msgid "btn_unlink"
 msgstr "Desvincular conta"
 
-# en-hash: 4684cddc2fdd1f00234aca819c872304
-msgid "ebook"
-msgstr "e-book"
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "dialog_loan_details"
+msgstr "Detalhes do empréstimo"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "dialog_return_failed"
+msgstr "Falha na devolução"
+
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "dialog_return_loan"
+msgstr "Devolver antecipadamente"
 
 # en-hash: cb5e100e5a9a3e7f6d1fd97512215282
 msgid "error"
@@ -1141,9 +1101,9 @@ msgstr "Sincronizar estante"
 msgid "msg_auto_delete_multiple"
 msgstr "Excluídos automaticamente %d empréstimo(s) expirado(s)/devolvido(s)."
 
-# en-hash: 0b439d93d6a9f6084d1b4667d84e9a7a
+# en-hash: bab5d7d538a3a533edd5ca9deb23f586
 msgid "msg_auto_delete_single"
-msgstr "Excluído automaticamente \\\"%s\\\" (empréstimo encerrado)."
+msgstr "Excluído automaticamente \\\\\\\"%s\\\\\\\" (empréstimo encerrado)."
 
 # en-hash: 3c2681ea85407c2c0d252e05a8eaf6aa
 msgid "msg_download_complete"
@@ -1161,9 +1121,25 @@ msgstr "Nenhum empréstimo atualmente na sua estante."
 msgid "msg_restart_prompt"
 msgstr "Atualização instalada. Reiniciar o KOReader agora?"
 
-# en-hash: 904e8905680c0c4e3076536e54b12770
+# en-hash: c0db988878d961083858c27ec92c6586
 msgid "msg_return_confirm"
 msgstr "Devolver \"%s\" antecipadamente à sua biblioteca?"
+
+# en-hash: e936f924825f1f1d14866f53c5e9d26e
+msgid "msg_return_confirm_details"
+msgstr "Devolver \"%s\" antecipadamente para a sua biblioteca?\n\nIsso devolverá o empréstimo ao Libby e removerá o livro baixado deste dispositivo. O histórico de leitura e os marcadores serão preservados."
+
+# en-hash: 5d52fd5e9185cd8915fd819c8daab0ca
+msgid "msg_return_failed"
+msgstr "Não foi possível devolver o empréstimo:\n%s"
+
+# en-hash: 38e36f9abaa17225e15b23cb14f0324e
+msgid "msg_return_success"
+msgstr "\"%s\" foi devolvido para a biblioteca."
+
+# en-hash: 178672dd9879003d55a91e11a3ad9966
+msgid "msg_returning_progress"
+msgstr "Devolvendo \"%s\" para a biblioteca…"
 
 # en-hash: 1ae31fe9e8e36bf2fdf26f08994a77b5
 msgid "msg_sync_complete"
@@ -1188,6 +1164,10 @@ msgstr "Excluir expirados automaticamente"
 # en-hash: a9c186d7e7b37e434c9077d4e6cc1bd0
 msgid "setting_auto_delete_desc"
 msgstr "Exclusão automática ativada (remove empréstimos 1 dia após o vencimento)"
+
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "setting_group_by_card"
+msgstr "Agrupar por cartão da biblioteca"
 
 # en-hash: 96c4d7265c89a6e0ed70ffec22fb1afe
 msgid "status_downloading"
@@ -1217,6 +1197,10 @@ msgstr "Empréstimos"
 msgid "tab_tags"
 msgstr "Tags"
 
+# en-hash: afd56f0093199e72136ae4d8d434a79e
+msgid "this book"
+msgstr "este livro"
+
 # en-hash: 0db2ad3bff4478b8f7402e6eeb0fe895
 msgid "view_grid"
 msgstr "Grade de capas"
@@ -1224,6 +1208,10 @@ msgstr "Grade de capas"
 # en-hash: 806db08b8d5ab2af924f8401224a9176
 msgid "view_list"
 msgstr "Visualização em lista"
+
+# en-hash: dc106d31a4c7c59d085f09ecd0572570
+msgid "‹ Back"
+msgstr "‹ Voltar"
 
 # en-hash: 781881956a4383935c3239bc4ff7e1be
 msgid "‹ Back to Settings"
@@ -1233,9 +1221,9 @@ msgstr "‹ Voltar às configurações"
 msgid "‹ Prev"
 msgstr "‹ Anterior"
 
-# en-hash: 158fe160015b2b6aa9e10a959bfe03fd
-msgid "⏳ %d days remaining on this loan.\n\n"
-msgstr "⏳ %d dias restantes neste empréstimo.\n\n"
+# en-hash: 13e1667c1eaf81308b494833b78485aa
+msgid "✓ Account synced successfully"
+msgstr "✓ Conta sincronizada com sucesso"
 
 # en-hash: 57f4d25b2ed89c3ff4eda491b0544bbe
 msgid "✓ Active"
@@ -1249,10 +1237,6 @@ msgstr "✓ Anônimo ativo"
 msgid "✓ ByteBooks authorized successfully!"
 msgstr "✓ ByteBooks autorizado com sucesso!"
 
-# en-hash: 17e80751a7223bf83dc6127a2670f98f
-msgid "✓ Connected"
-msgstr "✓ Conectado"
-
 # en-hash: 5409903c4f0d9ff97744f7efde928e46
 msgid "✓ Download Complete!"
 msgstr "✓ Download concluído!"
@@ -1260,12 +1244,4 @@ msgstr "✓ Download concluído!"
 # en-hash: 339e5ff0141bb9d29554609fadf4d52b
 msgid "✓ Libbee Connected!"
 msgstr "✓ Libbee conectado!"
-
-# en-hash: 7d05ed14cfe8799130ac500f2e935784
-msgid "✓ Library cards & shelf synced"
-msgstr "✓ Cartões de biblioteca e estante sincronizados"
-
-# en-hash: 25c78c5528381192b859a353be7fa609
-msgid "✗ Not Connected"
-msgstr "✗ Não conectado"
 

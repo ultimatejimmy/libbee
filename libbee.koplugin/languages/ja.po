@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Language-Team: Japanese\n"
+"Language-Team: Ja\n"
 "Language: ja\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -9,9 +9,13 @@ msgstr ""
 msgid "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
 msgstr "『%s』\n\n保存先:\n%s\n\n読む準備ができました。"
 
-# en-hash: 9e74f4d19312ede861911b38ff4406c0
-msgid "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
-msgstr "『%s』は既にダウンロードされています:\n\n%s\n\n今すぐ開きますか？"
+# en-hash: 4826eb9bd2f89af56e7a97a115da51d3
+msgid "%d accounts linked"
+msgstr "%d個のアカウントが連携済み"
+
+# en-hash: f22c02b5ce23177d18a46af4311b39a2
+msgid "%d active loans"
+msgstr "%d冊の貸出中"
 
 # en-hash: 7a65032593f4ee141a1bb6af19528e5a
 msgid "%d books found in this folder"
@@ -21,9 +25,9 @@ msgstr "このフォルダに %d 冊の本が見つかりました"
 msgid "%d days left"
 msgstr "残り %d 日"
 
-# en-hash: 585dc4ca1840d70d261ca0fb85defb14
-msgid "%d libraries"
-msgstr "%d の図書館"
+# en-hash: 0cb1e4059d14ba4b01f2bc81cfab4f6f
+msgid "%d library cards"
+msgstr "%d 枚の図書カード"
 
 # en-hash: fed3b58ade678c6cccb2787ef13d86f6
 msgid "(cached)"
@@ -33,9 +37,21 @@ msgstr "(キャッシュ)"
 msgid "+ New"
 msgstr "+ 新規"
 
+# en-hash: 806e810f7f4f00e9c047945f357030bc
+msgid "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
+msgstr "-- Libbeeデバッグログ（新しい順、最新の %d 件を表示中） --\n\n"
+
 # en-hash: d28fdd75f93893891fb2d7e3b40683de
 msgid ".. (Parent Folder)"
 msgstr ".. (親フォルダ)"
+
+# en-hash: c8c398660be4b7f001f5ade9e4cb715d
+msgid "1 account linked"
+msgstr "1つのアカウントが連携済み"
+
+# en-hash: 5abe3cd2db530152e749fc5823ded113
+msgid "1 active loan"
+msgstr "1冊の貸出中"
 
 # en-hash: f1a9ffba029332c15ee4a50d7dec57a3
 msgid "1 day left"
@@ -65,17 +81,17 @@ msgstr "ACSM 処理に失敗しました"
 msgid "About"
 msgstr "情報"
 
-# en-hash: bc00c85091c5353809f37cc54f8df9a9
-msgid "About ByteBook"
-msgstr "ByteBook について"
-
 # en-hash: 4272d0a0d2f92239063b0f5e74297644
 msgid "About ByteBooks"
 msgstr "ByteBooks について"
 
-# en-hash: 0abf29253505eda680fc9518d8ee74a1
-msgid "Account & Keys"
-msgstr "アカウントとキー"
+# en-hash: a0721cf478be58b45f240618cdbb64c6
+msgid "Account Status"
+msgstr "アカウントステータス"
+
+# en-hash: b9125e3b8bab8806f5eddbc452cc7e1b
+msgid "Account disconnected"
+msgstr "アカウントの連携が解除されました"
 
 # en-hash: 26e1484950dcc5ba28e9dc97a24ff9ce
 msgid "Accounts & DRM"
@@ -93,17 +109,21 @@ msgstr "アクティベーション状態"
 msgid "Active"
 msgstr "有効"
 
-# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
-msgid "All"
-msgstr "すべて"
+# en-hash: 4479067e0875750e0abdd852db6b40a1
+msgid "Add another Libby card"
+msgstr "別のLibbyカードを追加"
+
+# en-hash: b4b315f7552422ccac6375f29b9253ad
+msgid "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
+msgstr "Adobe / ByteBooksのDRMでは、1アカウントにつき最大6台のアクティベーションが可能です。\n\nお使いのアカウントはAdobeのアクティベーションサーバーで6台の制限に達しました。\n\n解決方法:\n• Adobeサポートのライブチャットに問い合わせて、アクティベーション回数をリセットしてください（約1分でリセットされます）。\n• または、この端末で引き続きLibbeeを「匿名モード」で使用してください（図書館の本を借りて読むのにByteBooksアカウントは必要ありません！）。"
+
+# en-hash: a86a401b70835517b24429aaa622a921
+msgid "All accounts disconnected"
+msgstr "すべてのアカウントの連携が解除されました"
 
 # en-hash: 894bf223f655fcd20eb70039bc62ca12
 msgid "Already Fulfilled on Another Device"
 msgstr "他の端末で既にダウンロード済みです"
-
-# en-hash: 9ee472f90625d1c24d379203d9d45781
-msgid "Anonymous (Device only)"
-msgstr "匿名 (この端末のみ)"
 
 # en-hash: 0071fc15aed596b342505d9b8d315774
 msgid "Anonymous ›"
@@ -137,9 +157,17 @@ msgstr "ByteBooks アカウントを認証中…"
 msgid "Auto on download"
 msgstr "ダウンロード時に自動処理"
 
-# en-hash: 9bd1606c367713265008a2d24b589cad
-msgid "Auto-activates on download"
-msgstr "ダウンロード時に自動アクティベート"
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "Auto-delete Expired"
+msgstr "期限切れの自動削除"
+
+# en-hash: bab5d7d538a3a533edd5ca9deb23f586
+msgid "Auto-deleted \"%s\" (loan ended)."
+msgstr "「%s」を自動削除しました（貸出期間終了）。"
+
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "Auto-deleted %d expired/returned loan(s)."
+msgstr "期限切れまたは返却済みの貸出図書 %d 冊を自動削除しました。"
 
 # en-hash: 30aa633ceca3224e6de6cdc62d7e3307
 msgid "Available Format"
@@ -148,14 +176,6 @@ msgstr "利用可能なフォーマット"
 # en-hash: 2b1f94ef23b79bf90eb891cae1df7a90
 msgid "Book"
 msgstr "書籍"
-
-# en-hash: b41178dec7c52dd70fb71a5a29480e8d
-msgid "Book Already Downloaded"
-msgstr "ダウンロード済みの書籍"
-
-# en-hash: 899a89322bff5471f9a250d71ff876b5
-msgid "ByteBook"
-msgstr "ByteBook"
 
 # en-hash: 68701363a5d5cf7bbc1eea4208259cf6
 msgid "ByteBooks"
@@ -181,9 +201,13 @@ msgstr "ByteBooks パスワード"
 msgid "Cancel"
 msgstr "キャンセル"
 
-# en-hash: a149e85a44aeec9140e92733d9ed694e
-msgid "Cancelled"
-msgstr "キャンセル済み"
+# en-hash: f6471e01cc01715f9814ba5589ec87cb
+msgid "Cancel Download"
+msgstr "ダウンロードをキャンセル"
+
+# en-hash: 9714e513c7579a8c8933902a76782c8b
+msgid "Cards & Libraries"
+msgstr "カードと図書館"
 
 # en-hash: eb1b4bb3667dd670210c7822badc2f1d
 msgid "Check for updates"
@@ -209,17 +233,13 @@ msgstr "コードの期限が切れました。新しいコードをタップし
 msgid "Connect with Libby code"
 msgstr "Libby コードで接続"
 
-# en-hash: 2ec0d16e4ca169baedb9b2d50ec5c6d7
-msgid "Connected"
-msgstr "接続済み"
-
-# en-hash: 265725f5f895c4f418183f9cba48fda4
-msgid "Connected Libraries"
-msgstr "接続中の図書館"
-
 # en-hash: 60b7a58e56e8e2665e64fb9f42ec183c
 msgid "Connected ›"
 msgstr "接続済 ›"
+
+# en-hash: d7c80fd06fd5acad7f1c2d6331d0e632
+msgid "Connecting & requesting license…"
+msgstr "接続中およびライセンス要求中…"
 
 # en-hash: 4ff77e16703baf1a986734403aa04151
 msgid "Connecting to Libby…"
@@ -227,23 +247,11 @@ msgstr "Libby に接続中…"
 
 # en-hash: a95bcca04282197a9949388b819897d7
 msgid "Connecting to Libby…\n\nLoading your active loans…"
-msgstr "Libby に接続中…\n\n貸出中の本を読み込んでいます…"
-
-# en-hash: f3ea2226bfd87c77f77fd5e33575b71d
-msgid "Connection Status"
-msgstr "接続状態"
-
-# en-hash: d6ab5be3edab5ac285b19816029d7547
-msgid "Could Not Load Shelf"
-msgstr "本棚を読み込めませんでした"
+msgstr "Libbyに接続中…\n\n貸出中の図書を読み込んでいます…"
 
 # en-hash: 50c59941ad78ae04b529b9f589902aaa
 msgid "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
 msgstr "ByteBooks アカウントを認証できませんでした:\n\n%s\n\nメールアドレスとパスワードが正しいことを確認してください。"
-
-# en-hash: 0edfcafcbdb5045ab9f536cb3b3c8675
-msgid "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
-msgstr "Libby に接続できませんでした:\n%s\n\nWi-Fi 接続を確認してください。"
 
 # en-hash: 183b4a6dda12a0b685721cafd8e8edd0
 msgid "Could not create download folder:\n%s"
@@ -257,9 +265,9 @@ msgstr "貸出ファイルを処理できませんでした:\n\n%s"
 msgid "Could not request setup code."
 msgstr "セットアップコードを取得できませんでした。"
 
-# en-hash: 163dd2076f005559c44b9453e5477c99
-msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
-msgstr "設定コードを取得できませんでした:\n%s\n\n端末が Wi-Fi に接続されていることを確認してください。"
+# en-hash: 5d52fd5e9185cd8915fd819c8daab0ca
+msgid "Could not return loan:\n%s"
+msgstr "貸出を返却できませんでした:\n%s"
 
 # en-hash: 686e697538050e4664636337cc3b834f
 msgid "Create"
@@ -273,10 +281,6 @@ msgstr "'%s' 内にサブフォルダを作成:"
 msgid "Created '%s'"
 msgstr "'%s' を作成しました"
 
-# en-hash: 56ab89bac0b1bab13d01fae2271fc13e
-msgid "Current Mode"
-msgstr "現在のモード"
-
 # en-hash: 254264d04d17c89ee53c7808fe00c0eb
 msgid "Custom folder ›"
 msgstr "カスタムフォルダ ›"
@@ -285,9 +289,17 @@ msgstr "カスタムフォルダ ›"
 msgid "DRM activation keys reset"
 msgstr "DRM アクティベーションキーをリセットしました"
 
+# en-hash: 4f5be46ff93ccc626e77648e002df6ef
+msgid "Decrypting book…"
+msgstr "本を復号中…"
+
 # en-hash: fd84ab7970c656c94596f0080c1b4e8c
 msgid "Default folder ›"
 msgstr "デフォルトフォルダ ›"
+
+# en-hash: bb0e9460e6b047d3967b0a040d2900bd
+msgid "Device Activation Limit Reached"
+msgstr "端末のアクティベーション制限に達しました"
 
 # en-hash: d4045ad6ac3b251a37c226fba6499def
 msgid "Device DRM"
@@ -297,21 +309,37 @@ msgstr "端末 DRM"
 msgid "Diagnostics & Cache"
 msgstr "診断とキャッシュ"
 
+# en-hash: e5f1ef27f1a4a4dea4d1d6314e5408b9
+msgid "Disabled ›"
+msgstr "無効 ›"
+
 # en-hash: 42ae25231906c83927831e0ef7c317ac
 msgid "Disconnect"
 msgstr "切断"
 
-# en-hash: fd456a63260bc8f43e73094f0d826863
-msgid "Disconnect Account"
-msgstr "アカウントを切断"
+# en-hash: ed933c72dcbc58baca63d3f36074c254
+msgid "Disconnect Account?"
+msgstr "アカウントの連携を解除しますか？"
 
-# en-hash: 513a57621b57cca0eb03a4ceb37a97a1
-msgid "Disconnect Libby account"
-msgstr "Libby アカウントを切断"
+# en-hash: 1dca4ea3608cf5dff42f2e5f902af6ae
+msgid "Disconnect All"
+msgstr "すべて解除"
 
-# en-hash: f9cd62554bc3a60867c3fb15640e1d50
-msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
-msgstr "Libby アカウントを切断しますか？\n\n保存されたセッションとキャッシュされた本棚が消去されます。"
+# en-hash: 37dabb8f6b09b1c09b8b1ac70e7a7ec7
+msgid "Disconnect All?"
+msgstr "すべて解除しますか？"
+
+# en-hash: 1933ad632ff0726a0b8cbe6dcd3d5b11
+msgid "Disconnect all Libby accounts and remove stored cards from this device?"
+msgstr "すべてのLibbyアカウントの連携を解除し、この端末から保存されているカードを削除しますか？"
+
+# en-hash: 2d7f0e5473f5090882175bec10e32749
+msgid "Disconnect all accounts"
+msgstr "すべてのアカウントの連携を解除"
+
+# en-hash: 5c132a8af23f3829264863e295429dd6
+msgid "Disconnect this Libby account and remove its library cards?\n\n%s"
+msgstr "このLibbyアカウントの連携を解除し、図書館カードを削除しますか？\n\n%s"
 
 # en-hash: f92965e2c8a7afb3c1b9a5c09a263636
 msgid "Done"
@@ -337,6 +365,14 @@ msgstr "貸出本をダウンロード"
 msgid "Download and install now?"
 msgstr "今すぐダウンロードしてインストールしますか？"
 
+# en-hash: 013ba726c842150ec33822c5a6fc6196
+msgid "Download cancelled"
+msgstr "ダウンロードがキャンセルされました"
+
+# en-hash: 255cab4412ab57cd80daf9583400c221
+msgid "Download cancelled."
+msgstr "ダウンロードがキャンセルされました。"
+
 # en-hash: 2ae89fbb5548c5c979cdca7a76cc9f1b
 msgid "Download failed: %s"
 msgstr "ダウンロード失敗: %s"
@@ -345,17 +381,33 @@ msgstr "ダウンロード失敗: %s"
 msgid "Download folder set to '%s'"
 msgstr "ダウンロードフォルダを '%s' に設定しました"
 
+# en-hash: ffb8e2b534d49249461adaa8657fb6cc
+msgid "Download interrupted (possible device memory limit)"
+msgstr "ダウンロードが中断されました（端末のメモリ不足の可能性があります）"
+
+# en-hash: 9e2d2af4d1cacf871dbd366a553e27e2
+msgid "Download timed out"
+msgstr "ダウンロードがタイムアウトしました"
+
 # en-hash: c4c81bbfc4574ec8b1dbb31d7d2c9fb6
 msgid "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
 msgstr "ダウンロード/処理に失敗しました:\n%s\n\n認証エラーが表示される場合は、Wi-Fi または DRM 設定をご確認ください。"
 
-# en-hash: 5d3a7d9261c4c23d70edc994065ba958
-msgid "Downloading & fulfilling \"%s\"…"
-msgstr "『%s』をダウンロードおよび処理中…"
+# en-hash: 6f4ae97857f62d9269358fd71663be7c
+msgid "Downloading Book"
+msgstr "本をダウンロード中"
 
 # en-hash: e222f73accf9df22206b9c38f61e26c5
 msgid "Downloading Libbee v%s…"
 msgstr "Libbee v%s をダウンロード中…"
+
+# en-hash: 65967fb03692e83fdf30dd06cf0cde40
+msgid "Downloading book…"
+msgstr "本をダウンロード中…"
+
+# en-hash: 6c8e88ae50e2ed7c26760d6556b80888
+msgid "Downloading book… (%.1f MB)"
+msgstr "本をダウンロード中… (%.1f MB)"
 
 # en-hash: c20c35ef53bf1b70789ce94e66800147
 msgid "Downloads"
@@ -364,6 +416,10 @@ msgstr "ダウンロード"
 # en-hash: 61600f254d88c842a689e3869b20d442
 msgid "Email cannot be blank"
 msgstr "メールアドレスは必須です"
+
+# en-hash: 4a21023900c05e1d4da55380522f5cc9
+msgid "Enabled ›"
+msgstr "有効 ›"
 
 # en-hash: d88c31f3a550c44386a7c29f6be13c5f
 msgid "Enter password for %s:\n(Used in memory only, not stored)"
@@ -397,10 +453,6 @@ msgstr "Libbee で ACSM 貸出本を処理中…"
 msgid "Group by Library Card"
 msgstr "図書館カードでグループ化"
 
-# en-hash: c60da36641d760351933ace6a9927b41
-msgid "Holds"
-msgstr "予約中"
-
 # en-hash: 2c62e1568e73336b5cc68211f0c643a1
 msgid "Install failed (unzip): %s"
 msgstr "インストール失敗 (解凍): %s"
@@ -424,10 +476,6 @@ msgstr "Kindle 専用"
 # en-hash: 61057a0c84605444201929bdd72014f0
 msgid "Later"
 msgstr "後で"
-
-# en-hash: 76374a506e6c678f472608fc19a34615
-msgid "Learn about ByteBook"
-msgstr "ByteBook について詳しく見る"
 
 # en-hash: c61c67ed568a6d5aa71932f92b67d806
 msgid "Libbee"
@@ -493,17 +541,9 @@ msgstr "Libby アプリ専用"
 msgid "Libby Read"
 msgstr "Libby Read"
 
-# en-hash: c0418b07b48e7490fb6b4b37e7209631
-msgid "Libby account disconnected"
-msgstr "Libby アカウントを切断しました"
-
 # en-hash: ce5ce7e1b50a83e70111ecbd2e5dfd52
 msgid "Libby only"
 msgstr "Libby 専用"
-
-# en-hash: 4d70254b3a8e2bc38b6147fa6ee813be
-msgid "Library"
-msgstr "図書館"
 
 # en-hash: af91e48bf33d040da890c0ceebe1e9f5
 msgid "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
@@ -513,21 +553,17 @@ msgstr "図書館: %s\n\n端末が登録されました。本棚の閲覧とダ�
 msgid "Link Libby Account"
 msgstr "Libby アカウントを連携"
 
-# en-hash: d59189e032a45a99e26263968bd115cf
-msgid "Link another Libby device"
-msgstr "別の Libby 端末を連携"
-
-# en-hash: 4f8712dc31820990e8cdaf0735906eb4
-msgid "Loading your Libby shelf…"
-msgstr "Libby の本棚を読み込み中…"
+# en-hash: 06d7e3b06a54e241eba1c1650b6c0d85
+msgid "Linked Accounts"
+msgstr "連携済みアカウント"
 
 # en-hash: 9ad81a8f8a5c7a6ce9e1ba9bb4759391
 msgid "Loan"
 msgstr "貸出"
 
-# en-hash: 64e109fb6dde9d711f1b7cba6ce2e279
-msgid "Loans"
-msgstr "貸出中"
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "Loan Details"
+msgstr "貸出詳細"
 
 # en-hash: 6ed59fc0ac82c133ae65d8c7c058c947
 msgid "Local shelf cache cleared"
@@ -549,6 +585,10 @@ msgstr "メンテナンスとログ"
 msgid "Make sure your device is connected to Wi-Fi."
 msgstr "端末が Wi-Fi に接続されているか確認してください。"
 
+# en-hash: de905377f7fd22f4b015dc36ca1feffa
+msgid "Manage Linked Accounts"
+msgstr "連携済みアカウントの管理"
+
 # en-hash: 5148905edb46ca87df979cbb369c403d
 msgid "New Folder"
 msgstr "新規フォルダ"
@@ -560,6 +600,10 @@ msgstr "次へ"
 # en-hash: 2d688f4d101a8d1fcb5672e879ffed68
 msgid "Next ›"
 msgstr "次へ ›"
+
+# en-hash: 093b3147e8ac2ecbf6d357ca6577c652
+msgid "No active loans"
+msgstr "貸出中の本はありません"
 
 # en-hash: 4f394eff7519830c096186129664be0f
 msgid "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
@@ -625,22 +669,6 @@ msgstr "ByteBooks のパスワードを入力してください"
 msgid "Re-authenticate"
 msgstr "再認証"
 
-# en-hash: 5641109a265d20644270193e2eeaaf39
-msgid "Re-authenticate account"
-msgstr "アカウントを再認証"
-
-# en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
-msgid "Read"
-msgstr "読む"
-
-# en-hash: e42ab5e8243c1882cc7eeb878c75920c
-msgid "Redownload"
-msgstr "再ダウンロード"
-
-# en-hash: 63a6a88c066880c5ac42394a22803ca6
-msgid "Refresh"
-msgstr "更新"
-
 # en-hash: 4307fc3d8df05d5834a98d34e953e720
 msgid "Refresh failed: %s"
 msgstr "更新失敗: %s"
@@ -652,14 +680,6 @@ msgstr "Libby から本棚を更新中…"
 # en-hash: 4fc47d4da89f3021f6ad13893afb1a8c
 msgid "Regenerating setup code…"
 msgstr "設定コードを再生成中…"
-
-# en-hash: 0b9feba3fbb861d2f822c42a07fc9a04
-msgid "Renew"
-msgstr "延長"
-
-# en-hash: b535360116e57509156ca416fb6ba5a6
-msgid "Reset DRM Activation Keys"
-msgstr "DRM アクティベーションキーをリセット"
 
 # en-hash: 3a44a6ce49c866e543a8680c261387ab
 msgid "Reset DRM Keys"
@@ -681,10 +701,6 @@ msgstr "保存された Adobe / ByteBooks 端末アクティベーションキ�
 msgid "Reset to Default"
 msgstr "デフォルトに戻す"
 
-# en-hash: fe92ba749089513e672e06313e8ee44e
-msgid "Reset to default download folder"
-msgstr "デフォルトのダウンロードフォルダに戻す"
-
 # en-hash: 6fa05091a7c5300a39f821188bc2da41
 msgid "Reset ›"
 msgstr "リセット ›"
@@ -697,13 +713,25 @@ msgstr "今すぐ再起動"
 msgid "Retry"
 msgstr "再試行"
 
-# en-hash: 988fd738de9c6d177440c5dcf69e73ce
-msgid "Return"
-msgstr "返却"
+# en-hash: e936f924825f1f1d14866f53c5e9d26e
+msgid "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
+msgstr "「%s」を期限前に図書館に返却しますか？\n\nこれにより、貸出がLibbyに返却され、この端末からダウンロードされた本が削除されます。読書の履歴やブックマークは保持されます。"
 
-# en-hash: c9cc8cce247e49bae79f15173ce97354
-msgid "Save"
-msgstr "保存"
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "Return Early"
+msgstr "早期返却"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "Return Failed"
+msgstr "返却失敗"
+
+# en-hash: 38e36f9abaa17225e15b23cb14f0324e
+msgid "Returned \"%s\" to the library."
+msgstr "「%s」を図書館に返却しました。"
+
+# en-hash: 178672dd9879003d55a91e11a3ad9966
+msgid "Returning \"%s\" to library…"
+msgstr "「%s」を図書館に返却しています…"
 
 # en-hash: 20b4f5bde44dfe7ae815d68bede8b8f9
 msgid "Saved to:\n%s\n\nOpen it from the file browser."
@@ -724,14 +752,6 @@ msgstr "フォルダを選択"
 # en-hash: 86180348ed3fa372f89e00d4279cba3c
 msgid "Session Expired"
 msgstr "セッション期限切れ"
-
-# en-hash: bc38cd7cdcb62a99dce1538c5df06d4a
-msgid "Session Status"
-msgstr "セッション状態"
-
-# en-hash: f4f70727dc34561dfde1a3c529b6205c
-msgid "Settings"
-msgstr "設定"
 
 # en-hash: aca44fd7c349941d557035e53b1c9d3f
 msgid "Setup Failed"
@@ -757,9 +777,13 @@ msgstr "ByteBooks ID でサインイン"
 msgid "Status"
 msgstr "ステータス"
 
-# en-hash: 841037f081328cdc5308528f585512dc
-msgid "Status & Libraries"
-msgstr "ステータスと図書館"
+# en-hash: 728480219c44f3ec1bd03847f9cfe4fe
+msgid "Storage Space Full"
+msgstr "ストレージ容量不足"
+
+# en-hash: ed22117be31bb1228408206e15f2ad94
+msgid "Storage Space Low"
+msgstr "空き容量低下"
 
 # en-hash: bbc155fb2b111bf61c4f5ff892915e6b
 msgid "Switch"
@@ -781,45 +805,49 @@ msgstr "匿名 DRM に切り替え"
 msgid "Switched to anonymous DRM"
 msgstr "匿名 DRM に切り替えました"
 
+# en-hash: 371a1fa0be014cb9ce302d30991820e9
+msgid "Sync account changes now"
+msgstr "今すぐアカウントの変更を同期"
+
+# en-hash: 45fd23929597c5957b6aad1b71d966db
+msgid "Sync failed: %s"
+msgstr "同期失敗: %s"
+
+# en-hash: 5addd3ba663f8d6cf886e6d45105d006
+msgid "Syncing account details…"
+msgstr "アカウントの詳細を同期しています…"
+
 # en-hash: a45da96d0bf6575970f2d27af22be28a
 msgid "System"
 msgstr "システム"
 
-# en-hash: 189f63f277cd73395561651753563065
-msgid "Tags"
-msgstr "タグ"
-
 # en-hash: 02dda5d92b66f09e2004c3357668fdae
 msgid "This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com."
-msgstr "この本は Libby アプリまたは Kindle 端末でのみ開くことができます。\n\n出版社から KOReader 用のダウンロード可能な EPUB または PDF ファイルは提供されていません。\n\n読むには、Libby アプリを開くか、libbyapp.com で「Read with Kindle」を選択してください。"
+msgstr "この本はLibbyアプリまたはKindleデバイスでのみ開くことができます。\n\n出版社からKOReader用のダウンロード可能なEPUBまたはPDFファイルが提供されていません。\n\nこの本を読書するには、スマートフォン、タブレット、またはコンピュータのLibbyアプリで開くか、libbyapp.comで「Read with Kindle（Kindleで読む）」を選択してください。"
 
 # en-hash: ffc5ef236f6ce51e868c4caf9b93c39c
 msgid "This book can only be read directly in the Libby app or browser reader (OverDrive Read).\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader."
-msgstr "この本は Libby アプリまたはブラウザ（OverDrive Read）でのみ読むことができます。\n\n出版社から KOReader 用のダウンロード可能な EPUB または PDF ファイルは提供されていません。"
+msgstr "この本はLibbyアプリまたはブラウザリーダー（OverDrive Read）で直接のみ読むことができます。\n\n出版社からKOReader用のダウンロード可能なEPUBまたはPDFファイルが提供されていません。"
 
 # en-hash: 85d9b790cf92db1259c444be28a178bc
 msgid "This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."
-msgstr "この本を KOReader にダウンロードすることはできません。\n\nLibby はこのタイトルを Libby アプリまたは Kindle 端末専用のフォーマットでのみ提供しています。"
-
-# en-hash: 0e40609ebe02b804db237adad5384dd5
-msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "この本は既に他の端末でダウンロードされています。Libby では Adobe ID ごとに1回のみダウンロードが許可されています。\n\n複数の電子書籍リーダーをお使いの場合、ByteBook で全端末と同期できます。"
+msgstr "この本はKOReaderにダウンロードできません。\n\nLibbyはこのタイトルをLibbyアプリまたはKindle端末用の形式でのみ提供しています。この図書館からの貸出では、ダウンロード可能なEPUB/PDFファイルは利用できません。"
 
 # en-hash: a45f5711eda70d5a863d9ebd09f245a6
 msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "この本は既に他の端末でダウンロードされています。Libby では Adobe ID ごとに1回のみダウンロードが許可されています。\n\n複数の電子書籍リーダーをお使いの場合、ByteBooks で全端末と同期できます。"
+msgstr "この本はすでに別の端末でダウンロードされています。Libbyでは、Adobe ID 1つにつき、各貸出の実行は1回のみ許可されています。\n\n複数の電子書籍リーダーを使用している場合、ByteBooksを使用すると、すべての端末で貸出をシームレスに同期して実行できます。"
 
 # en-hash: d0f6b124e23f760507539e55502296a4
 msgid "This book is only available in Amazon Kindle format.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, choose 'Read with Kindle' from the Libby app or website."
-msgstr "この本は Amazon Kindle フォーマットでのみ利用可能です。\n\n出版社から KOReader 用のダウンロード可能な EPUB または PDF は提供されていません。\n\nLibby アプリまたは Web サイトから「Read with Kindle」を選択してください。"
+msgstr "この本はAmazon Kindle形式でのみ利用可能です。\n\n出版社からKOReader用のダウンロード可能なEPUBまたはPDFファイルが提供されていません。\n\nこの本を読書するには、Libbyアプリまたはウェブサイトから「Read with Kindle（Kindleで読む）」を選択してください。"
 
 # en-hash: aeba2da5f8dcbe55e7c5695a4ce064ee
 msgid "This magazine is not available as a downloadable EPUB or PDF file for KOReader.\n\nPlease read it in the Libby app."
-msgstr "この雑誌は KOReader 用のダウンロード形式では提供されていません。\n\nLibby アプリでお読みください。"
+msgstr "この雑誌はKOReader用のダウンロード可能なEPUBまたはPDFファイルとして提供されていません。\n\nLibbyアプリでお読みください。"
 
 # en-hash: cc7bfbfb0977ec05533f82734fb76b41
 msgid "This title is an audiobook and cannot be played in KOReader.\n\nPlease listen to it in the Libby app."
-msgstr "このタイトルはオーディオブックのため、KOReader では再生できません。\n\nLibby アプリでお聴きください。"
+msgstr "このタイトルはオーディオブックのため、KOReaderでは再生できません。\n\nLibbyアプリでお聴きください。"
 
 # en-hash: 26ddfc6b71bdcf8d76f7d3e9ebb74c05
 msgid "This title is not available in a downloadable format supported by KOReader."
@@ -909,6 +937,14 @@ msgstr "更新内容:"
 msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
 msgstr "Libby の認証期限が切れました。\n\nダウンロードを続けるには再認証してください。"
 
+# en-hash: 6ee87e7a60767e37b48c5030faf22448
+msgid "Your device does not have enough storage space to complete this download.\n\nPlease delete some files or finished books from your device to free up space, and try again."
+msgstr "このダウンロードを完了するのに十分な空き容量がありません。\n\n不要なファイルや読み終えた本を削除して空き容量を確保し、再試行してください。"
+
+# en-hash: 397fbc429d01695ace947dfe8b61023e
+msgid "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
+msgstr "端末の空き容量が20MB未満です（空き: %s MB）。\n\nダウンロードする前に不要なファイルを削除してください。"
+
 # en-hash: 6d22c897874db492fb050da174bf189f
 msgid "badge_audiobook"
 msgstr "オーディオブック"
@@ -961,6 +997,10 @@ msgstr "更新をインストール"
 msgid "btn_ok"
 msgstr "OK"
 
+# en-hash: f5ac36a6d8af47f34aeedf97baf66fed
+msgid "btn_open_book"
+msgstr "本を開く"
+
 # en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
 msgid "btn_read"
 msgstr "読む"
@@ -985,6 +1025,10 @@ msgstr "再試行"
 msgid "btn_return"
 msgstr "返却"
 
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "btn_return_early"
+msgstr "早めに返却"
+
 # en-hash: c9cc8cce247e49bae79f15173ce97354
 msgid "btn_save"
 msgstr "保存"
@@ -997,9 +1041,17 @@ msgstr "キー設定"
 msgid "btn_unlink"
 msgstr "連携解除"
 
-# en-hash: 4684cddc2fdd1f00234aca819c872304
-msgid "ebook"
-msgstr "電子書籍"
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "dialog_loan_details"
+msgstr "貸出詳細"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "dialog_return_failed"
+msgstr "返却失敗"
+
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "dialog_return_loan"
+msgstr "早めに返却"
 
 # en-hash: cb5e100e5a9a3e7f6d1fd97512215282
 msgid "error"
@@ -1045,6 +1097,14 @@ msgstr "Libbee 設定"
 msgid "menu_sync"
 msgstr "本棚を同期"
 
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "msg_auto_delete_multiple"
+msgstr "期限切れまたは返却済みの貸出図書 %d 冊を自動削除しました。"
+
+# en-hash: bab5d7d538a3a533edd5ca9deb23f586
+msgid "msg_auto_delete_single"
+msgstr "「%s」を自動削除しました（貸出期間終了）。"
+
 # en-hash: 3c2681ea85407c2c0d252e05a8eaf6aa
 msgid "msg_download_complete"
 msgstr "ダウンロードが完了しました。"
@@ -1061,9 +1121,25 @@ msgstr "現在借りている本はありません。"
 msgid "msg_restart_prompt"
 msgstr "更新がインストールされました。今すぐ KOReader を再起動しますか？"
 
-# en-hash: 904e8905680c0c4e3076536e54b12770
+# en-hash: c0db988878d961083858c27ec92c6586
 msgid "msg_return_confirm"
 msgstr "『%s』を図書館へ早期返却しますか？"
+
+# en-hash: e936f924825f1f1d14866f53c5e9d26e
+msgid "msg_return_confirm_details"
+msgstr "「%s」を期限前に図書館に返却しますか？\n\nこれにより、Libbyに本が返却され、このデバイスからダウンロードされた本が削除されます。読書の履歴やブックマークは保持されます。"
+
+# en-hash: 5d52fd5e9185cd8915fd819c8daab0ca
+msgid "msg_return_failed"
+msgstr "貸出図書を返却できませんでした:\n%s"
+
+# en-hash: 38e36f9abaa17225e15b23cb14f0324e
+msgid "msg_return_success"
+msgstr "「%s」を図書館に返却しました。"
+
+# en-hash: 178672dd9879003d55a91e11a3ad9966
+msgid "msg_returning_progress"
+msgstr "「%s」を図書館に返却中…"
 
 # en-hash: 1ae31fe9e8e36bf2fdf26f08994a77b5
 msgid "msg_sync_complete"
@@ -1080,6 +1156,18 @@ msgstr "この端末から Libby アカウントの連携を解除しますか�
 # en-hash: 25e8f2fd2871c8423bbe4e254066cd98
 msgid "progress_please_wait"
 msgstr "お待ちください..."
+
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "setting_auto_delete"
+msgstr "期限切れの自動削除"
+
+# en-hash: a9c186d7e7b37e434c9077d4e6cc1bd0
+msgid "setting_auto_delete_desc"
+msgstr "自動削除が有効（返却期限の1日後に削除します）"
+
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "setting_group_by_card"
+msgstr "図書カードごとにグループ化"
 
 # en-hash: 96c4d7265c89a6e0ed70ffec22fb1afe
 msgid "status_downloading"
@@ -1109,6 +1197,10 @@ msgstr "貸出中"
 msgid "tab_tags"
 msgstr "タグ"
 
+# en-hash: afd56f0093199e72136ae4d8d434a79e
+msgid "this book"
+msgstr "この本"
+
 # en-hash: 0db2ad3bff4478b8f7402e6eeb0fe895
 msgid "view_grid"
 msgstr "表紙グリッド"
@@ -1116,6 +1208,10 @@ msgstr "表紙グリッド"
 # en-hash: 806db08b8d5ab2af924f8401224a9176
 msgid "view_list"
 msgstr "リスト表示"
+
+# en-hash: dc106d31a4c7c59d085f09ecd0572570
+msgid "‹ Back"
+msgstr "‹ 戻る"
 
 # en-hash: 781881956a4383935c3239bc4ff7e1be
 msgid "‹ Back to Settings"
@@ -1125,9 +1221,9 @@ msgstr "‹ 設定に戻る"
 msgid "‹ Prev"
 msgstr "‹ 前へ"
 
-# en-hash: 158fe160015b2b6aa9e10a959bfe03fd
-msgid "⏳ %d days remaining on this loan.\n\n"
-msgstr "⏳ 返却期限まであと %d 日です。\n\n"
+# en-hash: 13e1667c1eaf81308b494833b78485aa
+msgid "✓ Account synced successfully"
+msgstr "✓ アカウントの同期に成功しました"
 
 # en-hash: 57f4d25b2ed89c3ff4eda491b0544bbe
 msgid "✓ Active"
@@ -1141,10 +1237,6 @@ msgstr "✓ 匿名アクティベーション有効"
 msgid "✓ ByteBooks authorized successfully!"
 msgstr "✓ ByteBooks の認証に成功しました！"
 
-# en-hash: 17e80751a7223bf83dc6127a2670f98f
-msgid "✓ Connected"
-msgstr "✓ 接続済"
-
 # en-hash: 5409903c4f0d9ff97744f7efde928e46
 msgid "✓ Download Complete!"
 msgstr "✓ ダウンロード完了！"
@@ -1152,8 +1244,4 @@ msgstr "✓ ダウンロード完了！"
 # en-hash: 339e5ff0141bb9d29554609fadf4d52b
 msgid "✓ Libbee Connected!"
 msgstr "✓ Libbee 接続完了！"
-
-# en-hash: 25c78c5528381192b859a353be7fa609
-msgid "✗ Not Connected"
-msgstr "✗ 未接続"
 

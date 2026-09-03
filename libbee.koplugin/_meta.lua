@@ -1,4 +1,4 @@
-local ok_loc, Localization = pcall(require, "localization_libbee")
+local ok_loc, Localization = pcall(require, "libbee_localization")
 if ok_loc and Localization then
     Localization:init()
 end

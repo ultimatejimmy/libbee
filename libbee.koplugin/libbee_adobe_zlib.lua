@@ -109,6 +109,29 @@ else
     libz = ffi.load("z")
 end
 
+-- Cross-plugin ABI compatibility:
+-- In LuaJIT FFI, if another plugin (like libby-dashboard) declared inflateInit2_
+-- with a custom struct pointer type (e.g. libby_z_stream *), direct calls fail
+-- with "cannot convert 'struct z_stream_s [1]' to 'struct libby_z_stream_s *'".
+-- Casting function pointers to void* bypasses LuaJIT's strict struct-name checking
+-- while preserving the exact binary ABI.
+local fn_inflateInit2 = libz.inflateInit2_
+local fn_inflate = libz.inflate
+local fn_inflateEnd = libz.inflateEnd
+
+pcall(function()
+    fn_inflateInit2 = ffi.cast("int (*)(void *, int, const char *, int)", libz.inflateInit2_)
+    fn_inflate = ffi.cast("int (*)(void *, int)", libz.inflate)
+    fn_inflateEnd = ffi.cast("int (*)(void *)", libz.inflateEnd)
+end)
+
+local ZLIB_VER = "1.2.11"
+pcall(function()
+    if libz and libz.zlibVersion then
+        ZLIB_VER = ffi.string(libz.zlibVersion())
+    end
+end)
+
 local Z_OK = 0
 local Z_STREAM_END = 1
 local Z_NO_FLUSH = 0
@@ -122,7 +145,7 @@ function zlib.inflateRaw(data)
     stream[0].next_in = ffi.cast("unsigned char *", data)
     stream[0].avail_in = #data
 
-    local rc = libz.inflateInit2_(stream, -15, libz.zlibVersion(), ffi.sizeof(stream[0]))
+    local rc = fn_inflateInit2(stream, -15, ZLIB_VER, ffi.sizeof(stream[0]))
     if rc ~= Z_OK then
         return nil, "inflateInit2 failed: " .. tostring(rc)
     end
@@ -134,7 +157,7 @@ function zlib.inflateRaw(data)
         stream[0].next_out = outbuf
         stream[0].avail_out = CHUNK_SIZE
 
-        rc = libz.inflate(stream, Z_NO_FLUSH)
+        rc = fn_inflate(stream, Z_NO_FLUSH)
         local produced = CHUNK_SIZE - tonumber(stream[0].avail_out)
         if produced > 0 then
             chunks[#chunks + 1] = ffi.string(outbuf, produced)
@@ -143,12 +166,12 @@ function zlib.inflateRaw(data)
         if rc == Z_STREAM_END then
             break
         elseif rc ~= Z_OK and not (rc == Z_BUF_ERROR and produced > 0) then
-            libz.inflateEnd(stream)
+            fn_inflateEnd(stream)
             return nil, "inflate failed: " .. tostring(rc)
         end
     end
 
-    libz.inflateEnd(stream)
+    fn_inflateEnd(stream)
     return table.concat(chunks)
 end
 
@@ -159,7 +182,7 @@ end
 -- Peak memory per update: 32KB output buffer (reused).
 function zlib.rawInflater()
     local stream = ffi.new("z_stream[1]")
-    local rc = libz.inflateInit2_(stream, -15, libz.zlibVersion(), ffi.sizeof(stream[0]))
+    local rc = fn_inflateInit2(stream, -15, ZLIB_VER, ffi.sizeof(stream[0]))
     if rc ~= Z_OK then
         return nil, "inflateInit2 failed: " .. tostring(rc)
     end
@@ -170,7 +193,7 @@ end
 --- Create a streaming zlib inflater (handles zlib header, not raw deflate).
 function zlib.inflater()
     local stream = ffi.new("z_stream[1]")
-    local rc = libz.inflateInit2_(stream, 15, libz.zlibVersion(), ffi.sizeof(stream[0]))
+    local rc = fn_inflateInit2(stream, 15, ZLIB_VER, ffi.sizeof(stream[0]))
     if rc ~= Z_OK then
         return nil, "inflateInit2 failed: " .. tostring(rc)
     end
@@ -198,7 +221,7 @@ function buildInflater(stream)
             stream[0].next_out = outbuf
             stream[0].avail_out = CHUNK_SIZE
 
-            local rc = libz.inflate(stream, Z_NO_FLUSH)
+            local rc = fn_inflate(stream, Z_NO_FLUSH)
             local produced = CHUNK_SIZE - tonumber(stream[0].avail_out)
             if produced > 0 and sink then
                 local ok, err = sink(outbuf, produced)
@@ -212,7 +235,7 @@ function buildInflater(stream)
                 break
             end
             if rc ~= Z_OK and (rc ~= Z_BUF_ERROR or produced == 0) then
-                libz.inflateEnd(stream)
+                fn_inflateEnd(stream)
                 return nil, "inflate failed: " .. tostring(rc)
             end
         end
@@ -221,7 +244,7 @@ function buildInflater(stream)
 
     function inflater:finalize()
         if not finished then
-            libz.inflateEnd(stream)
+            fn_inflateEnd(stream)
         end
         finished = true
     end

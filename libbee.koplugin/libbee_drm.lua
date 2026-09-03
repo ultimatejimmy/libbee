@@ -11,11 +11,9 @@ local info = debug.getinfo(1, "S")
 local plugin_root = (info and info.source and info.source:match("^@(.*[/\\])")) or "./"
 plugin_root = plugin_root:gsub("[/\\]+$", "")
 
--- Ensure adobe and dependencies are in package.path
+-- Ensure plugin root is in package.path
 local extra_paths = {
     plugin_root .. "/?.lua",
-    plugin_root .. "/dependencies/?.lua",
-    plugin_root .. "/dependencies/xmlhandler/?.lua",
 }
 for _, p in ipairs(extra_paths) do
     if not package.path:find(p, 1, true) then
@@ -23,10 +21,10 @@ for _, p in ipairs(extra_paths) do
     end
 end
 
-local adobe = require("adobe.adobe")
-local fulfillment = require("adobe.fulfillment")
-local naming = require("adobe.util.naming")
-local xml = require("adobe.util.xml")
+local adobe = require("libbee_adobe_core")
+local fulfillment = require("libbee_adobe_fulfillment")
+local naming = require("libbee_adobe_naming")
+local xml = require("libbee_adobe_xml")
 
 local M = {}
 
@@ -277,7 +275,7 @@ end
 -- ---------------------------------------------------------------------------
 
 --- Fulfills an ACSM file into a decrypted, ready-to-read EPUB or PDF
-function M.fulfillAcsm(acsm_path, output_path)
+function M.fulfillAcsm(acsm_path, output_path, progress_fn)
     log.info("libbee_drm: fulfilling ACSM at " .. tostring(acsm_path) .. " -> " .. tostring(output_path))
     local activation, reused, act_err = M.ensureActivated(false)
     if not activation then
@@ -290,7 +288,8 @@ function M.fulfillAcsm(acsm_path, output_path)
         activation.creds,
         activation.deviceUUID,
         activation.fingerprint,
-        activation.authCert
+        activation.authCert,
+        progress_fn
     )
 
     -- If fulfillment failed due to expired activation and we had reused one, retry once with fresh activation
@@ -307,7 +306,8 @@ function M.fulfillAcsm(acsm_path, output_path)
                     fresh_act.creds,
                     fresh_act.deviceUUID,
                     fresh_act.fingerprint,
-                    fresh_act.authCert
+                    fresh_act.authCert,
+                    progress_fn
                 )
             else
                 return nil, fresh_err or "Activation renewal failed"

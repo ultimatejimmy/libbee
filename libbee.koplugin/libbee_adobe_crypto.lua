@@ -1,8 +1,8 @@
 local crypto = {}
 
-local util = require("adobe.util.util")
-local asn1 = require("adobe.util.asn1")
-local nativecrypto = require("adobe.util.nativecrypto")
+local util = require("libbee_adobe_util")
+local asn1 = require("libbee_adobe_asn1")
+local nativecrypto = require("libbee_adobe_nativecrypto")
 
 crypto.deviceKey = {}
 

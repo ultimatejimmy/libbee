@@ -1,7 +1,7 @@
 --- @module encodes table as ASN.1 DER
 
 local bit = require("bit")
-local util = require("adobe.util.util")
+local util = require("libbee_adobe_util")
 
 local ASN = {
     NONE = 0,

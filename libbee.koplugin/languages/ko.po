@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Language-Team: Korean\n"
+"Language-Team: Ko\n"
 "Language: ko\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -9,9 +9,13 @@ msgstr ""
 msgid "\"%s\"\n\nSaved to:\n%s\n\nReady to read."
 msgstr "\"%s\"\n\n저장 경로:\n%s\n\n읽을 준비가 되었습니다."
 
-# en-hash: 9e74f4d19312ede861911b38ff4406c0
-msgid "\"%s\" is already downloaded:\n\n%s\n\nOpen it now?"
-msgstr "\"%s\" 도서가 이미 다운로드되어 있습니다:\n\n%s\n\n지금 여시겠습니까?"
+# en-hash: 4826eb9bd2f89af56e7a97a115da51d3
+msgid "%d accounts linked"
+msgstr "계정 %d개 연결됨"
+
+# en-hash: f22c02b5ce23177d18a46af4311b39a2
+msgid "%d active loans"
+msgstr "대여 중인 도서 %d권"
 
 # en-hash: 7a65032593f4ee141a1bb6af19528e5a
 msgid "%d books found in this folder"
@@ -21,9 +25,9 @@ msgstr "이 폴더에서 도서 %d권을 찾았습니다"
 msgid "%d days left"
 msgstr "%d일 남음"
 
-# en-hash: 585dc4ca1840d70d261ca0fb85defb14
-msgid "%d libraries"
-msgstr "%d개 도서관"
+# en-hash: 0cb1e4059d14ba4b01f2bc81cfab4f6f
+msgid "%d library cards"
+msgstr "%d개의 도서관 카드"
 
 # en-hash: fed3b58ade678c6cccb2787ef13d86f6
 msgid "(cached)"
@@ -33,9 +37,21 @@ msgstr "(캐시됨)"
 msgid "+ New"
 msgstr "+ 새로 만들기"
 
+# en-hash: 806e810f7f4f00e9c047945f357030bc
+msgid "-- Libbee Debug Log (Newest first, showing last %d entries) --\n\n"
+msgstr "-- Libbee 디버그 로그 (최신순, 마지막 %d개 항목 표시) --\n\n"
+
 # en-hash: d28fdd75f93893891fb2d7e3b40683de
 msgid ".. (Parent Folder)"
 msgstr ".. (상위 폴더)"
+
+# en-hash: c8c398660be4b7f001f5ade9e4cb715d
+msgid "1 account linked"
+msgstr "계정 1개 연결됨"
+
+# en-hash: 5abe3cd2db530152e749fc5823ded113
+msgid "1 active loan"
+msgstr "대여 중인 도서 1권"
 
 # en-hash: f1a9ffba029332c15ee4a50d7dec57a3
 msgid "1 day left"
@@ -65,17 +81,17 @@ msgstr "ACSM 처리에 실패했습니다"
 msgid "About"
 msgstr "정보"
 
-# en-hash: bc00c85091c5353809f37cc54f8df9a9
-msgid "About ByteBook"
-msgstr "ByteBook 정보"
-
 # en-hash: 4272d0a0d2f92239063b0f5e74297644
 msgid "About ByteBooks"
 msgstr "ByteBooks 정보"
 
-# en-hash: 0abf29253505eda680fc9518d8ee74a1
-msgid "Account & Keys"
-msgstr "계정 및 키"
+# en-hash: a0721cf478be58b45f240618cdbb64c6
+msgid "Account Status"
+msgstr "계정 상태"
+
+# en-hash: b9125e3b8bab8806f5eddbc452cc7e1b
+msgid "Account disconnected"
+msgstr "계정 연결 해제됨"
 
 # en-hash: 26e1484950dcc5ba28e9dc97a24ff9ce
 msgid "Accounts & DRM"
@@ -93,17 +109,21 @@ msgstr "활성화 상태"
 msgid "Active"
 msgstr "대출 중"
 
-# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
-msgid "All"
-msgstr "전체"
+# en-hash: 4479067e0875750e0abdd852db6b40a1
+msgid "Add another Libby card"
+msgstr "다른 Libby 카드 추가"
+
+# en-hash: b4b315f7552422ccac6375f29b9253ad
+msgid "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
+msgstr "Adobe / ByteBooks DRM은 계정당 최대 6대의 활성화된 기기를 허용합니다.\n\n현재 계정이 Adobe 활성화 서버의 6대 기기 제한에 도달했습니다.\n\n이 문제를 해결하려면:\n• Adobe 지원 라이브 채팅에 문의하여 활성화 횟수를 초기화하세요 (약 1분 소요).\n• 또는 이 기기에서 익명 모드로 Libbee를 계속 사용하세요 (도서관 책을 대출하고 읽기 위해 ByteBooks 계정이 필요하지 않습니다!)."
+
+# en-hash: a86a401b70835517b24429aaa622a921
+msgid "All accounts disconnected"
+msgstr "모든 계정 연결 해제됨"
 
 # en-hash: 894bf223f655fcd20eb70039bc62ca12
 msgid "Already Fulfilled on Another Device"
 msgstr "다른 기기에서 이미 다운로드되었습니다"
-
-# en-hash: 9ee472f90625d1c24d379203d9d45781
-msgid "Anonymous (Device only)"
-msgstr "익명 (이 기기 전용)"
 
 # en-hash: 0071fc15aed596b342505d9b8d315774
 msgid "Anonymous ›"
@@ -137,9 +157,17 @@ msgstr "ByteBooks 계정 인증 중…"
 msgid "Auto on download"
 msgstr "다운로드 시 자동 실행"
 
-# en-hash: 9bd1606c367713265008a2d24b589cad
-msgid "Auto-activates on download"
-msgstr "다운로드 시 자동 활성화"
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "Auto-delete Expired"
+msgstr "만료 도서 자동 삭제"
+
+# en-hash: bab5d7d538a3a533edd5ca9deb23f586
+msgid "Auto-deleted \"%s\" (loan ended)."
+msgstr "\"%s\" 도서가 자동 삭제되었습니다 (대출 만료)."
+
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "Auto-deleted %d expired/returned loan(s)."
+msgstr "만료되거나 반납된 대출 도서 %d개를 자동 삭제했습니다."
 
 # en-hash: 30aa633ceca3224e6de6cdc62d7e3307
 msgid "Available Format"
@@ -148,14 +176,6 @@ msgstr "사용 가능한 형식"
 # en-hash: 2b1f94ef23b79bf90eb891cae1df7a90
 msgid "Book"
 msgstr "도서"
-
-# en-hash: b41178dec7c52dd70fb71a5a29480e8d
-msgid "Book Already Downloaded"
-msgstr "이미 다운로드된 도서"
-
-# en-hash: 899a89322bff5471f9a250d71ff876b5
-msgid "ByteBook"
-msgstr "ByteBook"
 
 # en-hash: 68701363a5d5cf7bbc1eea4208259cf6
 msgid "ByteBooks"
@@ -181,9 +201,13 @@ msgstr "ByteBooks 비밀번호"
 msgid "Cancel"
 msgstr "취소"
 
-# en-hash: a149e85a44aeec9140e92733d9ed694e
-msgid "Cancelled"
-msgstr "취소됨"
+# en-hash: f6471e01cc01715f9814ba5589ec87cb
+msgid "Cancel Download"
+msgstr "다운로드 취소"
+
+# en-hash: 9714e513c7579a8c8933902a76782c8b
+msgid "Cards & Libraries"
+msgstr "카드 및 도서관"
 
 # en-hash: eb1b4bb3667dd670210c7822badc2f1d
 msgid "Check for updates"
@@ -209,17 +233,13 @@ msgstr "코드가 만료되었습니다. 새 코드를 눌러 재시도하세요
 msgid "Connect with Libby code"
 msgstr "Libby 코드로 연결"
 
-# en-hash: 2ec0d16e4ca169baedb9b2d50ec5c6d7
-msgid "Connected"
-msgstr "연결됨"
-
-# en-hash: 265725f5f895c4f418183f9cba48fda4
-msgid "Connected Libraries"
-msgstr "연결된 도서관"
-
 # en-hash: 60b7a58e56e8e2665e64fb9f42ec183c
 msgid "Connected ›"
 msgstr "연결됨 ›"
+
+# en-hash: d7c80fd06fd5acad7f1c2d6331d0e632
+msgid "Connecting & requesting license…"
+msgstr "연결 및 라이선스 요청 중…"
 
 # en-hash: 4ff77e16703baf1a986734403aa04151
 msgid "Connecting to Libby…"
@@ -227,23 +247,11 @@ msgstr "Libby에 연결 중…"
 
 # en-hash: a95bcca04282197a9949388b819897d7
 msgid "Connecting to Libby…\n\nLoading your active loans…"
-msgstr "Libby에 연결 중…\n\n대출 목록 불러오는 중…"
-
-# en-hash: f3ea2226bfd87c77f77fd5e33575b71d
-msgid "Connection Status"
-msgstr "연결 상태"
-
-# en-hash: d6ab5be3edab5ac285b19816029d7547
-msgid "Could Not Load Shelf"
-msgstr "서가를 불러올 수 없습니다"
+msgstr "Libby에 연결 중…\n\n대출 중인 도서 목록을 불러오는 중…"
 
 # en-hash: 50c59941ad78ae04b529b9f589902aaa
 msgid "Could not authorize ByteBooks account:\n\n%s\n\nMake sure your email and password are correct."
 msgstr "ByteBooks 계정을 인증할 수 없습니다:\n\n%s\n\n이메일과 비밀번호가 올바른지 확인하세요."
-
-# en-hash: 0edfcafcbdb5045ab9f536cb3b3c8675
-msgid "Could not connect to Libby:\n%s\n\nCheck your Wi-Fi connection."
-msgstr "Libby에 연결할 수 없습니다:\n%s\n\nWi-Fi 연결을 확인하세요."
 
 # en-hash: 183b4a6dda12a0b685721cafd8e8edd0
 msgid "Could not create download folder:\n%s"
@@ -257,9 +265,9 @@ msgstr "대출 파일을 처리할 수 없습니다:\n\n%s"
 msgid "Could not request setup code."
 msgstr "설정 코드를 요청할 수 없습니다."
 
-# en-hash: 163dd2076f005559c44b9453e5477c99
-msgid "Could not request setup code:\n%s\n\nMake sure your device is connected to Wi-Fi."
-msgstr "설정 코드를 요청할 수 없습니다:\n%s\n\n기기가 Wi-Fi에 연결되어 있는지 확인하세요."
+# en-hash: 5d52fd5e9185cd8915fd819c8daab0ca
+msgid "Could not return loan:\n%s"
+msgstr "대출을 반납할 수 없습니다:\n%s"
 
 # en-hash: 686e697538050e4664636337cc3b834f
 msgid "Create"
@@ -273,10 +281,6 @@ msgstr "'%s'에 하위 폴더 만들기:"
 msgid "Created '%s'"
 msgstr "'%s' 생성됨"
 
-# en-hash: 56ab89bac0b1bab13d01fae2271fc13e
-msgid "Current Mode"
-msgstr "현재 모드"
-
 # en-hash: 254264d04d17c89ee53c7808fe00c0eb
 msgid "Custom folder ›"
 msgstr "사용자 지정 폴더 ›"
@@ -285,9 +289,17 @@ msgstr "사용자 지정 폴더 ›"
 msgid "DRM activation keys reset"
 msgstr "DRM 활성화 키가 초기화되었습니다"
 
+# en-hash: 4f5be46ff93ccc626e77648e002df6ef
+msgid "Decrypting book…"
+msgstr "도서 복호화 중…"
+
 # en-hash: fd84ab7970c656c94596f0080c1b4e8c
 msgid "Default folder ›"
 msgstr "기본 폴더 ›"
+
+# en-hash: bb0e9460e6b047d3967b0a040d2900bd
+msgid "Device Activation Limit Reached"
+msgstr "기기 활성화 한도 초과"
 
 # en-hash: d4045ad6ac3b251a37c226fba6499def
 msgid "Device DRM"
@@ -297,21 +309,37 @@ msgstr "기기 DRM"
 msgid "Diagnostics & Cache"
 msgstr "진단 및 캐시"
 
+# en-hash: e5f1ef27f1a4a4dea4d1d6314e5408b9
+msgid "Disabled ›"
+msgstr "사용 안 함 ›"
+
 # en-hash: 42ae25231906c83927831e0ef7c317ac
 msgid "Disconnect"
 msgstr "연결 해제"
 
-# en-hash: fd456a63260bc8f43e73094f0d826863
-msgid "Disconnect Account"
-msgstr "계정 연결 해제"
+# en-hash: ed933c72dcbc58baca63d3f36074c254
+msgid "Disconnect Account?"
+msgstr "계정 연결을 해제할까요?"
 
-# en-hash: 513a57621b57cca0eb03a4ceb37a97a1
-msgid "Disconnect Libby account"
-msgstr "Libby 계정 연결 해제"
+# en-hash: 1dca4ea3608cf5dff42f2e5f902af6ae
+msgid "Disconnect All"
+msgstr "모두 연결 해제"
 
-# en-hash: f9cd62554bc3a60867c3fb15640e1d50
-msgid "Disconnect your Libby account?\n\nYour saved session and cached shelf will be cleared."
-msgstr "Libby 계정 연결을 해제하시겠습니까?\n\n저장된 세션 및 캐시된 서가가 삭제됩니다."
+# en-hash: 37dabb8f6b09b1c09b8b1ac70e7a7ec7
+msgid "Disconnect All?"
+msgstr "모두 연결 해제하시겠습니까?"
+
+# en-hash: 1933ad632ff0726a0b8cbe6dcd3d5b11
+msgid "Disconnect all Libby accounts and remove stored cards from this device?"
+msgstr "이 기기에서 모든 Libby 계정의 연결을 해제하고 저장된 카드를 삭제하시겠습니까?"
+
+# en-hash: 2d7f0e5473f5090882175bec10e32749
+msgid "Disconnect all accounts"
+msgstr "모든 계정 연결 해제"
+
+# en-hash: 5c132a8af23f3829264863e295429dd6
+msgid "Disconnect this Libby account and remove its library cards?\n\n%s"
+msgstr "이 Libby 계정의 연결을 해제하고 등록된 도서관 카드를 삭제하시겠습니까?\n\n%s"
 
 # en-hash: f92965e2c8a7afb3c1b9a5c09a263636
 msgid "Done"
@@ -337,6 +365,14 @@ msgstr "대출 도서 다운로드"
 msgid "Download and install now?"
 msgstr "지금 다운로드하여 설치하시겠습니까?"
 
+# en-hash: 013ba726c842150ec33822c5a6fc6196
+msgid "Download cancelled"
+msgstr "다운로드가 취소되었습니다"
+
+# en-hash: 255cab4412ab57cd80daf9583400c221
+msgid "Download cancelled."
+msgstr "다운로드가 취소되었습니다."
+
 # en-hash: 2ae89fbb5548c5c979cdca7a76cc9f1b
 msgid "Download failed: %s"
 msgstr "다운로드 실패: %s"
@@ -345,17 +381,33 @@ msgstr "다운로드 실패: %s"
 msgid "Download folder set to '%s'"
 msgstr "다운로드 폴더가 '%s'(으)로 설정되었습니다"
 
+# en-hash: ffb8e2b534d49249461adaa8657fb6cc
+msgid "Download interrupted (possible device memory limit)"
+msgstr "다운로드 중단됨 (기기 메모리 부족 가능성)"
+
+# en-hash: 9e2d2af4d1cacf871dbd366a553e27e2
+msgid "Download timed out"
+msgstr "다운로드 시간 초과"
+
 # en-hash: c4c81bbfc4574ec8b1dbb31d7d2c9fb6
 msgid "Download/Fulfillment failed:\n%s\n\nIf you see an authorization error, check your Wi-Fi or DRM settings."
 msgstr "다운로드/발급 실패:\n%s\n\n인증 오류가 발생하는 경우 Wi-Fi 또는 DRM 설정을 확인하세요."
 
-# en-hash: 5d3a7d9261c4c23d70edc994065ba958
-msgid "Downloading & fulfilling \"%s\"…"
-msgstr "\"%s\" 다운로드 및 처리 중…"
+# en-hash: 6f4ae97857f62d9269358fd71663be7c
+msgid "Downloading Book"
+msgstr "도서 다운로드 중"
 
 # en-hash: e222f73accf9df22206b9c38f61e26c5
 msgid "Downloading Libbee v%s…"
 msgstr "Libbee v%s 다운로드 중…"
+
+# en-hash: 65967fb03692e83fdf30dd06cf0cde40
+msgid "Downloading book…"
+msgstr "도서 다운로드 중…"
+
+# en-hash: 6c8e88ae50e2ed7c26760d6556b80888
+msgid "Downloading book… (%.1f MB)"
+msgstr "도서 다운로드 중… (%.1f MB)"
 
 # en-hash: c20c35ef53bf1b70789ce94e66800147
 msgid "Downloads"
@@ -364,6 +416,10 @@ msgstr "다운로드"
 # en-hash: 61600f254d88c842a689e3869b20d442
 msgid "Email cannot be blank"
 msgstr "이메일은 비워 둘 수 없습니다"
+
+# en-hash: 4a21023900c05e1d4da55380522f5cc9
+msgid "Enabled ›"
+msgstr "사용함 ›"
 
 # en-hash: d88c31f3a550c44386a7c29f6be13c5f
 msgid "Enter password for %s:\n(Used in memory only, not stored)"
@@ -397,10 +453,6 @@ msgstr "Libbee로 ACSM 대출 처리 중…"
 msgid "Group by Library Card"
 msgstr "도서관 카드별 그룹화"
 
-# en-hash: c60da36641d760351933ace6a9927b41
-msgid "Holds"
-msgstr "예약 목록"
-
 # en-hash: 2c62e1568e73336b5cc68211f0c643a1
 msgid "Install failed (unzip): %s"
 msgstr "설치 실패 (압축 해제): %s"
@@ -424,10 +476,6 @@ msgstr "Kindle 전용"
 # en-hash: 61057a0c84605444201929bdd72014f0
 msgid "Later"
 msgstr "나중에"
-
-# en-hash: 76374a506e6c678f472608fc19a34615
-msgid "Learn about ByteBook"
-msgstr "ByteBook 자세히 알아보기"
 
 # en-hash: c61c67ed568a6d5aa71932f92b67d806
 msgid "Libbee"
@@ -491,19 +539,11 @@ msgstr "Libby 앱 전용"
 
 # en-hash: a94c6e1b2275b57db9ab336e4cf5fb31
 msgid "Libby Read"
-msgstr "Libby Read"
-
-# en-hash: c0418b07b48e7490fb6b4b37e7209631
-msgid "Libby account disconnected"
-msgstr "Libby 계정이 연결 해제되었습니다"
+msgstr "Libby에서 읽기"
 
 # en-hash: ce5ce7e1b50a83e70111ecbd2e5dfd52
 msgid "Libby only"
 msgstr "Libby 전용"
-
-# en-hash: 4d70254b3a8e2bc38b6147fa6ee813be
-msgid "Library"
-msgstr "도서관"
 
 # en-hash: af91e48bf33d040da890c0ceebe1e9f5
 msgid "Library: %s\n\nYour device is now registered. You can browse and download your shelf."
@@ -513,21 +553,17 @@ msgstr "도서관: %s\n\n기기가 등록되었습니다. 서가를 탐색하고
 msgid "Link Libby Account"
 msgstr "Libby 계정 연결"
 
-# en-hash: d59189e032a45a99e26263968bd115cf
-msgid "Link another Libby device"
-msgstr "다른 Libby 기기 연결"
-
-# en-hash: 4f8712dc31820990e8cdaf0735906eb4
-msgid "Loading your Libby shelf…"
-msgstr "Libby 서가를 불러오는 중…"
+# en-hash: 06d7e3b06a54e241eba1c1650b6c0d85
+msgid "Linked Accounts"
+msgstr "연결된 계정"
 
 # en-hash: 9ad81a8f8a5c7a6ce9e1ba9bb4759391
 msgid "Loan"
 msgstr "대출"
 
-# en-hash: 64e109fb6dde9d711f1b7cba6ce2e279
-msgid "Loans"
-msgstr "대출 목록"
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "Loan Details"
+msgstr "대출 정보"
 
 # en-hash: 6ed59fc0ac82c133ae65d8c7c058c947
 msgid "Local shelf cache cleared"
@@ -549,6 +585,10 @@ msgstr "유지관리 및 로그"
 msgid "Make sure your device is connected to Wi-Fi."
 msgstr "기기가 Wi-Fi에 연결되어 있는지 확인하세요."
 
+# en-hash: de905377f7fd22f4b015dc36ca1feffa
+msgid "Manage Linked Accounts"
+msgstr "연동된 계정 관리"
+
 # en-hash: 5148905edb46ca87df979cbb369c403d
 msgid "New Folder"
 msgstr "새 폴더"
@@ -560,6 +600,10 @@ msgstr "다음"
 # en-hash: 2d688f4d101a8d1fcb5672e879ffed68
 msgid "Next ›"
 msgstr "다음 ›"
+
+# en-hash: 093b3147e8ac2ecbf6d357ca6577c652
+msgid "No active loans"
+msgstr "대여 중인 도서 없음"
 
 # en-hash: 4f394eff7519830c096186129664be0f
 msgid "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!"
@@ -625,22 +669,6 @@ msgstr "ByteBooks 비밀번호를 입력하세요"
 msgid "Re-authenticate"
 msgstr "다시 인증"
 
-# en-hash: 5641109a265d20644270193e2eeaaf39
-msgid "Re-authenticate account"
-msgstr "계정 다시 인증"
-
-# en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
-msgid "Read"
-msgstr "읽기"
-
-# en-hash: e42ab5e8243c1882cc7eeb878c75920c
-msgid "Redownload"
-msgstr "다시 다운로드"
-
-# en-hash: 63a6a88c066880c5ac42394a22803ca6
-msgid "Refresh"
-msgstr "새로고침"
-
 # en-hash: 4307fc3d8df05d5834a98d34e953e720
 msgid "Refresh failed: %s"
 msgstr "새로고침 실패: %s"
@@ -652,14 +680,6 @@ msgstr "Libby에서 서가 새로고침 중…"
 # en-hash: 4fc47d4da89f3021f6ad13893afb1a8c
 msgid "Regenerating setup code…"
 msgstr "설정 코드 재생성 중…"
-
-# en-hash: 0b9feba3fbb861d2f822c42a07fc9a04
-msgid "Renew"
-msgstr "연장"
-
-# en-hash: b535360116e57509156ca416fb6ba5a6
-msgid "Reset DRM Activation Keys"
-msgstr "DRM 활성화 키 초기화"
 
 # en-hash: 3a44a6ce49c866e543a8680c261387ab
 msgid "Reset DRM Keys"
@@ -681,10 +701,6 @@ msgstr "저장된 Adobe / ByteBooks 기기 활성화 키를 초기화하시겠�
 msgid "Reset to Default"
 msgstr "기본값으로 초기화"
 
-# en-hash: fe92ba749089513e672e06313e8ee44e
-msgid "Reset to default download folder"
-msgstr "기본 다운로드 폴더로 초기화"
-
 # en-hash: 6fa05091a7c5300a39f821188bc2da41
 msgid "Reset ›"
 msgstr "초기화 ›"
@@ -697,13 +713,25 @@ msgstr "지금 재시작"
 msgid "Retry"
 msgstr "재시도"
 
-# en-hash: 988fd738de9c6d177440c5dcf69e73ce
-msgid "Return"
-msgstr "반납"
+# en-hash: e936f924825f1f1d14866f53c5e9d26e
+msgid "Return \"%s\" early to your library?\n\nThis returns the loan to Libby and removes the downloaded book from this device. Reading history and bookmarks will be preserved."
+msgstr "도서관에 \"%s\" 책을 조기 반납하시겠습니까?\n\n반납하면 Libby의 대출이 반납되고 이 기기에서 다운로드된 책이 삭제됩니다. 독서 기록 및 북마크는 유지됩니다."
 
-# en-hash: c9cc8cce247e49bae79f15173ce97354
-msgid "Save"
-msgstr "저장"
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "Return Early"
+msgstr "조기 반납"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "Return Failed"
+msgstr "반납 실패"
+
+# en-hash: 38e36f9abaa17225e15b23cb14f0324e
+msgid "Returned \"%s\" to the library."
+msgstr "도서관에 \"%s\" 반납 완료."
+
+# en-hash: 178672dd9879003d55a91e11a3ad9966
+msgid "Returning \"%s\" to library…"
+msgstr "도서관에 \"%s\" 반납 중…"
 
 # en-hash: 20b4f5bde44dfe7ae815d68bede8b8f9
 msgid "Saved to:\n%s\n\nOpen it from the file browser."
@@ -724,14 +752,6 @@ msgstr "폴더 선택"
 # en-hash: 86180348ed3fa372f89e00d4279cba3c
 msgid "Session Expired"
 msgstr "세션 만료됨"
-
-# en-hash: bc38cd7cdcb62a99dce1538c5df06d4a
-msgid "Session Status"
-msgstr "세션 상태"
-
-# en-hash: f4f70727dc34561dfde1a3c529b6205c
-msgid "Settings"
-msgstr "설정"
 
 # en-hash: aca44fd7c349941d557035e53b1c9d3f
 msgid "Setup Failed"
@@ -757,9 +777,13 @@ msgstr "ByteBooks ID로 로그인"
 msgid "Status"
 msgstr "상태"
 
-# en-hash: 841037f081328cdc5308528f585512dc
-msgid "Status & Libraries"
-msgstr "상태 및 도서관"
+# en-hash: 728480219c44f3ec1bd03847f9cfe4fe
+msgid "Storage Space Full"
+msgstr "저장 공간 가득 참"
+
+# en-hash: ed22117be31bb1228408206e15f2ad94
+msgid "Storage Space Low"
+msgstr "저장 공간 부족"
 
 # en-hash: bbc155fb2b111bf61c4f5ff892915e6b
 msgid "Switch"
@@ -781,45 +805,49 @@ msgstr "익명 DRM으로 전환"
 msgid "Switched to anonymous DRM"
 msgstr "익명 DRM으로 전환되었습니다"
 
+# en-hash: 371a1fa0be014cb9ce302d30991820e9
+msgid "Sync account changes now"
+msgstr "지금 계정 변경 사항 동기화"
+
+# en-hash: 45fd23929597c5957b6aad1b71d966db
+msgid "Sync failed: %s"
+msgstr "동기화 실패: %s"
+
+# en-hash: 5addd3ba663f8d6cf886e6d45105d006
+msgid "Syncing account details…"
+msgstr "계정 정보 동기화 중…"
+
 # en-hash: a45da96d0bf6575970f2d27af22be28a
 msgid "System"
 msgstr "시스템"
 
-# en-hash: 189f63f277cd73395561651753563065
-msgid "Tags"
-msgstr "태그"
-
 # en-hash: 02dda5d92b66f09e2004c3357668fdae
 msgid "This book can only be opened in the Libby app or on a Kindle device.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, open it in the Libby app on your phone/tablet/computer or choose 'Read with Kindle' on libbyapp.com."
-msgstr "이 도서는 Libby 앱 또는 Kindle 기기에서만 열 수 있습니다.\n\n출판사에서 KOReader용 다운로드 가능한 EPUB 또는 PDF 파일을 제공하지 않습니다.\n\nLibby 앱에서 열거나 libbyapp.com에서 'Read with Kindle'을 선택하세요."
+msgstr "이 도서는 Libby 앱 또는 Kindle 기기에서만 열 수 있습니다.\n\n출판사에서 KOReader용으로 다운로드 가능한 EPUB 또는 PDF 파일을 제공하지 않습니다.\n\n이 도서를 읽으려면 휴대폰/태블릿/컴퓨터의 Libby 앱에서 열거나 libbyapp.com에서 'Read with Kindle'을 선택하세요."
 
 # en-hash: ffc5ef236f6ce51e868c4caf9b93c39c
 msgid "This book can only be read directly in the Libby app or browser reader (OverDrive Read).\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader."
-msgstr "이 도서는 Libby 앱 또는 웹 리더(OverDrive Read)에서만 읽을 수 있습니다.\n\n출판사에서 KOReader용 다운로드 가능한 EPUB 또는 PDF 파일을 제공하지 않습니다."
+msgstr "이 책은 Libby 앱 또는 브라우저 리더(OverDrive Read)에서만 직접 읽을 수 있습니다.\n\n출판사에서 KOReader용으로 다운로드 가능한 EPUB 또는 PDF 파일을 제공하지 않습니다."
 
 # en-hash: 85d9b790cf92db1259c444be28a178bc
 msgid "This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."
-msgstr "이 도서는 KOReader로 다운로드할 수 없습니다.\n\nLibby는 이 도서를 Libby 앱 또는 Kindle 기기 전용 형식으로만 제공합니다."
-
-# en-hash: 0e40609ebe02b804db237adad5384dd5
-msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBook lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "이 도서는 다른 기기에서 이미 다운로드되었습니다. Libby는 Adobe ID당 한 번만 다운로드를 허용합니다.\n\nByteBook을 사용하면 여러 e-리더 간에 대출 항목을 완벽하게 동기화할 수 있습니다."
+msgstr "이 책은 KOReader로 다운로드할 수 없습니다.\n\nLibby는 이 타이틀을 Libby 앱 또는 Kindle 기기용 형식으로만 제공합니다. 도서관에서 이 대출 건에 대해 다운로드 가능한 EPUB/PDF 파일을 제공하지 않습니다."
 
 # en-hash: a45f5711eda70d5a863d9ebd09f245a6
 msgid "This book has already been downloaded on another device. Libby only allows each loan to be fulfilled once per Adobe ID.\n\nIf you use multiple e-readers, ByteBooks lets you sync and fulfill loans across all your devices seamlessly."
-msgstr "이 도서는 다른 기기에서 이미 다운로드되었습니다. Libby는 Adobe ID당 한 번만 다운로드를 허용합니다.\n\nByteBooks를 사용하면 여러 e-리더 간에 대출 항목을 완벽하게 동기화할 수 있습니다."
+msgstr "이 책은 이미 다른 기기에서 다운로드되었습니다. Libby는 Adobe ID당 대출 건당 한 번만 다운로드하도록 허용합니다.\n\n여러 대의 이북 리더를 사용하시는 경우, ByteBooks를 이용하면 모든 기기에서 대출을 원활하게 동기화하고 처리할 수 있습니다."
 
 # en-hash: d0f6b124e23f760507539e55502296a4
 msgid "This book is only available in Amazon Kindle format.\n\nThe publisher does not provide a downloadable EPUB or PDF file for KOReader.\n\nTo read this book, choose 'Read with Kindle' from the Libby app or website."
-msgstr "이 도서는 Amazon Kindle 형식으로만 제공됩니다.\n\n출판사에서 KOReader용 다운로드 가능한 EPUB 또는 PDF 파일을 제공하지 않습니다.\n\nLibby 앱 또는 웹사이트에서 'Read with Kindle'을 선택하세요."
+msgstr "이 책은 Amazon Kindle 형식으로만 이용할 수 있습니다.\n\n출판사에서 KOReader용으로 다운로드 가능한 EPUB 또는 PDF 파일을 제공하지 않습니다.\n\n이 책을 읽으려면 Libby 앱이나 웹사이트에서 'Read with Kindle'을 선택하세요."
 
 # en-hash: aeba2da5f8dcbe55e7c5695a4ce064ee
 msgid "This magazine is not available as a downloadable EPUB or PDF file for KOReader.\n\nPlease read it in the Libby app."
-msgstr "이 잡지는 KOReader용 다운로드 형식으로 제공되지 않습니다.\n\nLibby 앱에서 읽어주세요."
+msgstr "이 잡지는 KOReader용으로 다운로드 가능한 EPUB 또는 PDF 파일로 제공되지 않습니다.\n\nLibby 앱에서 읽어주세요."
 
 # en-hash: cc7bfbfb0977ec05533f82734fb76b41
 msgid "This title is an audiobook and cannot be played in KOReader.\n\nPlease listen to it in the Libby app."
-msgstr "이 항목은 오디오북이며 KOReader에서 재생할 수 없습니다.\n\nLibby 앱에서 들어주세요."
+msgstr "이 타이틀은 오디오북이므로 KOReader에서 재생할 수 없습니다.\n\nLibby 앱에서 감상해 주세요."
 
 # en-hash: 26ddfc6b71bdcf8d76f7d3e9ebb74c05
 msgid "This title is not available in a downloadable format supported by KOReader."
@@ -909,6 +937,14 @@ msgstr "새로운 기능:"
 msgid "Your Libby authorization has expired.\n\nPlease re-authenticate to continue downloading."
 msgstr "Libby 인증이 만료되었습니다.\n\n다운로드를 계속하려면 다시 인증하세요."
 
+# en-hash: 6ee87e7a60767e37b48c5030faf22448
+msgid "Your device does not have enough storage space to complete this download.\n\nPlease delete some files or finished books from your device to free up space, and try again."
+msgstr "이 다운로드를 완료하기 위한 저장 공간이 부족합니다.\n\n파일이나 다 읽은 책을 삭제하여 공간을 확보한 후 다시 시도하세요."
+
+# en-hash: 397fbc429d01695ace947dfe8b61023e
+msgid "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
+msgstr "기기의 여유 저장 공간이 20MB 미만입니다 (%s MB 남음).\n\n다운로드하기 전에 파일을 삭제하여 공간을 확보하세요."
+
 # en-hash: 6d22c897874db492fb050da174bf189f
 msgid "badge_audiobook"
 msgstr "오디오북"
@@ -961,6 +997,10 @@ msgstr "업데이트 설치"
 msgid "btn_ok"
 msgstr "확인"
 
+# en-hash: f5ac36a6d8af47f34aeedf97baf66fed
+msgid "btn_open_book"
+msgstr "책 열기"
+
 # en-hash: 7a1a5f3e79fdc91edf2f5ead9d66abb4
 msgid "btn_read"
 msgstr "읽기"
@@ -985,6 +1025,10 @@ msgstr "재시도"
 msgid "btn_return"
 msgstr "반납"
 
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "btn_return_early"
+msgstr "조기 반납"
+
 # en-hash: c9cc8cce247e49bae79f15173ce97354
 msgid "btn_save"
 msgstr "저장"
@@ -997,9 +1041,17 @@ msgstr "키 설정"
 msgid "btn_unlink"
 msgstr "연결 해제"
 
-# en-hash: 4684cddc2fdd1f00234aca819c872304
-msgid "ebook"
-msgstr "전자책"
+# en-hash: 3f74da5e6e02f12c5208e50c114526f1
+msgid "dialog_loan_details"
+msgstr "대출 정보"
+
+# en-hash: ebe0aab259cd72adb26f3ac1bc0284e4
+msgid "dialog_return_failed"
+msgstr "반납 실패"
+
+# en-hash: 8016ccf4bb22d9739f40ea328d4e5eb4
+msgid "dialog_return_loan"
+msgstr "조기 반납"
 
 # en-hash: cb5e100e5a9a3e7f6d1fd97512215282
 msgid "error"
@@ -1045,6 +1097,14 @@ msgstr "Libbee 설정"
 msgid "menu_sync"
 msgstr "서가 동기화"
 
+# en-hash: e258d280482244111e65b86dd8edf76b
+msgid "msg_auto_delete_multiple"
+msgstr "만료되거나 반납된 대출 %d개 자동 삭제됨."
+
+# en-hash: bab5d7d538a3a533edd5ca9deb23f586
+msgid "msg_auto_delete_single"
+msgstr "\"%s\" 자동 삭제됨 (대출 종료)."
+
 # en-hash: 3c2681ea85407c2c0d252e05a8eaf6aa
 msgid "msg_download_complete"
 msgstr "다운로드가 완료되었습니다."
@@ -1061,9 +1121,25 @@ msgstr "현재 서가에 대출 중인 도서가 없습니다."
 msgid "msg_restart_prompt"
 msgstr "업데이트가 설치되었습니다. 지금 KOReader를 다시 시작하시겠습니까?"
 
-# en-hash: 904e8905680c0c4e3076536e54b12770
+# en-hash: c0db988878d961083858c27ec92c6586
 msgid "msg_return_confirm"
 msgstr "\"%s\" 도서를 도서관에 조기 반납하시겠습니까?"
+
+# en-hash: e936f924825f1f1d14866f53c5e9d26e
+msgid "msg_return_confirm_details"
+msgstr "\"%s\" 도서를 도서관에 조기 반납하시겠습니까?\n\n반납 시 Libby에서 대출이 반납 처리되며 이 기기에서 다운로드된 도서 파일이 삭제됩니다. 독서 기록과 북마크는 유지됩니다."
+
+# en-hash: 5d52fd5e9185cd8915fd819c8daab0ca
+msgid "msg_return_failed"
+msgstr "대출을 반납할 수 없습니다:\n%s"
+
+# en-hash: 38e36f9abaa17225e15b23cb14f0324e
+msgid "msg_return_success"
+msgstr "\"%s\" 도서를 도서관에 반납했습니다."
+
+# en-hash: 178672dd9879003d55a91e11a3ad9966
+msgid "msg_returning_progress"
+msgstr "\"%s\" 반납 중…"
 
 # en-hash: 1ae31fe9e8e36bf2fdf26f08994a77b5
 msgid "msg_sync_complete"
@@ -1080,6 +1156,18 @@ msgstr "이 기기에서 Libby 계정 연결을 해제하시겠습니까?"
 # en-hash: 25e8f2fd2871c8423bbe4e254066cd98
 msgid "progress_please_wait"
 msgstr "잠시 기다려 주십시오..."
+
+# en-hash: e382e940faaeacdbfb834c814d11b612
+msgid "setting_auto_delete"
+msgstr "만료 시 자동 삭제"
+
+# en-hash: a9c186d7e7b37e434c9077d4e6cc1bd0
+msgid "setting_auto_delete_desc"
+msgstr "자동 삭제 활성화 (반납 기한 1일 후 대출 삭제)"
+
+# en-hash: 25040042e59709130975bcd3ed3909ed
+msgid "setting_group_by_card"
+msgstr "도서관 카드별로 그룹화"
 
 # en-hash: 96c4d7265c89a6e0ed70ffec22fb1afe
 msgid "status_downloading"
@@ -1109,6 +1197,10 @@ msgstr "대출 목록"
 msgid "tab_tags"
 msgstr "태그"
 
+# en-hash: afd56f0093199e72136ae4d8d434a79e
+msgid "this book"
+msgstr "이 책"
+
 # en-hash: 0db2ad3bff4478b8f7402e6eeb0fe895
 msgid "view_grid"
 msgstr "표지 격자 보기"
@@ -1116,6 +1208,10 @@ msgstr "표지 격자 보기"
 # en-hash: 806db08b8d5ab2af924f8401224a9176
 msgid "view_list"
 msgstr "목록 보기"
+
+# en-hash: dc106d31a4c7c59d085f09ecd0572570
+msgid "‹ Back"
+msgstr "‹ 뒤로"
 
 # en-hash: 781881956a4383935c3239bc4ff7e1be
 msgid "‹ Back to Settings"
@@ -1125,9 +1221,9 @@ msgstr "‹ 설정으로 돌아가기"
 msgid "‹ Prev"
 msgstr "‹ 이전"
 
-# en-hash: 158fe160015b2b6aa9e10a959bfe03fd
-msgid "⏳ %d days remaining on this loan.\n\n"
-msgstr "⏳ 대출 기간이 %d일 남았습니다.\n\n"
+# en-hash: 13e1667c1eaf81308b494833b78485aa
+msgid "✓ Account synced successfully"
+msgstr "✓ 계정이 성공적으로 동기화되었습니다"
 
 # en-hash: 57f4d25b2ed89c3ff4eda491b0544bbe
 msgid "✓ Active"
@@ -1141,10 +1237,6 @@ msgstr "✓ 익명 활성화 작동 중"
 msgid "✓ ByteBooks authorized successfully!"
 msgstr "✓ ByteBooks 계정이 성공적으로 인증되었습니다!"
 
-# en-hash: 17e80751a7223bf83dc6127a2670f98f
-msgid "✓ Connected"
-msgstr "✓ 연결됨"
-
 # en-hash: 5409903c4f0d9ff97744f7efde928e46
 msgid "✓ Download Complete!"
 msgstr "✓ 다운로드 완료!"
@@ -1152,8 +1244,4 @@ msgstr "✓ 다운로드 완료!"
 # en-hash: 339e5ff0141bb9d29554609fadf4d52b
 msgid "✓ Libbee Connected!"
 msgstr "✓ Libbee 연결 완료!"
-
-# en-hash: 25c78c5528381192b859a353be7fa609
-msgid "✗ Not Connected"
-msgstr "✗ 연결 안 됨"
 

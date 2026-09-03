@@ -11,9 +11,9 @@ local logger = require("logger")
 -- e.g., require(plugin_path .. "libbee_ui") not require("libbee_ui")
 local plugin_path = ((...) or ""):match("(.-)[^%.]+$") or ""
 
-local ok_loc, Localization = pcall(require, plugin_path .. "localization_libbee")
+local ok_loc, Localization = pcall(require, plugin_path .. "libbee_localization")
 if not ok_loc or not Localization then
-    ok_loc, Localization = pcall(require, "localization_libbee")
+    ok_loc, Localization = pcall(require, "libbee_localization")
 end
 local _ = function(key, ...)
     if ok_loc and Localization then
@@ -62,8 +62,6 @@ function LibbeePlugin:init()
         local p = self.path
         local extra = {
             p .. "/?.lua",
-            p .. "/dependencies/?.lua",
-            p .. "/dependencies/xmlhandler/?.lua",
         }
         for _, ep in ipairs(extra) do
             if not package.path:find(ep, 1, true) then
