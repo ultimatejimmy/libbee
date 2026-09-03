@@ -383,7 +383,10 @@ function fulfillment.downloadBook(srcUrl, outputPath, progress_fn)
             -- Report every 64KB (was 512KB) so the stall detector sees frequent activity
             if progress_fn and (total_bytes - last_report >= 65536) then
                 last_report = total_bytes
-                pcall(progress_fn, total_bytes)
+                local prog_ok, prog_res = pcall(progress_fn, total_bytes)
+                if not prog_ok or prog_res == false then
+                    return nil, "Download cancelled"
+                end
             end
         end
         return sink(chunk, src_err)
@@ -582,7 +585,11 @@ function fulfillment.process(acsmPath, outputPath, creds, deviceUUID, fingerprin
     end
     logger.info("[ACSM] fulfillment.process: download complete")
     if progress_fn then
-        pcall(progress_fn, "decrypt")
+        local prog_ok, prog_res = pcall(progress_fn, "decrypt")
+        if not prog_ok or prog_res == false then
+            os.remove(tmpFile)
+            return nil, "Download cancelled"
+        end
     end
 
     -- Detect format from magic bytes

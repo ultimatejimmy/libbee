@@ -152,6 +152,7 @@ local specs = {
     "spec/libbee_ui_spec.lua",
     "spec/libbee_localization_spec.lua",
     "spec/libbee_pdf_spec.lua",
+    "spec/libbee_cleanup_spec.lua",
 }
 
 print("=== Running KOReader Libbee Unit Tests ===")

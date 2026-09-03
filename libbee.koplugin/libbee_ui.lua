@@ -274,12 +274,18 @@ end
 
 local function _runNetwork(work_fn, on_done, trap_widget)
     local execute = function()
+        local is_android = pcall(require, "android")
+        local ok_dev, Device = pcall(require, "device")
+        if ok_dev and Device and Device.isAndroid and Device:isAndroid() then
+            is_android = true
+        end
+
         local ok_trapper, Trapper = pcall(require, "ui/trapper")
-        if ok_trapper and Trapper and type(Trapper.wrap) == "function" and type(Trapper.dismissableRunInSubprocess) == "function" then
+        if not is_android and ok_trapper and Trapper and type(Trapper.wrap) == "function" and type(Trapper.dismissableRunInSubprocess) == "function" then
             Trapper:wrap(function()
                 local trap_target = (trap_widget ~= nil) and trap_widget or false
                 local completed, wrapped_res = Trapper:dismissableRunInSubprocess(function()
-                    local ok, r1, r2 = pcall(work_fn)
+                    local ok, r1, r2 = pcall(work_fn, trap_widget and trap_widget._on_progress)
                     if ok then
                         return { success = true, r1 = r1, r2 = r2 }
                     else
@@ -309,9 +315,12 @@ local function _runNetwork(work_fn, on_done, trap_widget)
             end)
         else
             UIManager:scheduleIn(0.05, function()
-                local ok, r1, r2 = pcall(work_fn)
+                local ok, r1, r2 = pcall(work_fn, trap_widget and trap_widget._on_progress)
                 if ok then
                     on_done(r1, r2)
+                elseif tostring(r1):find("DOWNLOAD_CANCELLED") or (trap_widget and trap_widget.was_user_cancelled) then
+                    log.info("libbee ui: download was cancelled by user")
+                    on_done(nil, _("Download cancelled"))
                 else
                     on_done(nil, tostring(r1 or _("Unknown error")))
                 end
@@ -530,6 +539,14 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
 
     local progress_bar = createProgressBar(inner_w, 0.1)
 
+    local is_done_called = false
+    local function finish(r1, r2)
+        if is_done_called then return end
+        is_done_called = true
+        closeDialog()
+        on_done(r1, r2)
+    end
+
     local btn_w = inner_w
     local btn_h = sc(36)
     local cancel_btn = createButton{
@@ -547,9 +564,7 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
             if overlay and overlay.dismiss_callback then
                 overlay.dismiss_callback()
             else
-                closeDialog()
-                log.info("libbee ui: download was cancelled by user")
-                on_done(nil, _("Download cancelled"))
+                finish(nil, _("Download cancelled"))
             end
         end,
     }
@@ -595,6 +610,7 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
     }
 
     overlay = InputContainer:new{
+        modal = true,
         dimen = Geom:new{ w = sw, h = sh },
         CenterContainer:new{
             dimen = Geom:new{ w = sw, h = sh },
@@ -603,36 +619,17 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
     }
     overlay.label_widget = { text = "Downloading & fulfilling " .. title_text }
 
-    -- Consume touches outside the cancel button so accidental taps do not cancel
-    overlay.ges_events = {
-        Tap = {
-            GestureRange:new{
-                range = Geom:new{ w = sw, h = sh },
-            }
-        }
-    }
-    overlay.onTap = function(self, arg, ges)
-        return true
-    end
-
     UIManager:show(overlay, "ui")
 
     -- Phase timer: smoothly updates status and progress bar based on actual download progress
-    -- Phase timer: smoothly and monotonically updates status and progress bar based on actual download progress
     local elapsed = 0
     local max_bytes_seen = 0
     local max_pct_seen = 0.15
     local last_progress_time = 0
     local current_phase = "acsm"
 
-    local function tick()
+    local function applyProgress(progress_str)
         if is_closed then return end
-        elapsed = elapsed + 0.5
-
-        local pf = progress_path and io.open(progress_path, "r")
-        local progress_str = pf and pf:read("*l")
-        if pf then pf:close() end
-
         if progress_str and progress_str ~= "" then
             local phase, detail = progress_str:match("^([^:]+):?(.*)$")
             if phase and phase ~= "" then
@@ -645,9 +642,7 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
                     max_bytes_seen = bytes
                     last_progress_time = elapsed
                 end
-            elseif phase == "decrypt" then
-                last_progress_time = elapsed
-            elseif phase == "acsm" then
+            elseif phase == "decrypt" or phase == "acsm" then
                 last_progress_time = elapsed
             end
         end
@@ -671,6 +666,47 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
             progress_bar:setPercentage(max_pct_seen)
         end
         UIManager:setDirty(overlay, "ui")
+        pcall(function() UIManager:forceRePaint() end)
+    end
+
+    local function on_direct_progress(val)
+        if is_closed or is_done_called then return false end
+        applyProgress(tostring(val or ""))
+
+        -- Poll input events to allow Cancel button taps during download on main thread (Android)
+        if Device and Device.input and Device.input.waitEvent then
+            pcall(function()
+                for _ = 1, 10 do
+                    local now = UIManager:getTime()
+                    local evs = Device.input:waitEvent(now, now)
+                    if not evs or #evs == 0 then
+                        break
+                    end
+                    for _, ev in ipairs(evs) do
+                        UIManager:handleInputEvent(ev)
+                    end
+                end
+            end)
+        end
+
+        if (overlay and overlay.was_user_cancelled) or is_done_called or is_closed then
+            return false
+        end
+        return true
+    end
+    overlay._on_progress = on_direct_progress
+
+    local is_ticking = false
+    local function tick()
+        if is_closed or is_ticking then return end
+        is_ticking = true
+        elapsed = elapsed + 0.5
+
+        local pf = progress_path and io.open(progress_path, "r")
+        local progress_str = pf and pf:read("*l")
+        if pf then pf:close() end
+
+        applyProgress(progress_str)
 
         -- Timeout protection:
         -- - Hard max: 3 hours (10800s) to handle 750MB+ comic PDFs
@@ -679,27 +715,26 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
         local stalled = (elapsed - last_progress_time)
         local stall_limit = (max_bytes_seen > 0) and 300 or 90
         if elapsed >= 10800 or (elapsed > 30 and stalled >= stall_limit) then
+            is_ticking = false
             if overlay then
                 overlay.was_timed_out = true
             end
             if overlay and overlay.dismiss_callback then
                 overlay.dismiss_callback()
             else
-                closeDialog()
-                log.warn("libbee ui: download timed out (stalled)")
-                on_done(nil, _("Download timed out"))
+                finish(nil, _("Download timed out"))
             end
             return
         end
 
         tick_token = UIManager:scheduleIn(0.5, tick)
+        is_ticking = false
     end
     tick_token = UIManager:scheduleIn(0.5, tick)
 
     -- Run download in subprocess with our dialog as the trap widget
     _runNetwork(work_fn, function(r1, r2)
-        closeDialog()
-        on_done(r1, r2)
+        finish(r1, r2)
     end, overlay)
 end
 
@@ -2972,28 +3007,46 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
     end
 
     local temp_acsm_path = base_dir .. "/.temp_" .. tostring(os.time()) .. "_" .. tostring(math.random(1000, 9999)) .. ".acsm"
-    local ok_tmp = pcall(function() return lfs.attributes("/tmp", "mode") == "directory" end)
-    local progress_path = (ok_tmp and "/tmp/.libbee_prog_" or (base_dir .. "/.temp_dl_prog_"))
-        .. tostring(os.time()) .. "_" .. tostring(math.random(1000, 9999))
+    local cache_dir = nil
+    local ok_ds, DataStorage = pcall(require, "datastorage")
+    if ok_ds and DataStorage and DataStorage.getDataDir then
+        cache_dir = DataStorage:getDataDir() .. "/cache"
+    end
+    if not cache_dir or lfs.attributes(cache_dir, "mode") ~= "directory" then
+        local ok_tmp = pcall(function() return lfs.attributes("/tmp", "mode") == "directory" end)
+        cache_dir = ok_tmp and "/tmp" or base_dir
+    end
+    local progress_path = cache_dir .. "/.libbee_prog_" .. tostring(os.time()) .. "_" .. tostring(math.random(1000, 9999))
 
     local function writeProgress(str)
-        local tmp = progress_path .. ".tmp"
-        local f = io.open(tmp, "w")
+        local f = io.open(progress_path, "w")
         if f then
             f:write(str .. "\n")
+            f:flush()
             f:close()
-            os.rename(tmp, progress_path)
         end
     end
 
     _runDownloadWithProgress(
-        function()
+        function(on_progress_fn)
+            local function report(val)
+                writeProgress(tostring(val))
+                if on_progress_fn then
+                    local ok, ret = pcall(on_progress_fn, val)
+                    if not ok or ret == false then
+                        return false
+                    end
+                end
+                return true
+            end
+
             -- Step 1: Download ACSM license token from Libby API
-            writeProgress("acsm")
+            if not report("acsm") then return nil, "Download cancelled" end
             local dl_ok, dl_err = API.downloadACSM(loan, temp_acsm_path)
             if not dl_ok then
                 return nil, dl_err
             end
+            if not report("acsm") then return nil, "Download cancelled" end
 
             -- Step 2: Parse metadata and derive final decrypted book path
             local meta = LibbeeDRM.parseAcsmMetadata(temp_acsm_path)
@@ -3002,9 +3055,9 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
             -- Step 3: Fulfill and decrypt with embedded Adobe/ByteBooks DRM engine
             local progress_cb = function(val)
                 if type(val) == "number" then
-                    writeProgress("download:" .. tostring(val))
+                    return report("download:" .. tostring(val))
                 else
-                    writeProgress(tostring(val))
+                    return report(tostring(val))
                 end
             end
             local ful_ok, ful_err = LibbeeDRM.fulfillAcsm(temp_acsm_path, final_path, progress_cb)

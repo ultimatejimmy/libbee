@@ -74,6 +74,17 @@ function LibbeePlugin:init()
     local log = require(plugin_path .. "libbee_logger")
     log.init(self.path)
 
+    -- Clean up deprecated folders and duplicate files from earlier releases if present
+    pcall(function()
+        local ok_cln, Cleanup = pcall(require, plugin_path .. "libbee_cleanup")
+        if not ok_cln or not Cleanup then
+            ok_cln, Cleanup = pcall(require, "libbee_cleanup")
+        end
+        if ok_cln and Cleanup and Cleanup.cleanDeprecated then
+            Cleanup.cleanDeprecated(self.path)
+        end
+    end)
+
     -- Register Dispatcher actions (for gestures, keyboard shortcuts, quickmenu)
     self:onDispatcherRegisterActions()
 

@@ -397,6 +397,17 @@ local function _applyUpdate(download_url, new_version)
         pcall(os.remove, tmp_zip)
         if not uz_ok then return { success = false, stage = "unzip", err = uz_err } end
 
+        -- 3. Clean up deprecated folders and duplicate files from earlier releases
+        pcall(function()
+            local ok_cln, Cleanup = pcall(require, plugin_path .. "libbee_cleanup")
+            if not ok_cln or not Cleanup then
+                ok_cln, Cleanup = pcall(require, "libbee_cleanup")
+            end
+            if ok_cln and Cleanup and Cleanup.cleanDeprecated then
+                Cleanup.cleanDeprecated(_plugin_dir)
+            end
+        end)
+
         return { success = true }
     end
 
