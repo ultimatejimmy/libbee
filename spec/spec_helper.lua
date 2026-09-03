@@ -23,7 +23,7 @@ package.loaded["docsettings"] = {
 
 package.loaded["lfs"] = {
     attributes = function(path) 
-        if path == "/tmp" or path:match("^/tmp") or path:match("%.sdr$") or path:match("%.sdr/$") then
+        if path == "/tmp" or path == "/tmp/" or path:match("%.sdr$") or path:match("%.sdr/$") then
             return { mode = "directory" }
         end
         -- If we can open it, it's a file
@@ -45,7 +45,7 @@ package.loaded["lfs"] = {
     end,
 }
 package.loaded["libs/libkoreader-lfs"] = package.loaded["lfs"]
-package.loaded["libs/libkoreader-lfs"] = package.loaded["lfs"]
+_G.lfs = package.loaded["lfs"]
 
 package.loaded["logger"] = {
     info = function(...) end,
