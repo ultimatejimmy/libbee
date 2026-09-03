@@ -298,7 +298,7 @@ function M.fulfillAcsm(acsm_path, output_path, progress_fn)
         local acct = State.getDrmAccountInfo()
         if acct.mode == "anonymous" then
             M.deauthorize()
-            local fresh_act, _, fresh_err = M.ensureActivated(true)
+            local fresh_act, reused_fresh, fresh_err = M.ensureActivated(true)
             if fresh_act then
                 result, err = fulfillment.process(
                     acsm_path,

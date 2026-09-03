@@ -285,7 +285,11 @@ local function _runNetwork(work_fn, on_done, trap_widget)
             Trapper:wrap(function()
                 local trap_target = (trap_widget ~= nil) and trap_widget or false
                 local completed, wrapped_res = Trapper:dismissableRunInSubprocess(function()
-                    local ok, r1, r2 = pcall(work_fn, trap_widget and trap_widget._on_progress)
+                    -- CRITICAL: In a subprocess (Kindle/Linux/WSL), pass nil for on_progress callback!
+                    -- The child process must NEVER touch UIManager, Blitbuffer, or Device.input,
+                    -- which causes a hard crash / segfault on Kindle e-ink hardware.
+                    -- Subprocess progress is tracked strictly via progress_path file updates read by tick().
+                    local ok, r1, r2 = pcall(work_fn, nil)
                     if ok then
                         return { success = true, r1 = r1, r2 = r2 }
                     else
@@ -666,15 +670,22 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
             progress_bar:setPercentage(max_pct_seen)
         end
         UIManager:setDirty(overlay, "ui")
-        pcall(function() UIManager:forceRePaint() end)
+        if Device and Device.isAndroid and Device:isAndroid() then
+            pcall(function() UIManager:forceRePaint() end)
+        end
     end
 
+    local main_pid = ok_ffiu and ffiutil and ffiutil.getpid and ffiutil.getpid()
     local function on_direct_progress(val)
         if is_closed or is_done_called then return false end
+        -- Critical safety guard: NEVER touch UI or input hardware if ever invoked in a forked child process
+        if main_pid and ok_ffiu and ffiutil and ffiutil.getpid and ffiutil.getpid() ~= main_pid then
+            return true
+        end
         applyProgress(tostring(val or ""))
 
         -- Poll input events to allow Cancel button taps during download on main thread (Android)
-        if Device and Device.input and Device.input.waitEvent then
+        if Device and Device.input and Device.input.waitEvent and Device.isAndroid and Device:isAndroid() then
             pcall(function()
                 for _ = 1, 10 do
                     local now = UIManager:getTime()
@@ -919,6 +930,9 @@ function M.showCardDialog(opts)
         closeDialog(opts.on_close or opts.cancel_callback)
         return true
     end
+
+    overlay.opts = opts
+    overlay.label_widget = { text = opts.title }
 
     UIManager:show(overlay, "ui")
     return overlay
@@ -2990,8 +3004,8 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
 
     local ok_ffi, ffiutil = pcall(require, "ffi/util")
     if ok_ffi and ffiutil and type(ffiutil.df) == "function" then
-        local ok_df, _, free_bytes = pcall(ffiutil.df, base_dir)
-        if ok_df and free_bytes and free_bytes < 20 * 1048576 then
+        local ok_df, total_bytes, free_bytes = pcall(ffiutil.df, base_dir)
+        if ok_df and total_bytes and total_bytes > 0 and free_bytes and free_bytes < 20 * 1048576 then
             M.showCardDialog{
                 title = _("Storage Space Low"),
                 body_text = _("Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading.", string.format("%.1f", free_bytes / 1048576)),
@@ -3075,6 +3089,20 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
         function(final_book_path, err)
             pcall(os.remove, progress_path)
             pcall(os.remove, progress_path .. ".tmp")
+            pcall(os.remove, temp_acsm_path)
+            pcall(os.remove, temp_acsm_path .. ".tmp")
+
+            if not final_book_path or err then
+                pcall(function()
+                    local ok_cln, Cleanup = pcall(require, plugin_path .. "libbee_cleanup")
+                    if not ok_cln or not Cleanup then
+                        ok_cln, Cleanup = pcall(require, "libbee_cleanup")
+                    end
+                    if ok_cln and Cleanup and Cleanup.cleanTempFiles then
+                        Cleanup.cleanTempFiles(base_dir)
+                    end
+                end)
+            end
             if type(final_book_path) == "string" and final_book_path ~= "" then
                 local State = require(plugin_path .. "libbee_state")
                 State.clearShelfCache()

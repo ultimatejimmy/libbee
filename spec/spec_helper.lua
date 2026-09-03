@@ -23,8 +23,7 @@ package.loaded["docsettings"] = {
 
 package.loaded["lfs"] = {
     attributes = function(path) 
-        -- Basic mock: if it ends in .sdr, it's a directory
-        if path:match("%.sdr$") or path:match("%.sdr/$") then
+        if path == "/tmp" or path:match("^/tmp") or path:match("%.sdr$") or path:match("%.sdr/$") then
             return { mode = "directory" }
         end
         -- If we can open it, it's a file
@@ -381,7 +380,23 @@ package.loaded["socket.http"] = {}
 package.loaded["ssl.https"] = {}
 package.loaded["ltn12"] = {}
 package.loaded["socket"] = {}
-package.loaded["socketutil"] = {}
+package.loaded["socketutil"] = {
+    USER_AGENT = "KOReader",
+    file_sink = function(handle)
+        return function(chunk, err)
+            if chunk and handle then handle:write(chunk) end
+            return 1
+        end
+    end,
+    table_sink = function(t)
+        return function(chunk, err)
+            if chunk then table.insert(t, chunk) end
+            return 1
+        end
+    end,
+    set_timeout = function() end,
+    reset_timeout = function() end,
+}
 local json_lib = nil
 pcall(function() json_lib = require("rapidjson") end)
 if not json_lib then
@@ -574,7 +589,13 @@ if not package.loaded["ltn12"] or not (package.loaded["ltn12"] or {}).sink then
                     if chunk then table.insert(t, chunk) end
                     return 1
                 end
-            end
+            end,
+            file = function(handle)
+                return function(chunk, err)
+                    if chunk and handle then handle:write(chunk) end
+                    return 1
+                end
+            end,
         },
         source = {
             string = function(s)

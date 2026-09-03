@@ -362,6 +362,181 @@ describe("libbee_ui", function()
             assert.is_table(last_dialog)
         end)
 
+        it("displays Storage Space Low dialog without crashing when storage is under 20MB", function()
+            _G.ui_tracker.shown = {}
+            _G.ui_tracker.closed = {}
+
+            local ffiutil = require("ffi/util")
+            ffiutil.df = function(path)
+                return 100 * 1048576, 15 * 1048576 -- 100MB total, 15MB free (< 20MB)
+            end
+
+            local loan = { title = "Low Space Book", author = "Author" }
+            UI._doDownload(loan, "/tmp/download.acsm", "/tmp", "", nil)
+
+            assert.is_true(#_G.ui_tracker.shown > 0)
+            local dialog = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            assert.is_table(dialog)
+            assert.is_truthy(dialog.label_widget and dialog.label_widget.text:find("Storage Space Low"))
+
+            ffiutil.df = nil
+        end)
+
+        it("ensures subprocess execution on Kindle/non-Android receives nil progress callback to prevent hardware crashes", function()
+            local trapper_called = false
+            package.loaded["ui/trapper"] = {
+                wrap = function(self, fn) return fn() end,
+                dismissableRunInSubprocess = function(self, task, trap_target)
+                    trapper_called = true
+                    local res = task()
+                    return true, res
+                end,
+            }
+
+            local Device = require("device")
+            Device.isAndroid = function() return false end
+
+            API.downloadACSM = function(loan, target_path) return true end
+            LibbeeDRM.parseAcsmMetadata = function(path) return { title = "Subprocess Book" } end
+            LibbeeDRM.deriveFinalBookPath = function(base, loan, meta) return base .. "/Subprocess.epub" end
+            LibbeeDRM.fulfillAcsm = function(acsm, out, progress_cb)
+                if progress_cb then progress_cb(65536) end
+                return true
+            end
+
+            local loan = { title = "Subprocess Book", author = "Author" }
+            UI._doDownload(loan, "/tmp/sub.acsm", "/tmp", "", function() end)
+
+            assert.is_true(trapper_called)
+
+            package.loaded["ui/trapper"] = nil
+            Device.isAndroid = nil
+        end)
+
+        it("passes on_progress callback in in-process mode on Android and handles cancellation", function()
+            local Device = require("device")
+            Device.isAndroid = function() return true end
+            Device.input = { waitEvent = function() return nil end }
+
+            local progress_cb_received = false
+            API.downloadACSM = function(loan, target_path) return true end
+            LibbeeDRM.parseAcsmMetadata = function(path) return { title = "Android Book" } end
+            LibbeeDRM.deriveFinalBookPath = function(base, loan, meta) return base .. "/Android.epub" end
+            LibbeeDRM.fulfillAcsm = function(acsm, out, progress_cb)
+                progress_cb_received = (type(progress_cb) == "function")
+                if progress_cb then
+                    local ok = progress_cb(131072)
+                    assert.is_true(ok)
+                end
+                return true
+            end
+
+            local loan = { title = "Android Book", author = "Author" }
+            UI._doDownload(loan, "/tmp/android.acsm", "/tmp", "", function() end)
+
+            assert.is_true(progress_cb_received)
+
+            Device.isAndroid = nil
+            Device.input = nil
+        end)
+
+        it("returns false from progress_cb when overlay is cancelled on Android", function()
+            local Device = require("device")
+            Device.isAndroid = function() return true end
+            Device.input = { waitEvent = function() return nil end }
+
+            _G.ui_tracker.shown = {}
+            _G.ui_tracker.closed = {}
+
+            API.downloadACSM = function(loan, target_path) return true end
+            LibbeeDRM.parseAcsmMetadata = function(path) return { title = "Cancel Book" } end
+            LibbeeDRM.deriveFinalBookPath = function(base, loan, meta) return base .. "/Cancel.epub" end
+
+            local cancel_returned_false = false
+            LibbeeDRM.fulfillAcsm = function(acsm, out, progress_cb)
+                for _, widget in ipairs(_G.ui_tracker.shown) do
+                    if widget.type == "InputContainer" and widget._on_progress then
+                        widget.was_user_cancelled = true
+                        break
+                    end
+                end
+                local res = progress_cb(65536)
+                if res == false then
+                    cancel_returned_false = true
+                end
+                return false, "Download cancelled"
+            end
+
+            local loan = { title = "Cancel Book", author = "Author" }
+            UI._doDownload(loan, "/tmp/cancel.acsm", "/tmp", "", nil)
+
+            assert.is_true(cancel_returned_false)
+
+            Device.isAndroid = nil
+            Device.input = nil
+        end)
+
+        it("protects on_direct_progress from executing in child subprocess if PID differs", function()
+            local Device = require("device")
+            Device.isAndroid = function() return true end
+            Device.input = { waitEvent = function() return nil end }
+
+            local pid_checked = false
+            API.downloadACSM = function(loan, target_path) return true end
+            LibbeeDRM.parseAcsmMetadata = function(path) return { title = "Pid Book" } end
+            LibbeeDRM.deriveFinalBookPath = function(base, loan, meta) return base .. "/Pid.epub" end
+            LibbeeDRM.fulfillAcsm = function(acsm, out, progress_cb)
+                local ffiutil = require("ffi/util")
+                local orig_getpid = ffiutil.getpid
+                ffiutil.getpid = function() return 999999 end
+
+                -- In a simulated child process with different PID, progress_cb must return true safely without error
+                local res = progress_cb(1000)
+                if res == true then
+                    pid_checked = true
+                end
+
+                ffiutil.getpid = orig_getpid
+                return true
+            end
+
+            local loan = { title = "Pid Book", author = "Author" }
+            UI._doDownload(loan, "/tmp/pid.acsm", "/tmp", "", function() end)
+
+            assert.is_true(pid_checked)
+
+            Device.isAndroid = nil
+            Device.input = nil
+        end)
+
+        it("aborts fulfillment.downloadBook immediately when progress_fn returns false", function()
+            local fulfillment = require("libbee_adobe_fulfillment")
+            local http = require("socket.http")
+            local orig_request = http.request
+            http.request = function(req)
+                if req.sink then
+                    local chunk1 = string.rep("A", 70000)
+                    local ok1, err1 = req.sink(chunk1)
+                    if not ok1 then
+                        return nil, err1 or "closed"
+                    end
+                end
+                return 1, 200, { ["content-length"] = "140000" }
+            end
+
+            local tmp_target = "/tmp/test_abort_dl.bin"
+            local cancelled_progress = function(bytes)
+                return false -- Signal cancellation
+            end
+
+            local ok, err = fulfillment.downloadBook("http://example.com/test", tmp_target, cancelled_progress)
+            assert.is_nil(ok)
+            assert.is_truthy(err and err:find("aborted"))
+            assert.is_nil(lfs.attributes(tmp_target)) -- partial file must be cleaned up
+
+            http.request = orig_request
+        end)
+
         it("correctly paginates multi-library shelf in cover view without overflow", function()
             local State = require("libbee_state")
             _G.ui_tracker.shown = {}

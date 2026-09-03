@@ -619,38 +619,39 @@ function fulfillment.process(acsmPath, outputPath, creds, deviceUUID, fingerprin
     end
 
     local decryptedInfo, decryptErr
-    local bookKey -- may be nil for PDF (extracted internally)
-    if isPdf then
-        logger.info("[ACSM] fulfillment.process: decrypting PDF...")
-        local pdf = require("libbee_adobe_pdf")
-        -- PDF path: let decryptAdobePdf extract the book key from the PDF's
-        -- ADEPT_LICENSE, handling hardening removal automatically.
-        -- Pass fulfillment encrypted key as fallback for older ADEPT schemes
-        -- that don't embed ADEPT_LICENSE in the PDF.
-        decryptedInfo, decryptErr = pdf.decryptAdobePdf(tmpFile, outputPath, nil, creds.licenseKey, result.encryptedKey)
-    else
-        if result.encryptedKey and result.encryptedKey ~= "" then
-            logger.info("[ACSM] fulfillment.process: decrypting book key...")
-            local bookKeyErr
-            bookKey, bookKeyErr = fulfillment.decryptBookKey(result.encryptedKey, creds.licenseKey)
-            if not bookKey then
-                os.remove(tmpFile)
-                return nil, "Failed to decrypt book key: " .. bookKeyErr
-            end
-            logger.info("[ACSM] fulfillment.process: book key decrypted")
+    local ok_dec, dec_res, dec_err = pcall(function()
+        local bookKey -- may be nil for PDF (extracted internally)
+        if isPdf then
+            logger.info("[ACSM] fulfillment.process: decrypting PDF...")
+            local pdf = require("libbee_adobe_pdf")
+            return pdf.decryptAdobePdf(tmpFile, outputPath, nil, creds.licenseKey, result.encryptedKey)
         else
-            logger.info("[ACSM] fulfillment.process: no encryptedKey in fulfillment response")
+            if result.encryptedKey and result.encryptedKey ~= "" then
+                logger.info("[ACSM] fulfillment.process: decrypting book key...")
+                local bookKeyErr
+                bookKey, bookKeyErr = fulfillment.decryptBookKey(result.encryptedKey, creds.licenseKey)
+                if not bookKey then
+                    return nil, "Failed to decrypt book key: " .. tostring(bookKeyErr)
+                end
+                logger.info("[ACSM] fulfillment.process: book key decrypted")
+            else
+                logger.info("[ACSM] fulfillment.process: no encryptedKey in fulfillment response")
+            end
+
+            logger.info("[ACSM] fulfillment.process: decrypting EPUB...")
+            return epub.decryptAdobeEpub(tmpFile, outputPath, bookKey)
         end
+    end)
 
-        logger.info("[ACSM] fulfillment.process: decrypting EPUB...")
-        decryptedInfo, decryptErr = epub.decryptAdobeEpub(tmpFile, outputPath, bookKey)
-    end
+    pcall(os.remove, tmpFile)
 
-    os.remove(tmpFile)
-    if not decryptedInfo then
+    if not ok_dec or not dec_res then
+        pcall(os.remove, outputPath)
         local formatLabel = isPdf and "PDF" or "EPUB"
-        return nil, "Failed to decrypt " .. formatLabel .. ": " .. decryptErr
+        local final_err = not ok_dec and tostring(dec_res) or tostring(dec_err or "decryption error")
+        return nil, "Failed to decrypt " .. formatLabel .. ": " .. final_err
     end
+    decryptedInfo = dec_res
     logger.info("[ACSM] fulfillment.process: book decrypted to", outputPath)
 
     if result.notifyURLs and #result.notifyURLs > 0 then

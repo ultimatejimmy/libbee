@@ -5,6 +5,7 @@
 -- IMPORTANT: This script operates STRICTLY within the plugin directory and
 -- NEVER touches user logins, tokens, or configuration (stored in state.json).
 
+local plugin_path = ((...) or ""):match("(.-)[^%.]+$") or ""
 local ok_log, logger = pcall(require, "logger")
 if not ok_log or not logger or not logger.info then
     logger = {
@@ -197,6 +198,134 @@ function M.cleanDeprecated(plugin_dir)
                             " because replacement " .. item.replacement_file .. " is missing")
             end
         end
+    end
+
+    -- 3. Clean stale temporary files and partial downloads
+    local temp_results = M.cleanTempFiles()
+    for _, f in ipairs(temp_results.deleted_files or {}) do
+        table.insert(results.deleted_files, f)
+    end
+    for _, d in ipairs(temp_results.deleted_folders or {}) do
+        table.insert(results.deleted_folders, d)
+    end
+
+    return results
+end
+
+--- Cleans temporary fulfillment files, partial downloads, and stale progress files.
+-- Safe to call at startup or immediately after a cancelled/failed download.
+--- @param base_dir string|nil Optional user download directory
+--- @return table { deleted_files = table, deleted_folders = table }
+function M.cleanTempFiles(base_dir)
+    local results = {
+        deleted_files = {},
+        deleted_folders = {},
+    }
+
+    local lfs = getLfs()
+    if not lfs or not lfs.dir then return results end
+
+    local function scanAndPurge(dir_path, file_pred, dir_pred)
+        if not dirExists(dir_path) then return end
+        local ok, iter, dir_obj = pcall(lfs.dir, dir_path)
+        if not ok or not iter then return end
+        for entry in iter, dir_obj do
+            if entry ~= "." and entry ~= ".." then
+                local full_path = dir_path .. "/" .. entry
+                local mode = getAttributeMode(full_path)
+                if mode == "directory" and dir_pred and dir_pred(entry) then
+                    logger.info("libbee cleanup: removing temp directory " .. full_path)
+                    if removeDirectoryRecursive(full_path) then
+                        table.insert(results.deleted_folders, entry)
+                    end
+                elseif (mode == "file" or not mode) and file_pred and file_pred(entry) then
+                    logger.info("libbee cleanup: removing temp file " .. full_path)
+                    local rm_ok = pcall(os.remove, full_path)
+                    if rm_ok and not fileExists(full_path) then
+                        table.insert(results.deleted_files, entry)
+                    end
+                end
+            end
+        end
+    end
+
+    -- 1. Clean KOReader acsm cache: cache/acsm.koplugin (fulfillment-*.bin, epub-work-*, epub_work)
+    local ok_ds, DataStorage = pcall(require, "datastorage")
+    local data_dir = (ok_ds and DataStorage and DataStorage.getDataDir and DataStorage:getDataDir()) or nil
+    if data_dir then
+        local acsm_cache = data_dir .. "/cache/acsm.koplugin"
+        scanAndPurge(
+            acsm_cache,
+            function(name)
+                return (name:match("^fulfillment%-") and name:match("%.bin$"))
+                    or name == "fulfillment-temp.bin"
+                    or name:match("^%.fulfillment")
+            end,
+            function(name)
+                return name:match("^epub%-work%-") or name == "epub_work"
+            end
+        )
+
+        -- 2. Clean progress files in cache/
+        local koreader_cache = data_dir .. "/cache"
+        scanAndPurge(
+            koreader_cache,
+            function(name)
+                return name:match("^%.libbee_prog_") or name:match("^%.temp_dl_prog_")
+            end,
+            nil
+        )
+
+        -- 3. Clean temporary cover downloads
+        local covers_cache = data_dir .. "/cache/libbee_covers"
+        scanAndPurge(
+            covers_cache,
+            function(name)
+                return name:match("%.tmp$")
+            end,
+            nil
+        )
+    end
+
+    -- 4. Clean /tmp if it exists
+    if dirExists("/tmp") then
+        scanAndPurge(
+            "/tmp",
+            function(name)
+                return name:match("^%.libbee_prog_")
+                    or name:match("^%.temp_dl_prog_")
+                    or (name:match("^%.temp_") and name:match("%.acsm"))
+                    or (name:match("^fulfillment%-") and name:match("%.bin$"))
+                    or name == "fulfillment-temp.bin"
+            end,
+            nil
+        )
+    end
+
+    -- 5. Clean base_dir (download folder) for leftover .temp_*.acsm or .temp_dl_prog_*
+    local target_base = base_dir
+    if not target_base or target_base == "" then
+        pcall(function()
+            local ok_st, State = pcall(require, "libbee_state")
+            if not ok_st or not State then
+                ok_st, State = pcall(require, plugin_path .. "libbee_state")
+            end
+            if ok_st and State and State.getDownloadDir then
+                target_base = State.getDownloadDir()
+            end
+        end)
+    end
+
+    if target_base and dirExists(target_base) then
+        scanAndPurge(
+            target_base,
+            function(name)
+                return name:match("^%.temp_.*%.acsm")
+                    or name:match("^%.temp_dl_prog_")
+                    or name:match("^%.libbee_prog_")
+            end,
+            nil
+        )
     end
 
     return results

@@ -80,8 +80,13 @@ function LibbeePlugin:init()
         if not ok_cln or not Cleanup then
             ok_cln, Cleanup = pcall(require, "libbee_cleanup")
         end
-        if ok_cln and Cleanup and Cleanup.cleanDeprecated then
-            Cleanup.cleanDeprecated(self.path)
+        if ok_cln and Cleanup then
+            if Cleanup.cleanDeprecated then
+                Cleanup.cleanDeprecated(self.path)
+            end
+            if Cleanup.cleanTempFiles then
+                Cleanup.cleanTempFiles()
+            end
         end
     end)
 
