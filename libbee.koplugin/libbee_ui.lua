@@ -274,14 +274,8 @@ end
 
 local function _runNetwork(work_fn, on_done, trap_widget)
     local execute = function()
-        local is_android = pcall(require, "android")
-        local ok_dev, Device = pcall(require, "device")
-        if ok_dev and Device and Device.isAndroid and Device:isAndroid() then
-            is_android = true
-        end
-
         local ok_trapper, Trapper = pcall(require, "ui/trapper")
-        if not is_android and ok_trapper and Trapper and type(Trapper.wrap) == "function" and type(Trapper.dismissableRunInSubprocess) == "function" then
+        if ok_trapper and Trapper and type(Trapper.wrap) == "function" and type(Trapper.dismissableRunInSubprocess) == "function" then
             Trapper:wrap(function()
                 local trap_target = (trap_widget ~= nil) and trap_widget or false
                 local completed, wrapped_res = Trapper:dismissableRunInSubprocess(function()
@@ -2125,8 +2119,8 @@ function M.showShelfBrowser(plugin_dir)
         }
 
         local footer_frame = FrameContainer:new{
-            padding_top = sc(3),
-            padding_bottom = sc(10),
+            padding_top = sc(4),
+            padding_bottom = sc(6),
             padding_left = sc(10),
             padding_right = sc(10),
             bordersize = 0,
@@ -2134,7 +2128,7 @@ function M.showShelfBrowser(plugin_dir)
             width = sw,
             height = footer_h,
             CenterContainer:new{
-                dimen = Geom:new{ w = sw - sc(20), h = footer_h - sc(14) },
+                dimen = Geom:new{ w = sw - sc(20), h = footer_h - sc(10) },
                 footer_widgets,
             }
         }
