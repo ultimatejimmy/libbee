@@ -20,15 +20,15 @@ local function sha256_bin(data)
 end
 
 local function unpadPkcs7(data)
-    local padLen = #data > 0 and data:byte(#data) or nil
-    if not padLen or padLen < 1 or padLen > 16 or padLen > #data then
-        return nil, "Invalid PKCS#7 padding"
+    if not data or #data == 0 then
+        return data
     end
-    for i = #data - padLen + 1, #data do
-        if data:byte(i) ~= padLen then
-            return nil, "Invalid PKCS#7 padding"
-        end
+    local padLen = data:byte(#data)
+    if padLen < 1 or padLen > 16 or padLen > #data then
+        -- ineptpdf.py: if pad_len > 16 or invalid, return decrypted data as-is
+        return data
     end
+    -- ineptpdf.py just blindly strips the padding without checking all bytes
     return data:sub(1, #data - padLen)
 end
 

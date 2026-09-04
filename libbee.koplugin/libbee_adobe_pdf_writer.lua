@@ -327,6 +327,9 @@ function PdfWriter:writeObject(objid, obj)
         self._maxId = objid
     end
     self._count = self._count + 1
+    if self._count % 25 == 0 then
+        pcall(function() self._out:flush() end)
+    end
 end
 
 --- Finish the PDF: write xref table, trailer, and close the file.
@@ -355,9 +358,17 @@ function PdfWriter:finish(trailer)
     -- Never leak XRef stream keys, Prev pointers, or Encrypt dicts into the classic trailer.
     local clean = {}
     local root = trailer.Root or trailer.root
+    if type(root) == "number" then
+        root = { ref = { objid = root, genno = 0 } }
+    end
     if root then clean.Root = root end
+
     local info = trailer.Info or trailer.info
+    if type(info) == "number" then
+        info = { ref = { objid = info, genno = 0 } }
+    end
     if info then clean.Info = info end
+
     local id = trailer.ID or trailer.id
     if id then clean.ID = id end
     clean.Size = size

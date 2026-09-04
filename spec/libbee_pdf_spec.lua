@@ -384,4 +384,102 @@ describe("PDF DRM and Decryption", function()
             assert.is_false(should_skip(rawObj))
         end)
     end)
+
+    describe("Memory management and progress heartbeat", function()
+        it("invokes progress_cb during unencrypted PDF copy pass-through and decryption", function()
+            local inputPath = testDir .. "/unenc_prog.pdf"
+            local outputPath = testDir .. "/out_prog.pdf"
+
+            local f = io.open(inputPath, "wb")
+            f:write("%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n")
+            f:close()
+
+            local progress_called = false
+            local res, err = pdf.decryptAdobePdf(inputPath, outputPath, nil, nil, nil, function(status)
+                progress_called = true
+            end)
+            assert.is_table(res)
+            assert.is_true(res.unencrypted)
+        end)
+    end)
+
+    describe("Trailer Root and Info normalization", function()
+        it("normalizes numeric Root and Info to indirect references in clean trailer", function()
+            local doc = pdfdoc.PDFDocument:new()
+            doc.xrefs = {
+                {
+                    trailer = {
+                        Root = 3482,
+                        Info = 3480,
+                        Size = 3569,
+                    }
+                }
+            }
+            local clean = doc:getCleanTrailer()
+            assert.is_table(clean.Root)
+            assert.is_table(clean.Root.ref)
+            assert.are_equal(3482, clean.Root.ref.objid)
+            assert.are_equal(0, clean.Root.ref.genno)
+
+            assert.is_table(clean.Info)
+            assert.is_table(clean.Info.ref)
+            assert.are_equal(3480, clean.Info.ref.objid)
+            assert.are_equal(0, clean.Info.ref.genno)
+        end)
+
+        it("PdfWriter serializes numeric Root and Info as indirect references in trailer", function()
+            local pdfwriter = require("libbee_adobe_pdf_writer")
+            local outPath = testDir .. "/test_trailer_norm.pdf"
+            local w = pdfwriter.PdfWriter.new(outPath)
+            assert.is_table(w)
+            w:writeObject(1, { Type = "Catalog" })
+            w:finish({
+                Root = 1,
+                Info = 2,
+            })
+
+            local f = io.open(outPath, "rb")
+            local content = f:read("*a")
+            f:close()
+
+            assert.is_truthy(content:find("/Root 1 0 R"))
+            assert.is_truthy(content:find("/Info 2 0 R"))
+        end)
+    end)
+
+    describe("ObjStm child object extraction", function()
+        it("correctly extracts dicts, numbers, and literals regardless of header offset ordering", function()
+            local doc = pdfdoc.PDFDocument:new()
+
+            -- Build an ObjStm container object (stmid = 50)
+            -- N = 3 objects:
+            --   obj 100: << /Type /Page /Rotate 0 >> (at offset 30)
+            --   obj 101: 98765 (number at offset 0)
+            --   obj 102: /MyLiteral (at offset 10)
+            -- First = 30
+            local hdr = "100 30 101 0 102 10           " -- 30 bytes
+            local body_101 = "98765     " -- 10 bytes
+            local body_102 = "/MyLit    " -- 10 bytes
+            local body_100 = "          << /Type /Page /Rotate 0 >>"
+            local raw = hdr .. body_101 .. body_102 .. body_100
+
+            local stm = {
+                dic = {
+                    Type = pdfparser.literal("ObjStm"),
+                    N = 3,
+                    First = 30,
+                },
+                get_decdata = function() return raw end,
+            }
+
+            doc.objs[50] = stm
+            doc:_expandObjStm(50)
+
+            assert.is_table(doc.objs[100])
+            assert.are_equal("Page", doc.objs[100].Type.name)
+            assert.are_equal(0, doc.objs[100].Rotate)
+            assert.are_equal(98765, doc.objs[101])
+            assert.are_equal("MyLit", doc.objs[102].name)
+        end)
+    end)
 end)

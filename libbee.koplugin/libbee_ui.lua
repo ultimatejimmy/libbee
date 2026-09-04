@@ -613,8 +613,27 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
         }
     }
 
+    local dl_key_events = {
+        Close = { { "Back" }, { "Escape" } },
+        Press = { { "Press" }, { "Enter" }, { "Return" }, { "Select" }, { "Space" } },
+        FocusMove = { { "Up" }, { "Down" }, { "Left" }, { "Right" }, { "Tab" } },
+        PrevBtn = { { "Left" }, { "Up" } },
+        NextBtn = { { "Right" }, { "Down" }, { "Tab" } },
+        FocusUp = { { "Up" } },
+        FocusDown = { { "Down" } },
+        FocusLeft = { { "Left" } },
+        FocusRight = { { "Right" } },
+    }
+    if Device and Device.input and Device.input.group then
+        if Device.input.group.Back then table.insert(dl_key_events.Close, { Device.input.group.Back }) end
+        if Device.input.group.Cursor then table.insert(dl_key_events.FocusMove, { Device.input.group.Cursor }) end
+        if Device.input.group.Press then table.insert(dl_key_events.Press, { Device.input.group.Press }) end
+        if Device.input.group.Enter then table.insert(dl_key_events.Press, { Device.input.group.Enter }) end
+    end
+
     overlay = InputContainer:new{
         modal = true,
+        key_events = dl_key_events,
         dimen = Geom:new{ w = sw, h = sh },
         CenterContainer:new{
             dimen = Geom:new{ w = sw, h = sh },
@@ -622,6 +641,81 @@ local function _runDownloadWithProgress(work_fn, loan, on_done, progress_path)
         }
     }
     overlay.label_widget = { text = "Downloading & fulfilling " .. title_text }
+
+    local is_button_focused = false
+    local function highlightCancelButton(focused)
+        is_button_focused = (focused ~= false)
+        if cancel_btn then
+            if is_button_focused then
+                if type(cancel_btn.onFocus) == "function" then
+                    cancel_btn:onFocus()
+                end
+                if cancel_btn.frame then
+                    cancel_btn.frame.invert = true
+                    cancel_btn.frame.bordersize = theme.border_focus or sc(3)
+                end
+            else
+                if type(cancel_btn.onUnfocus) == "function" then
+                    cancel_btn:onUnfocus()
+                end
+                if cancel_btn.frame then
+                    cancel_btn.frame.invert = false
+                    cancel_btn.frame.bordersize = sc(1)
+                end
+            end
+            UIManager:setDirty(overlay, "ui")
+        end
+    end
+
+    -- Do NOT auto-focus on open — only highlight when user presses a D-pad/arrow key
+
+    local function triggerCancel()
+        if cancel_btn and cancel_btn.callback then
+            cancel_btn:callback()
+        end
+    end
+
+    local function onArrow()
+        highlightCancelButton(true)
+        return true
+    end
+
+    overlay.onFocusMove = onArrow
+    overlay.onPrevBtn = onArrow
+    overlay.onNextBtn = onArrow
+    overlay.onFocusUp = onArrow
+    overlay.onFocusDown = onArrow
+    overlay.onFocusLeft = onArrow
+    overlay.onFocusRight = onArrow
+
+    overlay.onPress = function()
+        triggerCancel()
+        return true
+    end
+    overlay.onClose = function()
+        triggerCancel()
+        return true
+    end
+
+    local orig_onKeyPress = overlay.onKeyPress
+    overlay.onKeyPress = function(self, key)
+        if key and (key["Up"] or key["Down"] or key["Left"] or key["Right"] or key["Tab"]) then
+            highlightCancelButton(true)
+            return true
+        end
+        if key and (key["Press"] or key["Enter"] or key["Return"] or key["Select"] or key["Space"]) then
+            triggerCancel()
+            return true
+        end
+        if key and (key["Back"] or key["Escape"]) then
+            triggerCancel()
+            return true
+        end
+        if orig_onKeyPress then
+            return orig_onKeyPress(self, key)
+        end
+    end
+    overlay.onKeyRepeat = overlay.onKeyPress
 
     UIManager:show(overlay, "ui")
 
@@ -2162,11 +2256,6 @@ function M.showShelfBrowser(plugin_dir)
             current_page < total_pages and next_btn or HorizontalSpan:new{ width = next_w },
         }
 
-        local footer_divider = LineWidget:new{
-            dimen = Geom:new{ w = sw, h = sc(1) },
-            background = theme.color_section_rule or Blitbuffer.COLOR_LIGHT_GRAY,
-        }
-
         local footer_frame = FrameContainer:new{
             padding_top = sc(4),
             padding_bottom = sc(6),
@@ -2190,15 +2279,9 @@ function M.showShelfBrowser(plugin_dir)
             page_content_frame,
         }
 
-        local bottom_vg = VerticalGroup:new{
-            align = "left",
-            footer_divider,
-            footer_frame,
-        }
-
         local bottom_container = BottomContainer:new{
             dimen = Geom:new{ w = sw, h = sh },
-            bottom_vg,
+            footer_frame,
         }
 
         local shelf_background_frame = FrameContainer:new{
@@ -3159,6 +3242,27 @@ function M._doDownload(loan, dest_path, base_dir, plugin_dir, after_download_fn)
                 M.showCardDialog{
                     title = _("Format Not Supported"),
                     body_text = _("This book cannot be downloaded to KOReader.\n\nLibby only provides this title in formats for the Libby app or Kindle devices. Downloadable EPUB/PDF files are not available for this loan from the library."),
+                    buttons = {
+                        {
+                            text = _("OK"),
+                            is_primary = true,
+                        }
+                    }
+                }
+            elseif (err and err:find("INSUFFICIENT_STORAGE")) or (type(final_book_path) == "string" and final_book_path:find("INSUFFICIENT_STORAGE")) then
+                local str = tostring(err or final_book_path)
+                local needed_mb, free_mb = str:match("INSUFFICIENT_STORAGE:(%d+):(%d+)")
+                local n_mb = tonumber(needed_mb or 0)
+                local f_mb = tonumber(free_mb or 0)
+                local body
+                if n_mb and n_mb > 0 then
+                    body = string.format(_("This title requires approximately %d MB of free storage, but your device only has %d MB available.\n\nPlease free up space on your device or select a smaller book."), n_mb, f_mb)
+                else
+                    body = _("Your device is running critically low on storage space. Please free up space on your device before downloading.")
+                end
+                M.showCardDialog{
+                    title = _("Storage Space Low"),
+                    body_text = body,
                     buttons = {
                         {
                             text = _("OK"),
@@ -5292,5 +5396,7 @@ function M.showAbout(plugin_dir, on_close_cb, on_change_cb)
 
     refresh()
 end
+
+M._runDownloadWithProgress = _runDownloadWithProgress
 
 return M

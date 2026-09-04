@@ -529,6 +529,10 @@ describe("libbee_ui", function()
                 return false -- Signal cancellation
             end
 
+            local ok, err = fulfillment.downloadBook("http://example.com/test", tmp_target, cancelled_progress)
+            assert.is_nil(ok)
+            assert.is_truthy(err and (err:find("cancelled") or err:find("aborted")))
+
             local ok_lfs, lfs = pcall(require, "libs/libkoreader-lfs")
             if not ok_lfs or not lfs then ok_lfs, lfs = pcall(require, "lfs") end
             if ok_lfs and lfs and lfs.attributes then
@@ -539,6 +543,90 @@ describe("libbee_ui", function()
             assert.is_nil(check_f)
 
             http.request = orig_request
+        end)
+
+        it("registers D-pad key events and handles hardware keys on download modal", function()
+            local UIManager = require("ui/uimanager")
+            local shown_overlay = nil
+            local orig_show = UIManager.show
+            UIManager.show = function(self, widget, layer)
+                if widget and widget.key_events then
+                    shown_overlay = widget
+                end
+                if orig_show then orig_show(self, widget, layer) end
+            end
+
+            local cancelled = false
+            local loan = { title = "Dpad Book", author = "Dpad Author" }
+            UI._runDownloadWithProgress(
+                function(on_progress_fn)
+                    return nil, "done"
+                end,
+                loan,
+                function(res, err)
+                    cancelled = true
+                end
+            )
+
+            assert.is_table(shown_overlay)
+            assert.is_table(shown_overlay.key_events)
+            assert.is_table(shown_overlay.key_events.Close)
+            assert.is_table(shown_overlay.key_events.Press)
+            assert.is_table(shown_overlay.key_events.PrevBtn)
+            assert.is_table(shown_overlay.key_events.NextBtn)
+
+            assert.is_true(type(shown_overlay.onClose) == "function")
+            assert.is_true(type(shown_overlay.onPress) == "function")
+            assert.is_true(type(shown_overlay.onPrevBtn) == "function")
+            assert.is_true(type(shown_overlay.onNextBtn) == "function")
+            assert.is_true(type(shown_overlay.onFocusMove) == "function")
+
+            assert.is_true(shown_overlay:onClose())
+            assert.is_true(shown_overlay:onPress())
+            assert.is_true(shown_overlay:onPrevBtn())
+            assert.is_true(shown_overlay:onNextBtn())
+            assert.is_true(shown_overlay:onFocusMove())
+
+            -- Test direct onKeyPress with arrow key and Enter
+            assert.is_true(shown_overlay:onKeyPress({ Down = true }))
+            assert.is_true(shown_overlay:onKeyPress({ Enter = true }))
+
+            UIManager.show = orig_show
+        end)
+
+        it("displays Storage Space Low dialog when INSUFFICIENT_STORAGE error occurs", function()
+            _G.ui_tracker.shown = {}
+            local card_shown = nil
+            local orig_showCardDialog = UI.showCardDialog
+            UI.showCardDialog = function(opts)
+                card_shown = opts
+                return orig_showCardDialog(opts)
+            end
+
+            local loan = { title = "Big Comic", author = "Artist" }
+            local API = require("libbee_api")
+            local orig_dl = API.downloadACSM
+            API.downloadACSM = function(l, path)
+                local f = io.open(path, "w")
+                if f then f:write("mock_acsm"); f:close() end
+                return true
+            end
+
+            local orig_fulfill = require("libbee_drm").fulfillAcsm
+            require("libbee_drm").fulfillAcsm = function(acsm, out, cb)
+                return nil, "INSUFFICIENT_STORAGE:850:240"
+            end
+
+            UI._doDownload(loan, "/tmp/big.acsm", "/tmp", "", function() end)
+
+            assert.is_table(card_shown)
+            assert.are_equal("Storage Space Low", card_shown.title)
+            assert.is_truthy(card_shown.body_text:find("850 MB"))
+            assert.is_truthy(card_shown.body_text:find("240 MB"))
+
+            API.downloadACSM = orig_dl
+            require("libbee_drm").fulfillAcsm = orig_fulfill
+            UI.showCardDialog = orig_showCardDialog
         end)
 
         it("correctly paginates multi-library shelf in cover view without overflow", function()

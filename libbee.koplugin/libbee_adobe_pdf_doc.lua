@@ -95,6 +95,7 @@ local function _unpredict(data, params)
     if columns == 0 then
         return data
     end
+    local bpp = params.BitsPerComponent and math.max(1, math.floor(params.BitsPerComponent / 8)) or 1
     local row_len = columns + 1
     local buf = {}
     local prev = string.rep("\0", columns)
@@ -104,10 +105,45 @@ local function _unpredict(data, params)
         end
         local filter = data:byte(i + 1)
         local row = data:sub(i + 2, i + row_len)
-        if filter == 2 then
+        if filter == 0 then
+            -- None: row as is
+        elseif filter == 1 then
+            -- Sub: difference from left pixel
+            local parts = {}
+            for j = 1, #row do
+                local left = (j > bpp) and string.byte(parts[j - bpp]) or 0
+                parts[j] = string.char((row:byte(j) + left) % 256)
+            end
+            row = table.concat(parts)
+        elseif filter == 2 then
+            -- Up: difference from above row
             local parts = {}
             for j = 1, #row do
                 parts[j] = string.char((row:byte(j) + prev:byte(j)) % 256)
+            end
+            row = table.concat(parts)
+        elseif filter == 3 then
+            -- Average: average of left and above
+            local parts = {}
+            for j = 1, #row do
+                local left = (j > bpp) and string.byte(parts[j - bpp]) or 0
+                local up = prev:byte(j)
+                parts[j] = string.char((row:byte(j) + math.floor((left + up) / 2)) % 256)
+            end
+            row = table.concat(parts)
+        elseif filter == 4 then
+            -- Paeth: linear function of left, up, and up-left
+            local parts = {}
+            for j = 1, #row do
+                local a = (j > bpp) and string.byte(parts[j - bpp]) or 0
+                local b = prev:byte(j)
+                local c = (j > bpp) and prev:byte(j - bpp) or 0
+                local p = a + b - c
+                local pa = math.abs(p - a)
+                local pb = math.abs(p - b)
+                local pc = math.abs(p - c)
+                local pr = (pa <= pb and pa <= pc) and a or ((pb <= pc) and b or c)
+                parts[j] = string.char((row:byte(j) + pr) % 256)
             end
             row = table.concat(parts)
         end
@@ -333,10 +369,7 @@ local function nunpack(s, default)
     return v
 end
 
-function PDFXRefStream:load(p)
-    -- The stream object follows the objid/genno/obj tokens
-    -- It's already been positioned by the caller
-    local _, obj = p:nextobject()
+function PDFXRefStream:load_from_obj(obj, start)
     if type(obj) ~= "table" or not obj.rawdata then
         error("Expected PDFStream for xref stream")
     end
@@ -379,88 +412,21 @@ function PDFXRefStream:load(p)
         local parts = {}
         inflater:update(rawdata, #rawdata, function(ptr, len)
             parts[#parts + 1] = ffi.string(ptr, len)
+            return true
         end)
         inflater:close()
         local decompressed = (parts[1] and table.concat(parts) or nil)
         if decompressed then
-            -- Predictor 12 may be inlined from DecodeParms. Columns may be missing;
-            -- derive from W array (= fl1+fl2+fl3 = entlen)
-            local has_predictor = int_value(dic.Predictor or dic["predictor"] or dic["Predictor"])
+            local dp = dic.DecodeParms or dic["DecodeParms"] or {}
+            if type(dp) ~= "table" then dp = dic end
+            local has_predictor = int_value(dp.Predictor or dp["Predictor"] or dic.Predictor or dic["Predictor"])
             if has_predictor ~= 0 then
-                local params = dic
-                if not params.Columns and not params["columns"] then
+                local params = dp
+                if not params.Columns and not params["Columns"] then
                     params = {}
-                    for k, v in pairs(dic) do
-                        params[k] = v
-                    end
-                    params.Columns = params.Columns or params["columns"] or self.entlen
-                end
-                decompressed = _unpredict(decompressed, params)
-            end
-            self.data = decompressed
-        else
-            self.data = rawdata
-        end
-    else
-        self.data = rawdata
-    end
-
-    self.trailer = dic
-end
-
---- Load from a pre-parsed stream object (for _read_xref_from).
-function PDFXRefStream:load_from_obj(obj, start)
-    if type(obj) ~= "table" or not obj.rawdata then
-        error("Expected PDFStream for xref stream")
-    end
-    local dic = obj.dic or {}
-    local streamType = name_str(dic.Type or dic["Type"] or dic["type"])
-    if streamType ~= "XRef" then
-        error("Invalid XRef stream: Type=" .. tostring(streamType))
-    end
-    local size = int_value(dic.Size or dic["size"] or dic["Size"])
-    local indexRaw = dic.Index or dic["index"] or dic["Index"]
-    if indexRaw == nil then
-        self.index = { { 0, size } }
-    else
-        if type(indexRaw) ~= "table" then
-            indexRaw = { indexRaw }
-        end
-        self.index = {}
-        for i = 1, #indexRaw, 2 do
-            self.index[#self.index + 1] = { indexRaw[i], indexRaw[i + 1] }
-        end
-    end
-    local w_val = dic.W or dic["w"] or dic["W"]
-    if type(w_val) ~= "table" then
-        w_val = { w_val, w_val, w_val }
-    end
-    self.fl1 = int_value(w_val[1])
-    self.fl2 = int_value(w_val[2])
-    self.fl3 = int_value(w_val[3])
-    self.entlen = self.fl1 + self.fl2 + self.fl3
-    local rawdata = obj.rawdata or ""
-    local ok, zlib_mod = pcall(require, "libbee_adobe_zlib")
-    if ok and zlib_mod and #rawdata > 0 then
-        local inflater = zlib_mod.inflater()
-        local parts = {}
-        inflater:update(rawdata, #rawdata, function(ptr, len)
-            parts[#parts + 1] = ffi.string(ptr, len)
-        end)
-        inflater:close()
-        local decompressed = (parts[1] and table.concat(parts) or nil)
-        if decompressed then
-            -- Predictor 12 may be inlined from DecodeParms. Columns may be missing;
-            -- derive from W array (= fl1+fl2+fl3 = entlen)
-            local has_predictor = int_value(dic.Predictor or dic["predictor"] or dic["Predictor"])
-            if has_predictor ~= 0 then
-                local params = dic
-                if not params.Columns and not params["columns"] then
-                    params = {}
-                    for k, v in pairs(dic) do
-                        params[k] = v
-                    end
-                    params.Columns = params.Columns or params["columns"] or self.entlen
+                    for k, v in pairs(dp) do params[k] = v end
+                    for k, v in pairs(dic) do if params[k] == nil then params[k] = v end end
+                    params.Columns = params.Columns or params["Columns"] or self.entlen
                 end
                 decompressed = _unpredict(decompressed, params)
             end
@@ -645,17 +611,15 @@ function PDFDocument:_read_xref_from(start, xrefs, seen)
 
     if type(token) == "number" then
         -- XRef stream (PDF 1.5+): starts with objid
-        f:seek("set", start)
-        p = pdfparser.new(f)
+        p:seek(start)
         local xref = PDFXRefStream:new()
         -- Read objid genno obj tokens then the stream
         p:nexttoken() -- objid (number)
         p:nexttoken() -- genno (number)
         p:nexttoken() -- "obj" keyword
         -- Now read the stream object
-        local _, stream_obj = p:nextobject()
-        -- Build a pseudo-stream with raw data
-        -- We need to read the raw bytes between "stream\n" and "\nendstream"
+        local res = p:nextobject()
+        local stream_obj = res and res[2]
         -- Build a pseudo-stream with raw data.
         -- If nextobject gave us a dict, extract rawdata.
         -- If it failed (nested <<>> in DecodeParms etc.), parse manually.
@@ -730,6 +694,33 @@ function PDFDocument:_read_xref_from(start, xrefs, seen)
                                             pp = pp + 1
                                         end
                                         val = tonumber(raw:sub(valStart, pp - 1)) or raw:sub(valStart, pp - 1)
+                                        -- Check if followed by genno and 'R' (indirect ref N N R)
+                                        if type(val) == "number" then
+                                            local save_pp = pp
+                                            while pp <= #raw do
+                                                local sb = raw:byte(pp)
+                                                if sb ~= 32 and sb ~= 10 and sb ~= 13 and sb ~= 9 and sb ~= 12 then break end
+                                                pp = pp + 1
+                                            end
+                                            local genStart = pp
+                                            while pp <= #raw do
+                                                local sb = raw:byte(pp)
+                                                if not (sb >= 48 and sb <= 57) then break end
+                                                pp = pp + 1
+                                            end
+                                            local genStr = raw:sub(genStart, pp - 1)
+                                            while pp <= #raw do
+                                                local sb = raw:byte(pp)
+                                                if sb ~= 32 and sb ~= 10 and sb ~= 13 and sb ~= 9 and sb ~= 12 then break end
+                                                pp = pp + 1
+                                            end
+                                            if pp <= #raw and raw:byte(pp) == 82 then -- 'R'
+                                                pp = pp + 1
+                                                val = { ref = { objid = val, genno = tonumber(genStr) or 0 } }
+                                            else
+                                                pp = save_pp
+                                            end
+                                        end
                                     elseif b == 47 then
                                         pp = pp + 1
                                         local valStart = pp
@@ -799,10 +790,12 @@ function PDFDocument:_read_xref_from(start, xrefs, seen)
                 end
             end
         end
-        if type(stream_obj) == "table" and not stream_obj.ref then
-            xref:load_from_obj(stream_obj, start)
+        if type(stream_obj) == "table" and not stream_obj.ref and stream_obj.rawdata then
+            local ok_load = pcall(function() xref:load_from_obj(stream_obj, start) end)
+            if ok_load then
+                xrefs[#xrefs + 1] = xref
+            end
         end
-        xrefs[#xrefs + 1] = xref
 
         -- Follow Prev/XRefStm chains
         local trailer = xref.trailer
@@ -993,7 +986,7 @@ function PDFDocument:_loadRawObject(objid)
         return nil
     end
 
-    local p = pdfparser.new(self.file)
+    local p = pdfparser.new(self.file, self)
     p:seek(offset)
 
     -- Skip objid genno obj tokens
@@ -1037,101 +1030,77 @@ function PDFDocument:_expandObjStm(stmid)
     end
 
     local ok, zlib_mod = pcall(require, "libbee_adobe_zlib")
-    if ok and zlib_mod then
-        local inflater = zlib_mod.inflater()
-        local parts = {}
-        inflater:update(data, #data, function(ptr, len)
-            parts[#parts + 1] = ffi.string(ptr, len)
+    if ok and zlib_mod and zlib_mod.inflater then
+        pcall(function()
+            local inflater = zlib_mod.inflater()
+            if inflater then
+                local parts = {}
+                inflater:update(data, #data, function(ptr, len)
+                    parts[#parts + 1] = ffi.string(ptr, len)
+                    return true
+                end)
+                inflater:close()
+                if parts[1] then
+                    data = table.concat(parts)
+                end
+            end
         end)
-        inflater:close()
-        if parts[1] then
-            data = table.concat(parts)
-        end
     end
 
-    -- Parse N (number of child objects) from the decompressed data
-    local n = tonumber(stm.dic.N or stm.dic["n"]) or 0
+    -- Parse N (number of child objects) from the stream dictionary
+    local n = int_value(stm.dic.N or stm.dic["n"] or stm.dic["N"])
     if n == 0 then
         return
     end
 
-    -- Parse the header: N pairs of (objid, offset)
-    -- Format: whitespace-separated decimal integers, followed by concatenated object content
-    local pos = 1
-    local function skipWhitespace()
-        while pos <= #data do
-            local b = data:byte(pos)
-            if b ~= 32 and b ~= 10 and b ~= 13 and b ~= 9 and b ~= 12 and b ~= 0 then
-                break
-            end
-            pos = pos + 1
-        end
-    end
-    local function parseInteger()
-        skipWhitespace()
-        local start = pos
-        while pos <= #data do
-            local b = data:byte(pos)
-            if b < 48 or b > 57 then
-                break
-            end
-            pos = pos + 1
-        end
-        if start > pos - 1 then
-            return nil
-        end
-        return tonumber(data:sub(start, pos - 1))
+    local first_offset = int_value(stm.dic.First or stm.dic["first"] or stm.dic["First"])
+    if first_offset == 0 then
+        return
     end
 
+    -- Parse the header: N pairs of (objid, offset)
+    local header_reader = newStringReader(data:sub(1, first_offset))
+    local p_hdr = pdfparser.new(header_reader)
     local pairs_list = {}
     for i = 1, n do
-        local oid = parseInteger()
-        local off = parseInteger()
-        if not oid then
+        local _, tok_id = p_hdr:nexttoken()
+        local _, tok_off = p_hdr:nexttoken()
+        if type(tok_id) == "number" and type(tok_off) == "number" then
+            pairs_list[i] = { objid = tok_id, offset = tok_off }
+        else
             break
         end
-        pairs_list[i] = { objid = oid, offset = off }
     end
-
-    -- PDF 1.5 Spec §7.5.7: Each offset in the header is relative to the byte offset
-    -- given by the First entry in the stream dictionary.
-    -- Lua strings are 1-indexed, so byte offset First starts at index First + 1.
-    local first_offset = tonumber(stm.dic.First or stm.dic["first"] or stm.dic["First"])
-    skipWhitespace()
-    local objectsBase = first_offset and (first_offset + 1) or pos
 
     if #pairs_list < n then
-        logger.warn("[pdfdoc] _expandObjStm: only parsed ", #pairs_list, " of ", n, " header pairs")
+        logger.warn("[pdfdoc] _expandObjStm: only parsed " .. #pairs_list .. " of " .. n .. " header pairs")
     end
 
-    for idx, pair in ipairs(pairs_list) do
+    local body_reader = newStringReader(data)
+    local p_body = pdfparser.new(body_reader, self)
+
+    for _, pair in ipairs(pairs_list) do
         if not self.objs[pair.objid] then
-            local objStart = objectsBase + pair.offset
-            -- Determine end: if this is the last object, it goes to EOF;
-            -- otherwise it ends at the next object's start
-            local objEnd
-            if idx < #pairs_list then
-                objEnd = objectsBase + pairs_list[idx + 1].offset
-            else
-                objEnd = #data + 1
+            p_body:seek(first_offset + pair.offset)
+            local pos, tok = p_body:nexttoken()
+            local child = nil
+            if tok ~= nil and (type(tok) == "number" or type(tok) == "boolean" or type(tok) == "string" or (type(tok) == "table" and getmetatable(tok) == pdfparser.PSLiteral)) then
+                child = tok
+            elseif tok ~= nil then
+                p_body:seek(pos)
+                local res = p_body:nextobject()
+                child = res and res[2]
             end
 
-            if objStart < objEnd and objStart <= #data then
-                local childData = data:sub(objStart, objEnd - 1)
-                local reader = newStringReader(childData)
-                local tmpp = pdfparser.new(reader, self)
-                local result = tmpp:nextobject()
-                if result and result[2] then
-                    local child = result[2]
-                    if type(child) == "table" and child.dic ~= nil and child.rawdata ~= nil then
-                        setmetatable(child, PDFStream)
-                        child:set_objid(pair.objid, 0)
-                        if self.decipher then
-                            child.decipher = self.decipher
-                        end
+            if child ~= nil then
+                if type(child) == "table" and child.dic ~= nil and child.rawdata ~= nil then
+                    setmetatable(child, PDFStream)
+                    child:set_objid(pair.objid, 0)
+                    if self.decipher then
+                        child.decipher = self.decipher
                     end
-                    self.objs[pair.objid] = child
                 end
+                self.objs[pair.objid] = child
             end
         end
     end
@@ -1259,14 +1228,29 @@ function PDFDocument:getCleanTrailer()
     -- Classic PDF trailer: whitelist only valid entries (Root, Info, ID).
     -- Size will be set by the writer based on total written objects.
     local root = merged.Root or merged.root or self.root
+    if type(root) == "number" then
+        root = { ref = { objid = root, genno = 0 } }
+    end
     if root then clean.Root = root end
+
     local info = merged.Info or merged.info
+    if type(info) == "number" then
+        info = { ref = { objid = info, genno = 0 } }
+    end
     if info then clean.Info = info end
+
     local id = merged.ID or merged.id
     if id then clean.ID = id end
 
     local size = merged.Size or merged.size
     if size then clean.Size = size end
+
+    -- Also expose the Encrypt reference for decryption setup
+    local encrypt = merged.Encrypt or merged.encrypt
+    if type(encrypt) == "number" then
+        encrypt = { ref = { objid = encrypt, genno = 0 } }
+    end
+    if encrypt then clean.Encrypt = encrypt end
 
     return clean
 end

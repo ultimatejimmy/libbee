@@ -375,11 +375,22 @@ function fulfillment.downloadBook(srcUrl, outputPath, progress_fn)
         return nil, sinkErr
     end
 
+    local ffiutil_ok, ffiutil = pcall(require, "ffi/ffiutil")
     local total_bytes = 0
     local last_report = 0
+    local last_storage_check = 0
     local tracking_sink = function(chunk, src_err)
         if chunk and #chunk > 0 then
             total_bytes = total_bytes + #chunk
+            -- Check storage every 2MB to prevent filling disk to 100%
+            if ffiutil_ok and ffiutil and (total_bytes - last_storage_check >= 2097152) then
+                last_storage_check = total_bytes
+                local ok_df, total_disk, free_bytes = pcall(ffiutil.df, outputPath)
+                if ok_df and free_bytes and free_bytes < 15 * 1024 * 1024 then
+                    local free_mb = math.floor(free_bytes / 1048576)
+                    return nil, string.format("INSUFFICIENT_STORAGE:20:%d", free_mb)
+                end
+            end
             -- Report every 64KB (was 512KB) so the stall detector sees frequent activity
             if progress_fn and (total_bytes - last_report >= 65536) then
                 last_report = total_bytes
@@ -618,13 +629,35 @@ function fulfillment.process(acsmPath, outputPath, creds, deviceUUID, fingerprin
         logger.info("[ACSM] fulfillment.process: resolved outputPath=", outputPath)
     end
 
+    -- Verify adequate storage space remains for decrypted output file
+    local tmp_size = 0
+    local f_tmp = io.open(tmpFile, "rb")
+    if f_tmp then
+        tmp_size = f_tmp:seek("end") or 0
+        f_tmp:close()
+    end
+
+    local ffiutil_ok, ffiutil = pcall(require, "ffi/ffiutil")
+    if ffiutil_ok and ffiutil and ffiutil.df and tmp_size > 0 then
+        local ok_df, total_disk, free_bytes = pcall(ffiutil.df, outputPath)
+        if ok_df and free_bytes then
+            local needed_bytes = math.floor(tmp_size * 1.05) + (20 * 1024 * 1024)
+            if free_bytes < needed_bytes then
+                os.remove(tmpFile)
+                local needed_mb = math.ceil(needed_bytes / 1048576)
+                local free_mb = math.floor(free_bytes / 1048576)
+                return nil, string.format("INSUFFICIENT_STORAGE:%d:%d", needed_mb, free_mb)
+            end
+        end
+    end
+
     local decryptedInfo, decryptErr
     local ok_dec, dec_res, dec_err = pcall(function()
         local bookKey -- may be nil for PDF (extracted internally)
         if isPdf then
             logger.info("[ACSM] fulfillment.process: decrypting PDF...")
             local pdf = require("libbee_adobe_pdf")
-            return pdf.decryptAdobePdf(tmpFile, outputPath, nil, creds.licenseKey, result.encryptedKey)
+            return pdf.decryptAdobePdf(tmpFile, outputPath, nil, creds.licenseKey, result.encryptedKey, progress_cb)
         else
             if result.encryptedKey and result.encryptedKey ~= "" then
                 logger.info("[ACSM] fulfillment.process: decrypting book key...")

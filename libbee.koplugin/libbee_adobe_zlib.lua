@@ -103,10 +103,24 @@ if isAndroid then
     -- Same as nativecrypto.lua: monolbtic doesn't export zlib symbols.
     local android = require("android")
     libz = androidCopyLoad("z", jit.arch, android.dir)
-elseif ffi.loadlib then
-    libz = ffi.loadlib("z", "1")
 else
-    libz = ffi.load("z")
+    if ffi.loadlib then
+        local ok, l = pcall(ffi.loadlib, "z", "1")
+        if ok and l then libz = l end
+    end
+    if not libz then
+        local names = { "libs/libz.so.1", "libz.so.1", "z", "libz.so", "zlib1", "libz.1.dylib" }
+        for _, name in ipairs(names) do
+            local ok, l = pcall(ffi.load, name)
+            if ok and l then
+                libz = l
+                break
+            end
+        end
+    end
+    if not libz then
+        libz = ffi.load("z")
+    end
 end
 
 -- Cross-plugin ABI compatibility:
@@ -225,7 +239,7 @@ function buildInflater(stream)
             local produced = CHUNK_SIZE - tonumber(stream[0].avail_out)
             if produced > 0 and sink then
                 local ok, err = sink(outbuf, produced)
-                if not ok then
+                if ok == false then
                     return nil, err
                 end
             end

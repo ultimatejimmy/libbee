@@ -325,14 +325,12 @@ local function make_rc4_decipher(bookKey, genkey_fn)
 end
 
 local function unpadPkcs7(data)
-    local padLen = #data > 0 and data:byte(#data) or nil
-    if not padLen or padLen < 1 or padLen > 16 or padLen > #data then
-        return nil, "Invalid PKCS#7 padding"
+    if not data or #data == 0 then
+        return data
     end
-    for i = #data - padLen + 1, #data do
-        if data:byte(i) ~= padLen then
-            return nil, "Invalid PKCS#7 padding"
-        end
+    local padLen = data:byte(#data)
+    if padLen < 1 or padLen > 16 or padLen > #data then
+        return data
     end
     return data:sub(1, #data - padLen)
 end
@@ -378,7 +376,7 @@ end
 -- @param fulfillmentEncryptedKey string optional: base64-encoded encrypted key from fulfillment response
 --        Used as fallback when PDF doesn't contain ADEPT_LICENSE (older ADEPT scheme).
 -- @return table info about the decryption, or nil, error
-function pdf.decryptAdobePdf(inputPath, outputPath, bookKey, licenseKey, fulfillmentEncryptedKey)
+function pdf.decryptAdobePdf(inputPath, outputPath, bookKey, licenseKey, fulfillmentEncryptedKey, progress_cb)
     logger.info("[ACSM] pdf.decryptAdobePdf: input=", inputPath, "output=", outputPath)
 
     -- 1. Open and parse the PDF structure
@@ -514,10 +512,29 @@ function pdf.decryptAdobePdf(inputPath, outputPath, bookKey, licenseKey, fulfill
                     end
                 end
 
+                local is_large = false
+                if type(obj) == "table" then
+                    local sz = (obj.rawdata and #obj.rawdata) or (obj.decdata and #obj.decdata) or 0
+                    if sz > 524288 then
+                        is_large = true
+                    end
+                    obj.rawdata = nil
+                    obj.decdata = nil
+                    obj.data = nil
+                    obj.decdic = nil
+                end
+
                 -- Release from document cache so Lua can reclaim the memory.
-                -- The writer has already serialized everything to disk.
                 doc.objs[objid] = nil
-                collectgarbage("step", 200)
+
+                if is_large or (decryptCount % 25 == 0) then
+                    collectgarbage("collect")
+                    if progress_cb then
+                        progress_cb("decrypt")
+                    end
+                else
+                    collectgarbage("step", 1000)
+                end
             end
         end
     end
