@@ -218,4 +218,86 @@ describe("libbee_autoclean checkAndCleanup", function()
         pcall(os.remove, sdr_file)
         os.execute("rmdir '" .. sdr_dir .. "' 2>/dev/null")
     end)
+
+    it("skips auto-deleting books that are currently open in ReaderUI", function()
+        local now = os.time{ year = 2026, month = 8, day = 21, hour = 12 }
+        local path_open = create_temp_file("open_book")
+
+        State.registerDownload({
+            id = "loan-open",
+            title = "Actively Open Book",
+            expires = "2026-08-19", -- Expired past grace period
+        }, path_open)
+
+        -- Mock ReaderUI with actively opened document
+        package.loaded["apps/reader/readerui"] = {
+            instance = {
+                document = {
+                    file = path_open
+                }
+            }
+        }
+
+        local res = AutoClean.checkAndCleanup(nil, { is_live_sync = false, now_timestamp = now })
+        assert.are_equal(0, res.deleted_count)
+
+        -- File preserved and still registered
+        local f = io.open(path_open, "r")
+        assert.is_not_nil(f)
+        if f then f:close() end
+        assert.is_not_nil(State.getTrackedDownload("loan-open"))
+
+        -- removeFileAndSidecar also refuses removal
+        local ok, err = AutoClean.removeFileAndSidecar(path_open)
+        assert.is_false(ok)
+        assert.is_truthy(err:find("currently open"))
+
+        package.loaded["apps/reader/readerui"] = nil
+    end)
+
+    it("does not delete active unexpired loans when shelf is empty without verified sync", function()
+        local now = os.time{ year = 2026, month = 8, day = 21, hour = 12 }
+        local path_active = create_temp_file("empty_sync_active")
+
+        State.registerDownload({
+            id = "loan-safe",
+            title = "Active Safe Book",
+            expires = "2026-08-30",
+        }, path_active)
+
+        -- Unverified empty sync (e.g. offline or failed sync)
+        local res = AutoClean.checkAndCleanup({}, { is_live_sync = true, verified_sync = false, now_timestamp = now })
+        assert.are_equal(0, res.deleted_count)
+
+        local f = io.open(path_active, "r")
+        assert.is_not_nil(f)
+        if f then f:close() end
+        assert.is_not_nil(State.getTrackedDownload("loan-safe"))
+    end)
+
+    it("protects loans belonging to accounts not included in synced_account_ids", function()
+        local now = os.time{ year = 2026, month = 8, day = 21, hour = 12 }
+        local path_other = create_temp_file("other_account")
+
+        State.registerDownload({
+            id = "loan-other-acc",
+            account_id = "acc_b",
+            title = "Other Account Book",
+            expires = "2026-08-30",
+        }, path_other)
+
+        -- Only acc_a was synced; acc_b loan is absent from shelf because acc_b was not queried
+        local res = AutoClean.checkAndCleanup({}, {
+            is_live_sync = true,
+            verified_sync = true,
+            synced_account_ids = { ["acc_a"] = true },
+            now_timestamp = now
+        })
+        assert.are_equal(0, res.deleted_count)
+
+        local f = io.open(path_other, "r")
+        assert.is_not_nil(f)
+        if f then f:close() end
+        assert.is_not_nil(State.getTrackedDownload("loan-other-acc"))
+    end)
 end)

@@ -23,6 +23,9 @@ msgstr "%d days left"
 msgid "%d library cards"
 msgstr "%d library cards"
 
+msgid "%d of %d loans (filtered)"
+msgstr "%d of %d loans (filtered)"
+
 msgid "(cached)"
 msgstr "(cached)"
 
@@ -88,6 +91,9 @@ msgstr "Add another Libby card"
 
 msgid "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
 msgstr "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
+
+msgid "All"
+msgstr "All"
 
 msgid "All accounts disconnected"
 msgstr "All accounts disconnected"
@@ -326,6 +332,9 @@ msgstr "Expires today"
 msgid "Failed to create folder."
 msgstr "Failed to create folder."
 
+msgid "Filter Shelf"
+msgstr "Filter Shelf"
+
 msgid "Folder"
 msgstr "Folder"
 
@@ -461,6 +470,9 @@ msgstr "No active loans found on your Libby shelf.\n\nBorrow a book in the Libby
 msgid "No automatic download asset found. Visit GitHub to update manually."
 msgstr "No automatic download asset found. Visit GitHub to update manually."
 
+msgid "No loans match this filter.\n\nTap the filter icon to see all loans."
+msgstr "No loans match this filter.\n\nTap the filter icon to see all loans."
+
 msgid "No log file found yet at:\n%s"
 msgstr "No log file found yet at:\n%s"
 
@@ -488,6 +500,9 @@ msgstr "Open Shelf"
 msgid "Opening \"%s\"…"
 msgstr "Opening \"%s\"…"
 
+msgid "Other"
+msgstr "Other"
+
 msgid "Page %d of %d"
 msgstr "Page %d of %d"
 
@@ -502,6 +517,9 @@ msgstr "Please enter your ByteBooks password"
 
 msgid "Re-authenticate"
 msgstr "Re-authenticate"
+
+msgid "Readable"
+msgstr "Readable"
 
 msgid "Refresh failed: %s"
 msgstr "Refresh failed: %s"
@@ -575,6 +593,9 @@ msgstr "Setup Now"
 msgid "Setup Timed Out"
 msgstr "Setup Timed Out"
 
+msgid "Show only loans that match the selected type."
+msgstr "Show only loans that match the selected type."
+
 msgid "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"
 msgstr "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"
 
@@ -640,6 +661,9 @@ msgstr "This title is an audiobook and cannot be played in KOReader.\n\nPlease l
 
 msgid "This title is not available in a downloadable format supported by KOReader."
 msgstr "This title is not available in a downloadable format supported by KOReader."
+
+msgid "This title requires approximately %d MB of free storage, but your device only has %d MB available.\n\nPlease free up space on your device or select a smaller book."
+msgstr "This title requires approximately %d MB of free storage, but your device only has %d MB available.\n\nPlease free up space on your device or select a smaller book."
 
 msgid "Title"
 msgstr "Title"
@@ -709,6 +733,9 @@ msgstr "Your device does not have enough storage space to complete this download
 
 msgid "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
 msgstr "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
+
+msgid "Your device is running critically low on storage space. Please free up space on your device before downloading."
+msgstr "Your device is running critically low on storage space. Please free up space on your device before downloading."
 
 msgid "badge_audiobook"
 msgstr "Audiobook"

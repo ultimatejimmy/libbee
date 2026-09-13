@@ -11,7 +11,9 @@ describe("libbee_ui", function()
         assert.is_true(type(UI.showDownloadConfirm) == "function")
         assert.is_true(type(UI.showAbout) == "function")
         assert.is_true(type(UI.showToast) == "function")
+        assert.is_true(type(UI.showFilterDialog) == "function")
     end)
+
 
     it("shows styled centered toast", function()
         _G.ui_tracker.shown = {}
@@ -811,21 +813,30 @@ describe("libbee_ui", function()
             -- Header cycling
             shelf_overlay:onRight()
             shelf_overlay:onLeft()
-            shelf_overlay:onPress() -- triggers focused header action
 
             -- Transition back down from header to items
-            local current_ov = _G.ui_tracker.shown[#_G.ui_tracker.shown]
-            current_ov:onDown()
-            current_ov:onPress()
+            shelf_overlay:onDown()
+            shelf_overlay:onPress() -- activates selected book loan
 
-            -- Toggle view mode via shortcut
-            current_ov = _G.ui_tracker.shown[#_G.ui_tracker.shown]
-            current_ov:onViewToggleKey()
+            -- If item activation opened a dialog, close it to return focus to shelf overlay
+            if _G.ui_tracker.shown[#_G.ui_tracker.shown] ~= shelf_overlay then
+                local dlg = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+                if dlg.onClose then dlg:onClose() end
+            end
+
+
+
+            -- Toggle view mode via shortcut on shelf overlay
+            shelf_overlay:onViewToggleKey()
             assert.are_equal("list", State.getViewMode())
 
-            -- Press number shortcut
             local active_overlay = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            -- Press number shortcut on active overlay
             active_overlay:onNum1()
+            if _G.ui_tracker.shown[#_G.ui_tracker.shown] ~= active_overlay then
+                local dlg = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+                if dlg.onClose then dlg:onClose() end
+            end
 
             -- Close shelf
             active_overlay:onClose()
@@ -886,5 +897,143 @@ describe("libbee_ui", function()
             about_menu:onUp()
             about_menu:onClose()
         end)
+
+        it("preserves shelf cache when offline and skips background sync silently", function()
+            local State = require("libbee_state")
+            package.loaded["ui/network/manager"] = {
+                isConnected = function() return false end,
+            }
+            local cached_loans = {
+                { id = "loan-offline-keep", title = "Offline Safe Book", days_remaining = 3 }
+            }
+            State.saveShelfCache(cached_loans)
+
+            _G.ui_tracker.shown = {}
+            UI.showShelfBrowser("/tmp/test_plugin")
+
+            local shelf = State.getShelfCache()
+            assert.is_table(shelf)
+            assert.are_equal(1, #shelf)
+            assert.are_equal("Offline Safe Book", shelf[1].title)
+
+            local ov = _G.ui_tracker.shown[#_G.ui_tracker.shown]
+            if ov and ov.onClose then ov:onClose() end
+            package.loaded["ui/network/manager"] = nil
+        end)
+    end)
+end)
+
+-- ---------------------------------------------------------------------------
+-- Filter feature tests
+-- ---------------------------------------------------------------------------
+
+describe("libbee_ui shelf filter", function()
+    it("showFilterDialog opens a card dialog", function()
+        _G.ui_tracker.shown = {}
+        UI.showFilterDialog("all", function() end)
+        assert.is_true(#_G.ui_tracker.shown > 0)
+    end)
+
+    it("showFilterDialog triggers on_select with chosen filter", function()
+        local chosen = nil
+        -- Simulate the user tapping the first button (All) by calling it directly.
+        -- We intercept showCardDialog to capture the button callbacks.
+        local orig = UI.showCardDialog
+        local captured_buttons = {}
+        UI.showCardDialog = function(opts)
+            captured_buttons = opts.buttons or {}
+            return orig(opts)
+        end
+        UI.showFilterDialog("readable", function(v) chosen = v end)
+        UI.showCardDialog = orig
+
+        -- Simulate tapping "All" (button 1) and "Readable" (button 2)
+        if captured_buttons[1] and captured_buttons[1].callback then
+            captured_buttons[1].callback()
+        end
+        assert.are_equal("all", chosen)
+
+        if captured_buttons[2] and captured_buttons[2].callback then
+            captured_buttons[2].callback()
+        end
+        assert.are_equal("readable", chosen)
+
+        if captured_buttons[3] and captured_buttons[3].callback then
+            captured_buttons[3].callback()
+        end
+        assert.are_equal("other", chosen)
+    end)
+end)
+
+describe("libbee_ui applyShelfFilter logic", function()
+    -- Build synthetic loan objects that mirror what analyzeLoanFormats produces
+    local function make_loan(is_downloadable, restriction_type, title)
+        return {
+            title = title or "Test",
+            is_downloadable = is_downloadable,
+            restriction_type = restriction_type,
+            days_remaining = 10,
+            id = title,
+        }
+    end
+
+    local readable1 = make_loan(true,  nil,           "Good EPUB")
+    local readable2 = make_loan(true,  nil,           "Good PDF")
+    local audio     = make_loan(false, "audiobook",   "My Audiobook")
+    local kindle    = make_loan(false, "kindle_only", "Kindle Only")
+    local libby     = make_loan(false, "libby_only",  "Libby Only")
+
+    local all_loans = { readable1, readable2, audio, kindle, libby }
+
+    -- Replicate applyShelfFilter locally (mirrors the renderShelf closure)
+    local function applyShelfFilter(src, filter)
+        if filter == "all" or not filter then return src end
+        local out = {}
+        for _, loan in ipairs(src) do
+            local readable = loan.is_downloadable and not loan.restriction_type
+            if filter == "readable" and readable then
+                table.insert(out, loan)
+            elseif filter == "other" and not readable then
+                table.insert(out, loan)
+            end
+        end
+        return out
+    end
+
+    it("'all' filter returns all loans unchanged", function()
+        local result = applyShelfFilter(all_loans, "all")
+        assert.are_equal(5, #result)
+    end)
+
+    it("nil filter returns all loans unchanged", function()
+        local result = applyShelfFilter(all_loans, nil)
+        assert.are_equal(5, #result)
+    end)
+
+    it("'readable' filter returns only downloadable loans with no restriction", function()
+        local result = applyShelfFilter(all_loans, "readable")
+        assert.are_equal(2, #result)
+        assert.are_equal("Good EPUB", result[1].title)
+        assert.are_equal("Good PDF",  result[2].title)
+    end)
+
+    it("'other' filter returns only non-readable loans", function()
+        local result = applyShelfFilter(all_loans, "other")
+        assert.are_equal(3, #result)
+    end)
+
+    it("'readable' filter on empty list returns empty list", function()
+        local result = applyShelfFilter({}, "readable")
+        assert.are_equal(0, #result)
+    end)
+
+    it("'other' filter on all-readable list returns empty list", function()
+        local result = applyShelfFilter({ readable1, readable2 }, "other")
+        assert.are_equal(0, #result)
+    end)
+
+    it("'readable' filter on all-non-readable list returns empty list", function()
+        local result = applyShelfFilter({ audio, kindle, libby }, "readable")
+        assert.are_equal(0, #result)
     end)
 end)

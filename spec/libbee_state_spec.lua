@@ -28,6 +28,31 @@ describe("libbee_state view preferences", function()
         State.setGroupByCard(true)
         assert.is_true(State.getGroupByCard() == true)
     end)
+
+    it("defaults shelf filter to 'all'", function()
+        State.saveShelfFilter("all")
+        assert.are_equal("all", State.getShelfFilter())
+    end)
+
+    it("saves and retrieves shelf filter 'readable'", function()
+        State.saveShelfFilter("readable")
+        assert.are_equal("readable", State.getShelfFilter())
+    end)
+
+    it("saves and retrieves shelf filter 'other'", function()
+        State.saveShelfFilter("other")
+        assert.are_equal("other", State.getShelfFilter())
+    end)
+
+    it("normalizes unknown shelf filter to 'all'", function()
+        State.saveShelfFilter("audiobooks_only")
+        assert.are_equal("all", State.getShelfFilter())
+    end)
+
+    it("normalizes nil shelf filter to 'all'", function()
+        State.saveShelfFilter(nil)
+        assert.are_equal("all", State.getShelfFilter())
+    end)
 end)
 
 describe("libbee_state DRM activation state", function()

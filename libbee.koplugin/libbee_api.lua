@@ -761,6 +761,13 @@ local function _syncShelfOnSameConnection(identity)
 end
 
 function M.fetchShelf()
+    -- Fast-path silent check: if KOReader's NetworkMgr is present and offline, fail immediately without popups
+    local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
+    if ok_nm and NetworkMgr and NetworkMgr.isConnected and not NetworkMgr:isConnected() then
+        log.info("libbee api: device is offline, skipping shelf fetch")
+        return nil, "Network offline"
+    end
+
     local accounts = State.getAccounts()
     if #accounts == 0 then
         local single_id = State.getChipIdentity()
@@ -774,12 +781,17 @@ function M.fetchShelf()
 
     local all_loans = {}
     local auth_expired_count = 0
+    local accounts_succeeded = 0
+    local network_error_count = 0
+    local last_sync_error = nil
+    local active_accounts_count = 0
 
     for _, account in ipairs(accounts) do
         local identity = account.chip_identity
         local acc_id = account.id or M.short_chip_id(identity) or "acc"
 
         if identity and identity ~= "" then
+            active_accounts_count = active_accounts_count + 1
             local response, err = _request("GET", "/chip/sync", { identity = identity })
 
             -- Handle missing_chip / token expiration using sticky session sequence
@@ -803,6 +815,7 @@ function M.fetchShelf()
                 auth_expired_count = auth_expired_count + 1
                 log.warn("libbee api: auth expired for account " .. tostring(acc_id))
             elseif response and response.status == 200 and type(response.body) == "table" then
+                accounts_succeeded = accounts_succeeded + 1
                 local data = response.body
                 local cards = data.cards or {}
                 local raw_loans = data.loans or {}
@@ -865,13 +878,24 @@ function M.fetchShelf()
                     })
                 end
             else
-                log.warn("libbee api: shelf sync for account " .. tostring(acc_id) .. " failed: " .. tostring(err or (response and response.status)))
+                network_error_count = network_error_count + 1
+                last_sync_error = err or (response and ("HTTP " .. tostring(response.status))) or "Network request failed"
+                log.warn("libbee api: shelf sync for account " .. tostring(acc_id) .. " failed: " .. tostring(last_sync_error))
             end
         end
     end
 
-    if #all_loans == 0 and auth_expired_count > 0 and auth_expired_count == #accounts then
+    if active_accounts_count > 0 and auth_expired_count == active_accounts_count then
         return nil, "AUTH_EXPIRED"
+    end
+
+    if accounts_succeeded == 0 and active_accounts_count > 0 then
+        return nil, last_sync_error or "Network error"
+    end
+
+    if accounts_succeeded < active_accounts_count then
+        -- Partial failure: not all accounts could be verified
+        return nil, "Partial sync failure: " .. tostring(last_sync_error or "account unreachable")
     end
 
     log.info("libbee api: successfully fetched " .. #all_loans .. " loans across all accounts")

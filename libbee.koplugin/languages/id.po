@@ -29,6 +29,10 @@ msgstr "Tersisa %d hari"
 msgid "%d library cards"
 msgstr "%d kartu perpustakaan"
 
+# en-hash: 1da83afdb8b2e096e56c8bfb98f4e73b
+msgid "%d of %d loans (filtered)"
+msgstr "%d dari %d pinjaman (difilter)"
+
 # en-hash: fed3b58ade678c6cccb2787ef13d86f6
 msgid "(cached)"
 msgstr "(dalam cache)"
@@ -116,6 +120,10 @@ msgstr "Tambah kartu Libby lain"
 # en-hash: b4b315f7552422ccac6375f29b9253ad
 msgid "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
 msgstr "DRM Adobe / ByteBooks mengizinkan maksimum 6 perangkat aktif per akun.\n\nAkun Anda telah mencapai batas 6 perangkat pada server aktivasi Adobe.\n\nUntuk mengatasinya:\n• Hubungi obrolan langsung Dukungan Adobe untuk mengatur ulang jumlah aktivasi Anda (mereka meresetnya dalam waktu ~1 menit).\n• Atau tetap gunakan Libbee dalam Mode Anonim pada perangkat ini (tidak diperlukan akun ByteBooks untuk meminjam dan membaca buku perpustakaan!)."
+
+# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
+msgid "All"
+msgstr "Semua"
 
 # en-hash: a86a401b70835517b24429aaa622a921
 msgid "All accounts disconnected"
@@ -433,6 +441,10 @@ msgstr "Kedaluwarsa hari ini"
 msgid "Failed to create folder."
 msgstr "Gagal membuat folder."
 
+# en-hash: 04a4ccbb1a946c8bee081436bee24bb5
+msgid "Filter Shelf"
+msgstr "Filter Rak"
+
 # en-hash: b0f2b97dc5d2b76b26e040408bb1d8af
 msgid "Folder"
 msgstr "Folder"
@@ -613,6 +625,10 @@ msgstr "Tidak ada pinjaman aktif di rak Libby Anda.\n\nPinjam buku di aplikasi L
 msgid "No automatic download asset found. Visit GitHub to update manually."
 msgstr "Aset unduhan otomatis tidak ditemukan. Kunjungi GitHub untuk memperbarui secara manual."
 
+# en-hash: 50dd36b734a7217935f69741fcd6ae8f
+msgid "No loans match this filter.\n\nTap the filter icon to see all loans."
+msgstr "Tidak ada pinjaman yang cocok dengan filter ini.\n\nKetuk ikon filter untuk melihat semua pinjaman."
+
 # en-hash: 961efebd9317e9797ad27a0045ef521d
 msgid "No log file found yet at:\n%s"
 msgstr "Belum ada berkas log yang ditemukan di:\n%s"
@@ -649,6 +665,10 @@ msgstr "Buka Rak"
 msgid "Opening \"%s\"…"
 msgstr "Membuka \\\"%s\\\"…"
 
+# en-hash: 6311ae17c1ee52b36e68aaf4ad066387
+msgid "Other"
+msgstr "Lainnya"
+
 # en-hash: b8065ad2628f1f82f3167af0947b3e43
 msgid "Page %d of %d"
 msgstr "Halaman %d dari %d"
@@ -668,6 +688,10 @@ msgstr "Silakan masukkan kata sandi ByteBooks Anda"
 # en-hash: 7b77c9535ded2548a4c63da714905b11
 msgid "Re-authenticate"
 msgstr "Autentikasi Ulang"
+
+# en-hash: 4b8123df4e2b3456270c11394adf7607
+msgid "Readable"
+msgstr "Dapat Dibaca"
 
 # en-hash: 4307fc3d8df05d5834a98d34e953e720
 msgid "Refresh failed: %s"
@@ -765,6 +789,10 @@ msgstr "Atur Sekarang"
 msgid "Setup Timed Out"
 msgstr "Waktu Pengaturan Habis"
 
+# en-hash: 6925afb03a53d59c69fd6a29822aaee6
+msgid "Show only loans that match the selected type."
+msgstr "Hanya tampilkan pinjaman yang sesuai dengan tipe yang dipilih."
+
 # en-hash: 6a714c5132cbebf09f9e11bbd7b626ca
 msgid "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"
 msgstr "Masuk untuk menyinkronkan buku di beberapa perangkat.\nKata sandi tidak pernah disimpan.\n\nMasukkan email ID ByteBooks Anda:"
@@ -852,6 +880,10 @@ msgstr "Judul ini adalah buku audio dan tidak dapat diputar di KOReader.\n\nSila
 # en-hash: 26ddfc6b71bdcf8d76f7d3e9ebb74c05
 msgid "This title is not available in a downloadable format supported by KOReader."
 msgstr "Judul ini tidak tersedia dalam format unduhan yang didukung oleh KOReader."
+
+# en-hash: 31d1458a98c1bc8ddac3f1b75cc10a3c
+msgid "This title requires approximately %d MB of free storage, but your device only has %d MB available.\n\nPlease free up space on your device or select a smaller book."
+msgstr "Buku ini memerlukan sekitar %d MB ruang penyimpanan gratis, tetapi perangkat Anda hanya memiliki %d MB yang tersedia.\n\nHarap kosongkan ruang di perangkat Anda atau pilih buku yang lebih kecil."
 
 # en-hash: b78a3223503896721cca1303f776159b
 msgid "Title"
@@ -944,6 +976,10 @@ msgstr "Perangkat Anda tidak memiliki cukup ruang untuk menyelesaikan unduhan in
 # en-hash: 397fbc429d01695ace947dfe8b61023e
 msgid "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
 msgstr "Perangkat Anda memiliki ruang kosong kurang dari 20 MB (%s MB bebas).\n\nHarap hapus beberapa file untuk mengosongkan ruang sebelum mengunduh."
+
+# en-hash: 72bd13226a470b378ffc66664aa0c617
+msgid "Your device is running critically low on storage space. Please free up space on your device before downloading."
+msgstr "Ruang penyimpanan perangkat Anda sangat menipis. Harap kosongkan ruang di perangkat Anda sebelum mengunduh."
 
 # en-hash: 6d22c897874db492fb050da174bf189f
 msgid "badge_audiobook"

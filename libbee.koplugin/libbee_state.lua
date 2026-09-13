@@ -611,6 +611,29 @@ function M.setGroupByCard(enabled)
     return ok
 end
 
+function M.getShelfFilter()
+    local data = _readJson(_statePath())
+    local v = data and data.shelf_filter
+    if v == "readable" or v == "other" then
+        return v
+    end
+    return "all" -- default: show all loans
+end
+
+function M.saveShelfFilter(filter)
+    local data = _readJson(_statePath()) or {}
+    if filter == "readable" or filter == "other" then
+        data.shelf_filter = filter
+    else
+        data.shelf_filter = "all"
+    end
+    local ok = _writeJson(_statePath(), data)
+    if ok then
+        logger.info("libbee state: shelf_filter set to " .. tostring(data.shelf_filter))
+    end
+    return ok
+end
+
 -- ---------------------------------------------------------------------------
 -- Auto-Delete Expired Loans Settings & Download Tracking Registry
 -- ---------------------------------------------------------------------------
@@ -660,6 +683,7 @@ function M.registerDownload(loan, file_path)
     data.downloaded_books[loan_id] = {
         loan_id       = loan_id,
         reserve_id    = loan.reserveId and tostring(loan.reserveId) or nil,
+        account_id    = loan.account_id and tostring(loan.account_id) or nil,
         title         = loan.title or "",
         author        = loan.author or "",
         path          = file_path,

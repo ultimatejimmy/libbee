@@ -1418,6 +1418,42 @@ end
 
 local active_shelf_overlay = nil
 
+-- ---------------------------------------------------------------------------
+-- Filter Dialog
+-- ---------------------------------------------------------------------------
+
+function M.showFilterDialog(current_filter, on_select)
+    current_filter = current_filter or "all"
+    local function label(key, display)
+        return (current_filter == key and "● " or "  ") .. display
+    end
+    M.showCardDialog{
+        title = _("Filter Shelf"),
+        body_text = _("Show only loans that match the selected type."),
+        buttons = {
+            {
+                text = label("all", _("All")),
+                callback = function()
+                    if on_select then on_select("all") end
+                end,
+            },
+            {
+                text = label("readable", _("Readable")),
+                is_primary = (current_filter == "readable"),
+                callback = function()
+                    if on_select then on_select("readable") end
+                end,
+            },
+            {
+                text = label("other", _("Other")),
+                callback = function()
+                    if on_select then on_select("other") end
+                end,
+            },
+        },
+    }
+end
+
 function M.showShelfBrowser(plugin_dir)
     local State = require(plugin_path .. "libbee_state")
     local API   = require(plugin_path .. "libbee_api")
@@ -1466,12 +1502,30 @@ function M.showShelfBrowser(plugin_dir)
         local sw = Screen:getWidth()
         local sh = Screen:getHeight()
         local view_mode = State.getViewMode() -- "list" or "cover"
+        local shelf_filter = State.getShelfFilter() -- "all", "readable", or "other"
 
-        -- Sort loans deterministically:
+        -- Apply filter to produce the display list (all_loans remains the full unfiltered set)
+        local all_loans = loans or {}
+        local function applyShelfFilter(src, filter)
+            if filter == "all" or not filter then return src end
+            local out = {}
+            for _, loan in ipairs(src) do
+                local readable = loan.is_downloadable and not loan.restriction_type
+                if filter == "readable" and readable then
+                    table.insert(out, loan)
+                elseif filter == "other" and not readable then
+                    table.insert(out, loan)
+                end
+            end
+            return out
+        end
+        local display_loans = applyShelfFilter(all_loans, shelf_filter)
+
+
         -- 1. Days remaining (soonest first)
         -- 2. Title (alphabetical case-insensitive)
         -- 3. Unique ID / reserveId as tiebreaker
-        table.sort(loans or {}, function(a, b)
+        table.sort(display_loans, function(a, b)
             local da = a.days_remaining or 999
             local db = b.days_remaining or 999
             if da ~= db then
@@ -1488,7 +1542,8 @@ function M.showShelfBrowser(plugin_dir)
         end)
 
         local lib_name = State.getLibraryName() or "Libby"
-        local loan_count = #loans
+        local loan_count = #display_loans       -- count of filtered (displayed) loans
+        local total_loan_count = #all_loans     -- count of all loans (for "N of M" label)
         local all_cards = State.getAllCards()
         local group_by_card = State.getGroupByCard and State.getGroupByCard() ~= false
 
@@ -1499,7 +1554,7 @@ function M.showShelfBrowser(plugin_dir)
         -- Determine library cards / accounts present across active loans
         local card_groups = {}
         local group_order = {}
-        for _, loan in ipairs(loans) do
+        for _, loan in ipairs(display_loans) do
             local g_name = group_by_card and State.loanGroupLabel(loan, all_cards) or ""
             if not card_groups[g_name] then
                 card_groups[g_name] = {}
@@ -1511,6 +1566,7 @@ function M.showShelfBrowser(plugin_dir)
             return tostring(a):lower() < tostring(b):lower()
         end)
 
+
         -- Flatten loans for pagination (keeps card/library grouping info)
         local flat_items = {}
         if #group_order > 1 then
@@ -1520,10 +1576,11 @@ function M.showShelfBrowser(plugin_dir)
                 end
             end
         else
-            for _, loan in ipairs(loans) do
+            for _, loan in ipairs(display_loans) do
                 table.insert(flat_items, { loan = loan, lib = nil })
             end
         end
+
 
         local lib_order = group_order
 
@@ -1539,10 +1596,10 @@ function M.showShelfBrowser(plugin_dir)
             size = btn_size,
             padding = btn_pad,
             padding_h = btn_pad,
-            is_focused = (focus_visible and is_hdr and focused_header_idx == 1),
+            is_focused = (focus_visible and is_hdr and focused_header_idx == 2),
             callback = function()
                 focus_zone = "header"
-                focused_header_idx = 1
+                focused_header_idx = 2
                 local next_mode = (view_mode == "cover") and "list" or "cover"
                 State.saveViewMode(next_mode)
                 current_page = 1
@@ -1556,11 +1613,10 @@ function M.showShelfBrowser(plugin_dir)
             size = btn_size,
             padding = btn_pad,
             padding_h = btn_pad,
-            is_focused = (focus_visible and is_hdr and focused_header_idx == 2),
+            is_focused = (focus_visible and is_hdr and focused_header_idx == 3),
             callback = function()
                 focus_zone = "header"
-                focused_header_idx = 2
-                State.clearShelfCache()
+                focused_header_idx = 3
                 _runAsync(
                     function() return API.fetchShelf() end,
                     _("Refreshing shelf from Libby…"),
@@ -1586,10 +1642,10 @@ function M.showShelfBrowser(plugin_dir)
             size = btn_size,
             padding = btn_pad,
             padding_h = btn_pad,
-            is_focused = (focus_visible and is_hdr and focused_header_idx == 3),
+            is_focused = (focus_visible and is_hdr and focused_header_idx == 4),
             callback = function()
                 focus_zone = "header"
-                focused_header_idx = 3
+                focused_header_idx = 4
                 M.showAbout(plugin_dir, function()
                     renderShelf(loans, from_cache)
                 end, function()
@@ -1603,7 +1659,7 @@ function M.showShelfBrowser(plugin_dir)
             size = btn_size,
             padding = btn_pad,
             padding_h = btn_pad,
-            is_focused = (focus_visible and is_hdr and focused_header_idx == 4),
+            is_focused = (focus_visible and is_hdr and focused_header_idx == 5),
             callback = function()
                 if active_shelf_overlay then
                     local ov = active_shelf_overlay
@@ -1614,7 +1670,32 @@ function M.showShelfBrowser(plugin_dir)
             end,
         }
 
+        -- Filter button: highlighted background when a non-"all" filter is active
+        local filter_active = (shelf_filter ~= "all")
+        local filter_btn = createIconButton{
+            icon = "filter.svg",
+            size = btn_size,
+            padding = btn_pad,
+            padding_h = btn_pad,
+            is_focused = (focus_visible and is_hdr and focused_header_idx == 1),
+            background = filter_active and (theme.color_focus_bg or Blitbuffer.COLOR_LIGHT_GRAY) or nil,
+            bordersize = filter_active and (theme.border_btn or sc(1)) or nil,
+            radius = filter_active and (theme.radius_btn or sc(4)) or nil,
+            callback = function()
+                focus_zone = "header"
+                focused_header_idx = 1
+                M.showFilterDialog(shelf_filter, function(chosen)
+                    State.saveShelfFilter(chosen)
+                    current_page = 1
+                    focused_shelf_idx = 1
+                    renderShelf(loans, from_cache)
+                end)
+            end,
+        }
+
         local header_actions = HorizontalGroup:new{
+            filter_btn,
+            HorizontalSpan:new{ width = sc(12) },
             view_toggle_btn,
             HorizontalSpan:new{ width = sc(12) },
             refresh_btn,
@@ -1647,7 +1728,16 @@ function M.showShelfBrowser(plugin_dir)
             }
         }
 
-        local count_str = string.format("%d %s", loan_count, loan_count == 1 and _("loan") or _("loans"))
+        -- Build count string; show "N of M" when a filter is active
+        local count_str
+        if filter_active then
+            count_str = string.format(
+                _("%d of %d loans (filtered)"),
+                loan_count, total_loan_count
+            )
+        else
+            count_str = string.format("%d %s", loan_count, loan_count == 1 and _("loan") or _("loans"))
+        end
         if from_cache then count_str = count_str .. " " .. _("(cached)") end
 
         local sub_text = count_str
@@ -1658,6 +1748,7 @@ function M.showShelfBrowser(plugin_dir)
         elseif lib_name and lib_name ~= "" then
             sub_text = count_str .. "  ·  " .. lib_name
         end
+
 
         local actions_w = header_actions:getSize().w
         local header_avail_w = sw - sc(24)
@@ -2138,9 +2229,16 @@ function M.showShelfBrowser(plugin_dir)
         end
 
         -- Render the current page items
-        if #loans == 0 then
-            local empty_msg = from_cache and _("Connecting to Libby…\n\nLoading your active loans…")
-                or _("No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!")
+        if #display_loans == 0 then
+            local empty_msg
+            if from_cache then
+                empty_msg = _("Connecting to Libby…\n\nLoading your active loans…")
+            elseif filter_active then
+                empty_msg = _("No loans match this filter.\n\nTap the filter icon to see all loans.")
+            else
+                empty_msg = _("No active loans found on your Libby shelf.\n\nBorrow a book in the Libby app, then tap ↻ Refresh!")
+            end
+
             local empty_text = TextBoxWidget:new{
                 text = empty_msg,
                 face = Font:getFace("cfont", 16),
@@ -2412,7 +2510,7 @@ function M.showShelfBrowser(plugin_dir)
                     return true
                 else
                     focus_zone = "header"
-                    focused_header_idx = math.min(4, math.max(1, focused_shelf_idx))
+                    focused_header_idx = math.min(5, math.max(1, focused_shelf_idx))
                     renderShelf(loans, from_cache)
                     return true
                 end
@@ -2426,9 +2524,12 @@ function M.showShelfBrowser(plugin_dir)
                 if count > 0 then
                     focus_zone = "items"
                     if view_mode == "cover" then
-                        if focused_header_idx == 1 then
+                        -- Map 5 header buttons to 3 grid columns
+                        if focused_header_idx <= 1 then
                             focused_shelf_idx = 1
                         elseif focused_header_idx == 2 then
+                            focused_shelf_idx = 1
+                        elseif focused_header_idx == 3 then
                             focused_shelf_idx = math.min(2, count)
                         else
                             focused_shelf_idx = math.min(3, count)
@@ -2439,6 +2540,7 @@ function M.showShelfBrowser(plugin_dir)
                     renderShelf(loans, from_cache)
                     return true
                 end
+
                 return true
             end
             local count = #cur_page_loans
@@ -2490,7 +2592,7 @@ function M.showShelfBrowser(plugin_dir)
         active_shelf_overlay.onRight = function()
             if ensureFocusVisible() then return true end
             if focus_zone == "header" then
-                if focused_header_idx < 4 then
+                if focused_header_idx < 5 then
                     focused_header_idx = focused_header_idx + 1
                     renderShelf(loans, from_cache)
                     return true
@@ -2516,14 +2618,22 @@ function M.showShelfBrowser(plugin_dir)
         active_shelf_overlay.onPress = function()
             if focus_zone == "header" then
                 if focused_header_idx == 1 then
+                    -- Filter button
+                    M.showFilterDialog(shelf_filter, function(chosen)
+                        State.saveShelfFilter(chosen)
+                        current_page = 1
+                        focused_shelf_idx = 1
+                        renderShelf(loans, from_cache)
+                    end)
+                    return true
+                elseif focused_header_idx == 2 then
                     local next_mode = (view_mode == "cover") and "list" or "cover"
                     State.saveViewMode(next_mode)
                     current_page = 1
                     focused_shelf_idx = 1
                     renderShelf(loans, from_cache)
                     return true
-                elseif focused_header_idx == 2 then
-                    State.clearShelfCache()
+                elseif focused_header_idx == 3 then
                     _runAsync(
                         function() return API.fetchShelf() end,
                         _("Refreshing shelf from Libby…"),
@@ -2542,14 +2652,14 @@ function M.showShelfBrowser(plugin_dir)
                         end
                     )
                     return true
-                elseif focused_header_idx == 3 then
+                elseif focused_header_idx == 4 then
                     M.showAbout(plugin_dir, function()
                         renderShelf(loans, from_cache)
                     end, function()
                         renderShelf(loans, from_cache)
                     end)
                     return true
-                elseif focused_header_idx == 4 then
+                elseif focused_header_idx == 5 then
                     if active_shelf_overlay then
                         local ov = active_shelf_overlay
                         active_shelf_overlay = nil
@@ -2562,6 +2672,7 @@ function M.showShelfBrowser(plugin_dir)
                 return activateLoanAtIndex(focused_shelf_idx)
             end
         end
+
 
         active_shelf_overlay.onNum1 = function() return activateLoanAtIndex(1) end
         active_shelf_overlay.onNum2 = function() return activateLoanAtIndex(2) end
@@ -2592,7 +2703,6 @@ function M.showShelfBrowser(plugin_dir)
         end
 
         active_shelf_overlay.onRefreshKey = function()
-            State.clearShelfCache()
             _runAsync(
                 function() return API.fetchShelf() end,
                 _("Refreshing shelf from Libby…"),
@@ -2659,11 +2769,19 @@ function M.showShelfBrowser(plugin_dir)
         is_syncing = true
         local delay = force and 0.1 or 0.5
         UIManager:scheduleIn(delay, function()
+            -- Fast-path silent check: if KOReader's NetworkMgr reports offline, skip background sync silently without popups
+            local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
+            if ok_nm and NetworkMgr and NetworkMgr.isConnected and not NetworkMgr:isConnected() then
+                is_syncing = false
+                log.info("libbee ui: device is offline, skipping background shelf sync silently")
+                return
+            end
+
             local ok, result, err = pcall(function()
                 return API.fetchShelf()
             end)
             is_syncing = false
-            if ok and type(result) == "table" then
+            if ok and type(result) == "table" and not err then
                 State.saveShelfCache(result)
                 if #result > 0 then
                     pcall(Covers.cleanupExpiredCovers, result)
@@ -2671,7 +2789,10 @@ function M.showShelfBrowser(plugin_dir)
                 if State.getAutoDeleteExpired and State.getAutoDeleteExpired() then
                     local ok_ac, AutoClean = pcall(require, plugin_path .. "libbee_autoclean")
                     if ok_ac and AutoClean and AutoClean.checkAndCleanup then
-                        local clean_res = AutoClean.checkAndCleanup(result, { is_live_sync = true })
+                        local clean_res = AutoClean.checkAndCleanup(result, {
+                            is_live_sync  = true,
+                            verified_sync = true,
+                        })
                         if clean_res and clean_res.deleted_count and clean_res.deleted_count > 0 then
                             if clean_res.deleted_count == 1 and clean_res.deleted_titles and clean_res.deleted_titles[1] then
                                 _toast(string.format(_("Auto-deleted \"%s\" (loan ended)."), clean_res.deleted_titles[1]), 4)
@@ -2689,6 +2810,8 @@ function M.showShelfBrowser(plugin_dir)
                 if active_shelf_overlay then
                     M._handleAuthExpired(plugin_dir)
                 end
+            else
+                log.info("libbee ui: background sync did not complete: " .. tostring(err or result))
             end
         end)
     end
@@ -2717,18 +2840,8 @@ function M.showShelfBrowser(plugin_dir)
         end
     end
 
-    -- Trigger automatic background refresh
+    -- Trigger automatic background refresh (silent if offline)
     doBackgroundSync()
-
-    -- Also listen for online status if network connects while shelf is open
-    local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
-    if ok_nm and NetworkMgr and type(NetworkMgr.runWhenOnline) == "function" then
-        NetworkMgr:runWhenOnline(function()
-            if active_shelf_overlay then
-                doBackgroundSync()
-            end
-        end)
-    end
 end
 
 -- ---------------------------------------------------------------------------

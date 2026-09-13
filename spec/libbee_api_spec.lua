@@ -204,4 +204,31 @@ describe("Libbee API & Transport Tests", function()
         end)
     end)
 
+    describe("fetchShelf network safeguards", function()
+        after_each(function()
+            package.loaded["ui/network/manager"] = nil
+        end)
+
+        it("fails immediately and silently with 'Network offline' when NetworkMgr reports offline", function()
+            package.loaded["ui/network/manager"] = {
+                isConnected = function() return false end,
+            }
+            local res, err = API.fetchShelf()
+            assert.is_nil(res)
+            assert.equals("Network offline", err)
+        end)
+
+        it("returns error and never returns an empty table when network requests fail", function()
+            State.saveChipIdentity("header.payload.sig", "Test Lib", {})
+            -- Network is connected, but HTTP transport request will fail in test mock
+            package.loaded["ui/network/manager"] = {
+                isConnected = function() return true end,
+            }
+            local res, err = API.fetchShelf()
+            assert.is_nil(res)
+            assert.is_string(err)
+            assert.is_true(res ~= {})
+        end)
+    end)
+
 end)

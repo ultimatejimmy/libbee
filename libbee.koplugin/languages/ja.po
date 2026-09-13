@@ -29,6 +29,10 @@ msgstr "残り %d 日"
 msgid "%d library cards"
 msgstr "%d 枚の図書カード"
 
+# en-hash: 1da83afdb8b2e096e56c8bfb98f4e73b
+msgid "%d of %d loans (filtered)"
+msgstr "%d / %d 件の貸出（フィルター適用中）"
+
 # en-hash: fed3b58ade678c6cccb2787ef13d86f6
 msgid "(cached)"
 msgstr "(キャッシュ)"
@@ -116,6 +120,10 @@ msgstr "別のLibbyカードを追加"
 # en-hash: b4b315f7552422ccac6375f29b9253ad
 msgid "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
 msgstr "Adobe / ByteBooksのDRMでは、1アカウントにつき最大6台のアクティベーションが可能です。\n\nお使いのアカウントはAdobeのアクティベーションサーバーで6台の制限に達しました。\n\n解決方法:\n• Adobeサポートのライブチャットに問い合わせて、アクティベーション回数をリセットしてください（約1分でリセットされます）。\n• または、この端末で引き続きLibbeeを「匿名モード」で使用してください（図書館の本を借りて読むのにByteBooksアカウントは必要ありません！）。"
+
+# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
+msgid "All"
+msgstr "すべて"
 
 # en-hash: a86a401b70835517b24429aaa622a921
 msgid "All accounts disconnected"
@@ -433,6 +441,10 @@ msgstr "本日返却期限"
 msgid "Failed to create folder."
 msgstr "フォルダの作成に失敗しました。"
 
+# en-hash: 04a4ccbb1a946c8bee081436bee24bb5
+msgid "Filter Shelf"
+msgstr "本棚をフィルター"
+
 # en-hash: b0f2b97dc5d2b76b26e040408bb1d8af
 msgid "Folder"
 msgstr "フォルダ"
@@ -613,6 +625,10 @@ msgstr "Libby の本棚に貸出中の本が見つかりません。\n\nLibby �
 msgid "No automatic download asset found. Visit GitHub to update manually."
 msgstr "自動ダウンロード用アセットが見つかりません。GitHub から手動で更新してください。"
 
+# en-hash: 50dd36b734a7217935f69741fcd6ae8f
+msgid "No loans match this filter.\n\nTap the filter icon to see all loans."
+msgstr "このフィルターに一致する貸出はありません。\n\nフィルターアイコンをタップすると、すべての貸出が表示されます。"
+
 # en-hash: 961efebd9317e9797ad27a0045ef521d
 msgid "No log file found yet at:\n%s"
 msgstr "次の場所にログファイルが見つかりません:\n%s"
@@ -649,6 +665,10 @@ msgstr "本棚を開く"
 msgid "Opening \"%s\"…"
 msgstr "「%s」を開いています…"
 
+# en-hash: 6311ae17c1ee52b36e68aaf4ad066387
+msgid "Other"
+msgstr "その他"
+
 # en-hash: b8065ad2628f1f82f3167af0947b3e43
 msgid "Page %d of %d"
 msgstr "%d / %d ページ"
@@ -668,6 +688,10 @@ msgstr "ByteBooks のパスワードを入力してください"
 # en-hash: 7b77c9535ded2548a4c63da714905b11
 msgid "Re-authenticate"
 msgstr "再認証"
+
+# en-hash: 4b8123df4e2b3456270c11394adf7607
+msgid "Readable"
+msgstr "閲覧可能"
 
 # en-hash: 4307fc3d8df05d5834a98d34e953e720
 msgid "Refresh failed: %s"
@@ -765,6 +789,10 @@ msgstr "今すぐ設定"
 msgid "Setup Timed Out"
 msgstr "設定がタイムアウトしました"
 
+# en-hash: 6925afb03a53d59c69fd6a29822aaee6
+msgid "Show only loans that match the selected type."
+msgstr "選択したタイプに一致する貸出本のみを表示します。"
+
 # en-hash: 6a714c5132cbebf09f9e11bbd7b626ca
 msgid "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"
 msgstr "サインインして複数端末間で本を同期します。\nパスワードは保存されません。\n\nByteBooks ID のメールアドレスを入力してください:"
@@ -852,6 +880,10 @@ msgstr "このタイトルはオーディオブックのため、KOReaderでは�
 # en-hash: 26ddfc6b71bdcf8d76f7d3e9ebb74c05
 msgid "This title is not available in a downloadable format supported by KOReader."
 msgstr "このタイトルは KOReader が対応しているダウンロード形式では利用できません。"
+
+# en-hash: 31d1458a98c1bc8ddac3f1b75cc10a3c
+msgid "This title requires approximately %d MB of free storage, but your device only has %d MB available.\n\nPlease free up space on your device or select a smaller book."
+msgstr "この本をダウンロードするには約 %d MB の空き容量が必要ですが、デバイスには %d MB しかありません。\n\nデバイスの空き容量を増やすか、より容量の小さい本を選択してください。"
 
 # en-hash: b78a3223503896721cca1303f776159b
 msgid "Title"
@@ -944,6 +976,10 @@ msgstr "このダウンロードを完了するのに十分な空き容量があ
 # en-hash: 397fbc429d01695ace947dfe8b61023e
 msgid "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
 msgstr "端末の空き容量が20MB未満です（空き: %s MB）。\n\nダウンロードする前に不要なファイルを削除してください。"
+
+# en-hash: 72bd13226a470b378ffc66664aa0c617
+msgid "Your device is running critically low on storage space. Please free up space on your device before downloading."
+msgstr "デバイスの空き容量が極めて少なくなっています。ダウンロードする前にデバイスの空き容量を増やしてください。"
 
 # en-hash: 6d22c897874db492fb050da174bf189f
 msgid "badge_audiobook"

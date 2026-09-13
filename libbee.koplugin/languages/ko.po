@@ -29,6 +29,10 @@ msgstr "%d일 남음"
 msgid "%d library cards"
 msgstr "%d개의 도서관 카드"
 
+# en-hash: 1da83afdb8b2e096e56c8bfb98f4e73b
+msgid "%d of %d loans (filtered)"
+msgstr "%d / %d 대출 (필터링됨)"
+
 # en-hash: fed3b58ade678c6cccb2787ef13d86f6
 msgid "(cached)"
 msgstr "(캐시됨)"
@@ -116,6 +120,10 @@ msgstr "다른 Libby 카드 추가"
 # en-hash: b4b315f7552422ccac6375f29b9253ad
 msgid "Adobe / ByteBooks DRM allows a maximum of 6 activated devices per account.\n\nYour account has reached its 6-device limit on Adobe's activation server.\n\nTo resolve this:\n• Contact Adobe Support live chat to reset your activation count (they reset it in ~1 minute).\n• Or continue using Libbee in Anonymous Mode on this device (no ByteBooks account is required to borrow and read library books!)."
 msgstr "Adobe / ByteBooks DRM은 계정당 최대 6대의 활성화된 기기를 허용합니다.\n\n현재 계정이 Adobe 활성화 서버의 6대 기기 제한에 도달했습니다.\n\n이 문제를 해결하려면:\n• Adobe 지원 라이브 채팅에 문의하여 활성화 횟수를 초기화하세요 (약 1분 소요).\n• 또는 이 기기에서 익명 모드로 Libbee를 계속 사용하세요 (도서관 책을 대출하고 읽기 위해 ByteBooks 계정이 필요하지 않습니다!)."
+
+# en-hash: b1c94ca2fbc3e78fc30069c8d0f01680
+msgid "All"
+msgstr "전체"
 
 # en-hash: a86a401b70835517b24429aaa622a921
 msgid "All accounts disconnected"
@@ -433,6 +441,10 @@ msgstr "오늘 만료"
 msgid "Failed to create folder."
 msgstr "폴더 생성에 실패했습니다."
 
+# en-hash: 04a4ccbb1a946c8bee081436bee24bb5
+msgid "Filter Shelf"
+msgstr "서재 필터"
+
 # en-hash: b0f2b97dc5d2b76b26e040408bb1d8af
 msgid "Folder"
 msgstr "폴더"
@@ -459,7 +471,7 @@ msgstr "설치 실패 (압축 해제): %s"
 
 # en-hash: 5441bf55ddbc84e8f574acd8d735638b
 msgid "Kindle"
-msgstr "Kindle"
+msgstr "킨들"
 
 # en-hash: 92e47934b99e8f1ae63d1010034be6f2
 msgid "Kindle / Libby Only"
@@ -613,6 +625,10 @@ msgstr "Libby 서가에 대출 중인 도서가 없습니다.\n\nLibby 앱에서
 msgid "No automatic download asset found. Visit GitHub to update manually."
 msgstr "자동 다운로드 파일을 찾을 수 없습니다. 수동으로 업데이트하려면 GitHub를 방문하세요."
 
+# en-hash: 50dd36b734a7217935f69741fcd6ae8f
+msgid "No loans match this filter.\n\nTap the filter icon to see all loans."
+msgstr "이 필터에 일치하는 대출이 없습니다.\n\n필터 아이콘을 누르면 모든 대출을 볼 수 있습니다."
+
 # en-hash: 961efebd9317e9797ad27a0045ef521d
 msgid "No log file found yet at:\n%s"
 msgstr "로그 파일을 찾을 수 없습니다:\n%s"
@@ -649,6 +665,10 @@ msgstr "서가 열기"
 msgid "Opening \"%s\"…"
 msgstr "\"%s\" 여는 중…"
 
+# en-hash: 6311ae17c1ee52b36e68aaf4ad066387
+msgid "Other"
+msgstr "기타"
+
 # en-hash: b8065ad2628f1f82f3167af0947b3e43
 msgid "Page %d of %d"
 msgstr "%d / %d 페이지"
@@ -668,6 +688,10 @@ msgstr "ByteBooks 비밀번호를 입력하세요"
 # en-hash: 7b77c9535ded2548a4c63da714905b11
 msgid "Re-authenticate"
 msgstr "다시 인증"
+
+# en-hash: 4b8123df4e2b3456270c11394adf7607
+msgid "Readable"
+msgstr "읽기 가능"
 
 # en-hash: 4307fc3d8df05d5834a98d34e953e720
 msgid "Refresh failed: %s"
@@ -765,6 +789,10 @@ msgstr "지금 설정"
 msgid "Setup Timed Out"
 msgstr "설정 시간 초과"
 
+# en-hash: 6925afb03a53d59c69fd6a29822aaee6
+msgid "Show only loans that match the selected type."
+msgstr "선택한 유형과 일치하는 대여 항목만 표시합니다."
+
 # en-hash: 6a714c5132cbebf09f9e11bbd7b626ca
 msgid "Sign in to sync books across multiple devices.\nPassword is never saved to storage.\n\nEnter your ByteBooks ID email:"
 msgstr "여러 기기에서 도서를 동기화하려면 로그인하세요.\n비밀번호는 저장되지 않습니다.\n\nByteBooks ID 이메일을 입력하세요:"
@@ -852,6 +880,10 @@ msgstr "이 타이틀은 오디오북이므로 KOReader에서 재생할 수 없�
 # en-hash: 26ddfc6b71bdcf8d76f7d3e9ebb74c05
 msgid "This title is not available in a downloadable format supported by KOReader."
 msgstr "이 도서는 KOReader에서 지원하는 다운로드 형식으로 제공되지 않습니다."
+
+# en-hash: 31d1458a98c1bc8ddac3f1b75cc10a3c
+msgid "This title requires approximately %d MB of free storage, but your device only has %d MB available.\n\nPlease free up space on your device or select a smaller book."
+msgstr "이 책은 약 %d MB의 여유 공간이 필요하지만, 기기에 %d MB만 남아 있습니다.\n\n기기의 여유 공간을 확보하거나 더 작은 책을 선택해 주세요."
 
 # en-hash: b78a3223503896721cca1303f776159b
 msgid "Title"
@@ -944,6 +976,10 @@ msgstr "이 다운로드를 완료하기 위한 저장 공간이 부족합니다
 # en-hash: 397fbc429d01695ace947dfe8b61023e
 msgid "Your device has less than 20 MB of free storage space (%s MB free).\n\nPlease delete some files to free up space before downloading."
 msgstr "기기의 여유 저장 공간이 20MB 미만입니다 (%s MB 남음).\n\n다운로드하기 전에 파일을 삭제하여 공간을 확보하세요."
+
+# en-hash: 72bd13226a470b378ffc66664aa0c617
+msgid "Your device is running critically low on storage space. Please free up space on your device before downloading."
+msgstr "기기의 저장 공간이 거의 없습니다. 다운로드하기 전에 기기의 여유 공간을 확보해 주세요."
 
 # en-hash: 6d22c897874db492fb050da174bf189f
 msgid "badge_audiobook"
