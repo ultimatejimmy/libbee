@@ -68,13 +68,63 @@ if isAndroid then
     -- On Android, KOReader's monolbtic only exports a tiny subset of crypto symbols.
     -- Use the system BoringSSL instead, which has everything we need.
     -- androidCopyLoad handles arch detection, arch-tagged caching, and legacy cleanup.
-    local android = require("android")
-    libcrypto = androidCopyLoad("crypto", jit.arch, android.dir)
-elseif ffi.loadlib then
-    -- On Kindle/etc, KOReader ships a standalone LibreSSL with full symbols.
-    libcrypto = ffi.loadlib("crypto", "57", "crypto")
+    local ok_android, android = pcall(require, "android")
+    if ok_android and android then
+        local ok, lib = pcall(androidCopyLoad, "crypto", jit.arch, android.dir)
+        if ok and lib then libcrypto = lib end
+    end
 else
-    libcrypto = ffi.load("crypto")
+    if ffi.loadlib then
+        -- On Kindle/Kobo/etc, KOReader ships a standalone LibreSSL with full symbols.
+        -- Different KOReader versions ship different LibreSSL soname versions over time:
+        -- e.g. 57 (KOReader 2025.05+), 55 (KOReader 2024.11-2025.04), 52/50 (older), etc.
+        -- Probe candidate soname versions in descending order, followed by unversioned.
+        local ok, lib = pcall(ffi.loadlib,
+            "crypto", "60",
+            "crypto", "59",
+            "crypto", "58",
+            "crypto", "57",
+            "crypto", "56",
+            "crypto", "55",
+            "crypto", "54",
+            "crypto", "53",
+            "crypto", "52",
+            "crypto", "51",
+            "crypto", "50",
+            "crypto", "48",
+            "crypto", "47",
+            "crypto", "46",
+            "crypto", "45",
+            "crypto", nil
+        )
+        if ok and lib then libcrypto = lib end
+    end
+    if not libcrypto then
+        local names = {
+            "crypto",
+            "libcrypto.so",
+            "libs/libcrypto.so",
+            "libs/libcrypto.so.57",
+            "libs/libcrypto.so.56",
+            "libs/libcrypto.so.55",
+            "libs/libcrypto.so.54",
+            "libs/libcrypto.so.53",
+            "libs/libcrypto.so.52",
+            "libs/libcrypto.so.50",
+            "libcrypto.so.57",
+            "libcrypto.so.55",
+            "libcrypto.dylib",
+            "libcrypto.57.dylib",
+            "libcrypto.55.dylib",
+        }
+        for _, name in ipairs(names) do
+            local ok, lib = pcall(ffi.load, name)
+            if ok and lib then
+                libcrypto = lib
+                break
+            end
+        end
+    end
 end
 
 pcall(ffi.cdef, [[
@@ -147,7 +197,7 @@ void PKCS12_free(PKCS12 *a);
 -- tables populated before APIs like PKCS12_parse can resolve PBES2 algorithms
 -- by OID. Newer Android crypto stacks may not expose these symbols, so this is
 -- intentionally best-effort.
-if isAndroid then
+if isAndroid and libcrypto then
     local ok = pcall(function()
         libcrypto.OPENSSL_add_all_algorithms_noconf()
     end)
@@ -164,6 +214,10 @@ end
 local nativecrypto = {
     RSA_PKCS1_PADDING = 1,
 }
+
+function nativecrypto.is_available()
+    return libcrypto ~= nil
+end
 
 local uchar_pp = ffi.typeof("unsigned char *[1]")
 local const_uchar_pp = ffi.typeof("const unsigned char *[1]")
@@ -266,6 +320,9 @@ local function wrap_pkey(ctx)
 end
 
 function nativecrypto.rand_bytes(n)
+    if not libcrypto then
+        return nil, "libcrypto library is not available"
+    end
     local buf = ffi.new("unsigned char[?]", n)
     if libcrypto.RAND_bytes(buf, n) ~= 1 then
         return nil, "RAND_bytes failed"
@@ -274,6 +331,9 @@ function nativecrypto.rand_bytes(n)
 end
 
 function nativecrypto.sha1(data)
+    if not libcrypto then
+        return nil, "libcrypto library is not available"
+    end
     local buf = ffi.new("unsigned char[20]")
     if libcrypto.SHA1(ffi.cast("const unsigned char *", data), #data, buf) == nil then
         return nil, "SHA1 failed"
@@ -282,6 +342,9 @@ function nativecrypto.sha1(data)
 end
 
 local function evp_cipher(do_encrypt, key, iv, input, no_padding)
+    if not libcrypto then
+        return nil, "libcrypto library is not available"
+    end
     local ctx = libcrypto.EVP_CIPHER_CTX_new()
     if ctx == nil then
         return nil, "EVP_CIPHER_CTX_new failed"
@@ -341,6 +404,9 @@ end
 -- :finalize() returns any remaining bytes and frees the context.
 -- The output buffer is allocated once and reused across update() calls.
 function nativecrypto.aes_cbc_decryptor(key, iv, no_padding)
+    if not libcrypto then
+        return nil, "libcrypto library is not available"
+    end
     local ctx = libcrypto.EVP_CIPHER_CTX_new()
     if ctx == nil then
         return nil, "EVP_CIPHER_CTX_new failed"
@@ -408,6 +474,9 @@ function nativecrypto.aes_cbc_decryptor(key, iv, no_padding)
 end
 
 function nativecrypto.key_from_private_der(der)
+    if not libcrypto then
+        return nil, "libcrypto library is not available"
+    end
     local p = der_pointer(der)
     local ctx = libcrypto.d2i_AutoPrivateKey(nil, p, #der)
     if ctx == nil then
@@ -417,6 +486,9 @@ function nativecrypto.key_from_private_der(der)
 end
 
 function nativecrypto.generate_rsa_key(bits, exp)
+    if not libcrypto then
+        return nil, "libcrypto library is not available"
+    end
     local rsa = libcrypto.RSA_new()
     local bn = libcrypto.BN_new()
     if rsa == nil or bn == nil then
@@ -451,6 +523,9 @@ function nativecrypto.generate_rsa_key(bits, exp)
 end
 
 function nativecrypto.encrypt_with_cert(cert_der, data)
+    if not libcrypto then
+        return nil, "libcrypto library is not available"
+    end
     local p = der_pointer(cert_der)
     local cert = libcrypto.d2i_X509(nil, p, #cert_der)
     if cert == nil then
@@ -467,6 +542,9 @@ function nativecrypto.encrypt_with_cert(cert_der, data)
 end
 
 function nativecrypto.parse_pkcs12(der, password)
+    if not libcrypto then
+        return nil, "libcrypto library is not available"
+    end
     local bio = libcrypto.BIO_new_mem_buf(der, #der)
     if bio == nil then
         return nil, "BIO_new_mem_buf failed"
